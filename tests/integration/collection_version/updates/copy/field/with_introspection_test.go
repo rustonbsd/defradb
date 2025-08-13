@@ -8,42 +8,39 @@
 // by the Apache License, Version 2.0, included in the file
 // licenses/APL.txt.
 
-package simple
+package field
 
 import (
 	"testing"
 
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
-	"github.com/sourcenetwork/defradb/tests/integration/collection_version"
+	introspectionUtils "github.com/sourcenetwork/defradb/tests/integration/collection_version"
 )
 
-func TestView_Simple_GQLIntrospectionTest(t *testing.T) {
+func TestSchemaUpdatesCopyFieldIntrospectionWithRemoveIDAndReplaceName(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
-					type User {
+					type Users {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateView{
-				Query: `
-					User {
-						name
-					}
-				`,
-				SDL: `
-					type UserView @materialized(if: false) {
-						name: String
-					}
+			testUtils.PatchCollection{
+				Patch: `
+					[
+						{ "op": "copy", "from": "/Users/Fields/1", "path": "/Users/Fields/2" },
+						{ "op": "replace", "path": "/Users/Fields/2/Name", "value": "fax" },
+						{ "op": "remove", "path": "/Users/Fields/2/FieldID" }
+					]
 				`,
 			},
 			testUtils.IntrospectionRequest{
 				Request: `
 					query {
-						__type (name: "UserView") {
+						__type (name: "Users") {
 							name
 							fields {
 								name
@@ -57,10 +54,18 @@ func TestView_Simple_GQLIntrospectionTest(t *testing.T) {
 				`,
 				ExpectedData: map[string]any{
 					"__type": map[string]any{
-						"name": "UserView",
-						"fields": collection_version.DefaultViewObjFields.Append(
-							collection_version.Field{
+						"name": "Users",
+						"fields": introspectionUtils.DefaultFields.Append(
+							introspectionUtils.Field{
 								"name": "name",
+								"type": map[string]any{
+									"kind": "SCALAR",
+									"name": "String",
+								},
+							},
+						).Append(
+							introspectionUtils.Field{
+								"name": "fax",
 								"type": map[string]any{
 									"kind": "SCALAR",
 									"name": "String",
@@ -72,6 +77,5 @@ func TestView_Simple_GQLIntrospectionTest(t *testing.T) {
 			},
 		},
 	}
-
 	testUtils.ExecuteTestCase(t, test)
 }

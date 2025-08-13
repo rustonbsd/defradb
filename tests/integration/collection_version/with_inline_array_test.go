@@ -1,4 +1,4 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2022 Democratized Data Foundation
 //
 // Use of this software is governed by the Business Source License
 // included in the file licenses/BSL.txt.
@@ -8,65 +8,73 @@
 // by the Apache License, Version 2.0, included in the file
 // licenses/APL.txt.
 
-package simple
+package collection_version
 
 import (
 	"testing"
 
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
-	"github.com/sourcenetwork/defradb/tests/integration/collection_version"
 )
 
-func TestView_Simple_GQLIntrospectionTest(t *testing.T) {
+func TestSchemaInlineArrayCreatesSchemaGivenSingleType(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
-					type User {
-						name: String
-					}
-				`,
-			},
-			testUtils.CreateView{
-				Query: `
-					User {
-						name
-					}
-				`,
-				SDL: `
-					type UserView @materialized(if: false) {
-						name: String
+					type Users {
+						favouriteIntegers: [Int!]
 					}
 				`,
 			},
 			testUtils.IntrospectionRequest{
 				Request: `
 					query {
-						__type (name: "UserView") {
+						__type (name: "Users") {
 							name
-							fields {
-								name
-								type {
-									name
-									kind
-								}
-							}
 						}
 					}
 				`,
 				ExpectedData: map[string]any{
 					"__type": map[string]any{
-						"name": "UserView",
-						"fields": collection_version.DefaultViewObjFields.Append(
-							collection_version.Field{
-								"name": "name",
-								"type": map[string]any{
-									"kind": "SCALAR",
-									"name": "String",
-								},
-							},
-						).Tidy(),
+						"name": "Users",
+					},
+				},
+			},
+		},
+	}
+
+	testUtils.ExecuteTestCase(t, test)
+}
+
+func TestSchemaInlineArrayCreatesSchemaGivenSecondType(t *testing.T) {
+	test := testUtils.TestCase{
+		Actions: []any{
+			&action.AddSchema{
+				Schema: `
+					type Users {
+						favouriteIntegers: [Int!]
+					}
+				`,
+			},
+			&action.AddSchema{
+				Schema: `
+					type Books {
+						pageNumbers: [Int!]
+					}
+				`,
+			},
+			testUtils.IntrospectionRequest{
+				Request: `
+					query {
+						__type (name: "Books") {
+							name
+						}
+					}
+				`,
+				ExpectedData: map[string]any{
+					"__type": map[string]any{
+						"name": "Books",
 					},
 				},
 			},
