@@ -10,6 +10,12 @@
 
 package cbindings
 
+/*
+#include <stdlib.h>
+#include "defra_structs.h"
+*/
+import "C"
+
 import (
 	"context"
 	"strings"
@@ -17,21 +23,16 @@ import (
 	"github.com/sourcenetwork/defradb/client"
 )
 
+//export IndexCreate
 func IndexCreate(
-	n int,
-	collectionName string,
-	indexName string,
-	fieldsStr string,
-	isUnique bool,
-	txnID uint64,
-) GoCResult {
+	nodePtr C.uintptr_t,
+	collectionName *C.char,
+	indexName *C.char,
+	fieldsStr *C.char,
+	isUnique C.int,
+) *C.Result {
 	ctx := context.Background()
-	fieldsArg := splitCommaSeparatedString(fieldsStr)
-
-	ctx, err := contextWithTransaction(n, ctx, txnID)
-	if err != nil {
-		return returnGoC(1, err.Error(), "")
-	}
+	fieldsArg := splitCommaSeparatedString(C.GoString(fieldsStr))
 
 	// Parse the fields into an object, considering whether they are each ascending or descending
 	var fields []client.IndexedFieldDescription
@@ -46,10 +47,10 @@ func IndexCreate(
 		if len(parts) == 2 {
 			order = strings.ToUpper(parts[1])
 			if order != asc && order != desc {
-				return returnGoC(1, errInvalidAscensionOrder, "")
+				return returnC(returnGoC(1, errInvalidAscensionOrder, ""))
 			}
 		} else if len(parts) > 2 {
-			return returnGoC(1, errInvalidIndexFieldDescription, "")
+			return returnC(returnGoC(1, errInvalidIndexFieldDescription, ""))
 		}
 		fields = append(fields, client.IndexedFieldDescription{
 			Name:       fieldName,
@@ -58,67 +59,63 @@ func IndexCreate(
 	}
 
 	desc := client.IndexCreateRequest{
-		Name:   indexName,
+		Name:   C.GoString(indexName),
 		Fields: fields,
-		Unique: isUnique,
+		Unique: isUnique != 0,
 	}
-	col, err := GetNode(n).DB.GetCollectionByName(ctx, collectionName)
+	store := getStoreFromPointer(nodePtr)
+	col, err := store.GetCollectionByName(ctx, C.GoString(collectionName))
 	if err != nil {
-		return returnGoC(1, err.Error(), "")
+		return returnC(returnGoC(1, err.Error(), ""))
 	}
 	descWithID, err := col.CreateIndex(ctx, desc)
 	if err != nil {
-		return returnGoC(1, err.Error(), "")
+		return returnC(returnGoC(1, err.Error(), ""))
 	}
 
-	return marshalJSONToGoCResult(descWithID)
+	return returnC(marshalJSONToGoCResult(descWithID))
 }
 
-func IndexList(n int, collectionName string, txnID uint64) GoCResult {
+//export IndexList
+func IndexList(nodePtr C.uintptr_t, collectionName *C.char) *C.Result {
 	ctx := context.Background()
+	store := getStoreFromPointer(nodePtr)
 
-	ctx, err := contextWithTransaction(n, ctx, txnID)
-	if err != nil {
-		return returnGoC(1, err.Error(), "")
-	}
-
+	colName := C.GoString(collectionName)
 	switch {
 	// Get the indices associated with a given collection
-	case collectionName != "":
-		col, err := GetNode(n).DB.GetCollectionByName(ctx, collectionName)
+	case colName != "":
+		col, err := store.GetCollectionByName(ctx, colName)
 		if err != nil {
-			return returnGoC(1, err.Error(), "")
+			return returnC(returnGoC(1, err.Error(), ""))
 		}
 		indices, err := col.GetIndexes(ctx)
 		if err != nil {
-			return returnGoC(1, err.Error(), "")
+			return returnC(returnGoC(1, err.Error(), ""))
 		}
-		return marshalJSONToGoCResult(indices)
+		return returnC(marshalJSONToGoCResult(indices))
 	// Get all of the indices, because no collection was specified
 	default:
-		indices, err := GetNode(n).DB.GetAllIndexes(ctx)
+		indices, err := store.GetAllIndexes(ctx)
 		if err != nil {
-			return returnGoC(1, err.Error(), "")
+			return returnC(returnGoC(1, err.Error(), ""))
 		}
-		return marshalJSONToGoCResult(indices)
+		return returnC(marshalJSONToGoCResult(indices))
 	}
 }
 
-func IndexDrop(n int, collectionName string, indexName string, txnID uint64) GoCResult {
+//export IndexDrop
+func IndexDrop(nodePtr C.uintptr_t, collectionName *C.char, indexName *C.char) *C.Result {
 	ctx := context.Background()
 
-	ctx, err := contextWithTransaction(n, ctx, txnID)
+	store := getStoreFromPointer(nodePtr)
+	col, err := store.GetCollectionByName(ctx, C.GoString(collectionName))
 	if err != nil {
-		return returnGoC(1, err.Error(), "")
+		return returnC(returnGoC(1, err.Error(), ""))
 	}
-
-	col, err := GetNode(n).DB.GetCollectionByName(ctx, collectionName)
+	err = col.DropIndex(ctx, C.GoString(indexName))
 	if err != nil {
-		return returnGoC(1, err.Error(), "")
+		return returnC(returnGoC(1, err.Error(), ""))
 	}
-	err = col.DropIndex(ctx, indexName)
-	if err != nil {
-		return returnGoC(1, err.Error(), "")
-	}
-	return returnGoC(0, "", "")
+	return returnC(returnGoC(0, "", ""))
 }
