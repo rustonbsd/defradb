@@ -48,4 +48,5 @@ const (
 	errInvalidLensConfig string = "invalid lens configuration: %v"
 	errMarshallingJSON   string = "error marshalling JSON: %v"
 	errInvalidKeyType    string = "invalid key type: %v"
+	errInvalidCGOHandle  string = "invalid handle: %v"
 )

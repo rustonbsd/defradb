@@ -22,6 +22,7 @@ package cbindings
 import "C"
 import (
 	"context"
+	"fmt"
 	"runtime/cgo"
 	"unsafe"
 
@@ -93,53 +94,89 @@ func returnNewIdentityResultC(status int, error string, n identity.Identity) C.N
 	return result
 }
 
-func convertNodeInitOptionsToGoNodeInitOptions(cOptions C.NodeInitOptions) GoNodeInitOptions {
+func convertNodeInitOptionsToGoNodeInitOptions(cOptions C.NodeInitOptions) (GoNodeInitOptions, error) {
+	ident, err := getIdentityFromPointer(cOptions.identityPtr)
+	if err != nil {
+		return GoNodeInitOptions{}, err
+	}
 	return GoNodeInitOptions{
 		DbPath:                   C.GoString(cOptions.dbPath),
 		ListeningAddresses:       C.GoString(cOptions.listeningAddresses),
 		ReplicatorRetryIntervals: C.GoString(cOptions.replicatorRetryIntervals),
 		Peers:                    C.GoString(cOptions.peers),
-		Identity:                 getIdentityFromPointer(cOptions.identityPtr),
+		Identity:                 ident,
 		InMemory:                 int(cOptions.inMemory),
 		DisableP2P:               int(cOptions.disableP2P),
 		DisableAPI:               int(cOptions.disableAPI),
 		MaxTransactionRetries:    int(cOptions.maxTransactionRetries),
 		EnableNodeACP:            int(cOptions.enableNodeACP),
-	}
+	}, nil
 }
 
-func getStoreFromPointer(nodePtr C.uintptr_t) client.Store {
-	h := cgo.Handle(nodePtr)
-	v := h.Value()
+// recoverHandleValue is a helper function that recovers a handle's value from a pointer,
+// and recovers from a panic if the handle is invalid
+func recoverHandleValue(ptr C.uintptr_t) (v any, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			v, err = nil, fmt.Errorf(errInvalidCGOHandle, uintptr(ptr))
+		}
+	}()
+	h := cgo.Handle(ptr)
+	return h.Value(), nil
+}
+
+// getStoreFromPointer should be used by functions that can work on a node pointer or
+// on a transaction pointer.
+func getStoreFromPointer(nodePtr C.uintptr_t) (store client.Store, err error) {
+	v, err := recoverHandleValue(nodePtr)
+	if err != nil {
+		return nil, err
+	}
 	switch v := v.(type) {
 	case *node.Node:
-		return v.DB
+		return v.DB, nil
 	case client.Txn:
-		return v
+		return v, nil
 	default:
-		return nil
+		return nil, fmt.Errorf(errInvalidCGOHandle, uintptr(nodePtr))
 	}
 }
 
-func getIdentityFromPointer(identityPtr C.uintptr_t) identity.Identity {
-	if identityPtr == 0 {
-		return nil
+// getNodeFromPointer should be used by functions that can only work on a node pointer.
+func getNodeFromPointer(nodePtr C.uintptr_t) (n *node.Node, err error) {
+	v, err := recoverHandleValue(nodePtr)
+	if err != nil {
+		return nil, err
 	}
-	h := cgo.Handle(identityPtr)
-	v := h.Value()
+	n, ok := v.(*node.Node)
+	if !ok || n == nil {
+		return nil, fmt.Errorf(errInvalidCGOHandle, uintptr(nodePtr))
+	}
+	return n, nil
+}
+
+func getIdentityFromPointer(identityPtr C.uintptr_t) (ident identity.Identity, err error) {
+	if identityPtr == 0 {
+		return nil, nil
+	}
+	v, err := recoverHandleValue(identityPtr)
+	if err != nil {
+		return nil, err
+	}
 	switch v := v.(type) {
 	case identity.Identity:
-		return v
-	case *identity.Identity:
-		return *v
+		return v, nil
 	default:
-		return nil
+		return nil, fmt.Errorf(errInvalidCGOHandle, uintptr(identityPtr))
 	}
 }
 
 // contextWithIdentity is a helper function that attaches identity to a context
 func contextWithIdentity(ctx context.Context, identityPtr C.uintptr_t) (context.Context, error) {
-	ident := getIdentityFromPointer(identityPtr)
+	ident, err := getIdentityFromPointer(identityPtr)
+	if err != nil {
+		return ctx, err
+	}
 	if ident == nil {
 		return ctx, nil
 	}
