@@ -34,7 +34,7 @@ require (
 	github.com/libp2p/go-libp2p-record v0.3.1
 	github.com/multiformats/go-multiaddr v0.15.0
 	github.com/multiformats/go-multibase v0.2.0
-	github.com/multiformats/go-multicodec v0.9.1
+	github.com/multiformats/go-multicodec v0.9.2
 	github.com/multiformats/go-multihash v0.2.3
 	github.com/multiformats/go-varint v0.0.7
 	github.com/onsi/gomega v1.37.0
@@ -186,7 +186,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.15.1 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
-	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
+	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/goccy/go-json v0.10.4 // indirect
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
@@ -213,7 +213,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.1 // indirect
 	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
-	github.com/hashicorp/go-getter v1.7.5 // indirect
+	github.com/hashicorp/go-getter v1.7.9 // indirect
 	github.com/hashicorp/go-hclog v1.6.3 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-metrics v0.5.3 // indirect
