@@ -35,6 +35,8 @@ import (
 	"github.com/sourcenetwork/defradb/client"
 	"github.com/sourcenetwork/defradb/errors"
 	"github.com/sourcenetwork/defradb/net/config"
+
+	iroh "github.com/rustonbsd/go-libp2p-iroh-transport"
 )
 
 // setupHost returns a host and router configured with the given options.
@@ -59,6 +61,7 @@ func setupHost(ctx context.Context, options *config.Options) (host.Host, *dualdh
 	libp2pOpts := []libp2p.Option{
 		libp2p.ConnectionManager(connManager),
 		libp2p.DefaultTransports,
+		libp2p.Transport(iroh.NewIrohTransport),
 		libp2p.ListenAddrStrings(options.ListenAddresses...),
 		libp2p.Routing(routing),
 	}
