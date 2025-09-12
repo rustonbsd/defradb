@@ -1,0 +1,51 @@
+services:
+  defrabuild:
+    build:
+      context: ../../..
+      dockerfile: tools/defradb.containerfile
+    image: defra:latest
+    container_name: defrabuild
+    command: ["true"] 
+
+  nodeA:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: nodeA
+    image: nodea:latest
+    container_name: nodeA
+    command: start_script_a.sh
+    networks:
+      - defra-net-a
+    ports:
+      - "127.0.0.1:9181:9181"
+      - "127.0.0.1:9171:9171"
+    environment:
+      - RUST_LOG=info
+    depends_on:
+      - defrabuild
+
+  nodeB:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: nodeB
+    image: nodeb:latest
+    container_name: nodeB
+    command: start_script_b.sh
+    networks:
+      - defra-net-b
+    ports:
+      - "127.0.0.1:9182:9182"
+      - "127.0.0.1:9172:9172"
+    environment:
+      - RUST_LOG=info
+    depends_on:
+      - defrabuild
+
+
+networks:
+  defra-net-a:
+    driver: bridge
+  defra-net-b:
+    driver: bridge

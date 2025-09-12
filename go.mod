@@ -41,7 +41,7 @@ require (
 	github.com/pelletier/go-toml v1.9.5
 	github.com/philippgille/chromem-go v0.7.0
 	github.com/pkg/errors v0.9.1
-	github.com/rustonbsd/go-libp2p-iroh-transport v0.0.2-0.20250910163206-2616ec861e01
+	github.com/rustonbsd/go-libp2p-iroh-transport v0.1.3
 	github.com/sourcenetwork/acp_core v0.4.1
 	github.com/sourcenetwork/corekv v0.1.2
 	github.com/sourcenetwork/corelog v0.0.8

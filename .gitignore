@@ -61,3 +61,6 @@ crash.log
 
 # Ignore .env files containing sensitive information.
 .env
+
+# Ignore rust build artifacts.
+**/target
