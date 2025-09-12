@@ -14,6 +14,11 @@ graphql-a-add:
 	@echo "NodeA add Article"
 	@sudo docker compose exec nodeA defradb client --url localhost:9181 query 'mutation { create_Article(input: { content: "Hello world", published: true }) {_docID content published }}'
 
+.PHONY: graphql-a-get
+graphql-a-get:
+	@echo "NodeA get Article"
+	@sudo docker compose exec nodeA defradb client --url localhost:9181 query 'query { Article { _docID content published }}'
+
 .PHONY: graphql-b-get
 graphql-b-get:
 	@echo "NodeB get Article"
