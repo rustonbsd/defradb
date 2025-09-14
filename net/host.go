@@ -59,7 +59,7 @@ func setupHost(ctx context.Context, options *config.Options) (host.Host, *dualdh
 
 	libp2pOpts := []libp2p.Option{
 		libp2p.ConnectionManager(connManager),
-		//libp2p.DefaultTransports,
+		libp2p.DefaultTransports,
 		libp2p.Transport(iroh.NewIrohTransport),
 		libp2p.ListenAddrStrings(options.ListenAddresses...),
 		libp2p.Routing(routing),
@@ -76,7 +76,7 @@ func setupHost(ctx context.Context, options *config.Options) (host.Host, *dualdh
 		if err != nil {
 			return nil, nil, err
 		}
-		libp2pOpts = append(libp2pOpts, libp2p.Identity(privateKey))
+		libp2pOpts = append(libp2pOpts, libp2p.Identity(privateKey), iroh.WithIrohAddr)
 	}
 
 	h, err := libp2p.New(libp2pOpts...)
