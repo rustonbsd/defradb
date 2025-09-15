@@ -226,11 +226,25 @@ func updateHeads(
 		}
 	}
 
+	// Marking the block as merged removes the to-merge index. It signals that nothing
+	// else needs to be done for that block.
+	err := txn.Blockstore().MarkAsMerged(ctx, blockLink.Cid)
+	if err != nil {
+		return NewErrMarkingAsMerged(blockLink.Cid, err)
+	}
+
 	for _, l := range block.AllLinks() {
 		linkCid := l.Cid
 		isHead, err := headset.IsHead(ctx, linkCid)
 		if err != nil {
 			return NewErrCheckingHead(linkCid, err)
+		}
+
+		// Marking the block as merged removes the to-merge index. It signals that nothing
+		// else needs to be done for that block.
+		err = txn.Blockstore().MarkAsMerged(ctx, linkCid)
+		if err != nil {
+			return NewErrMarkingAsMerged(blockLink.Cid, err)
 		}
 
 		if isHead {
