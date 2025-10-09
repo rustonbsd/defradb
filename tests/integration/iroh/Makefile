@@ -1,4 +1,4 @@
-all: 
+all: build run
 
 .PHONY: build
 build:

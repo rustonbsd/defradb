@@ -10,12 +10,15 @@ COPY start_script_* /usr/local/bin/
 
 COPY --from=defrabin /defradb /usr/local/bin/defradb
 COPY --from=defrabin /lib/libwasmer.so /lib/libwasmer.so
+COPY --from=defrabin /lib/libiroh.so /lib/libiroh.so
 
 RUN apt-get update && apt-get install -y jq
 
 RUN chmod +x /usr/local/bin/defradb \
     /usr/local/bin/start_script_a.sh \
     /usr/local/bin/start_script_b.sh
+
+ENV RUST_LOG=error,irohffi::ffi=debug
 
 FROM runtime AS nodea
 ENTRYPOINT ["/usr/local/bin/start_script_a.sh"]
