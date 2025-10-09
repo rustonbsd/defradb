@@ -5,7 +5,7 @@ cd /app
 export DEFRA_KEYRING_SECRET="$(head -c 32 /dev/urandom | base32)"
 defradb keyring generate --rootdir ./.nodeA
 # start defradb in the background
-defradb start --rootdir ./.nodeA --url localhost:9181 --p2paddr /ip4/0.0.0.0/tcp/9171 &
+RUST_LOG=error,irohffi::ffi=debug defradb start --rootdir ./.nodeA --url localhost:9181 --p2paddr /ip4/0.0.0.0/tcp/9171 &
 # wait for defradb to start
 sleep 2
 

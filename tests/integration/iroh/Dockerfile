@@ -18,8 +18,6 @@ RUN chmod +x /usr/local/bin/defradb \
     /usr/local/bin/start_script_a.sh \
     /usr/local/bin/start_script_b.sh
 
-ENV RUST_LOG=error,irohffi::ffi=debug
-
 FROM runtime AS nodea
 ENTRYPOINT ["/usr/local/bin/start_script_a.sh"]
 
