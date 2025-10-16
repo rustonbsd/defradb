@@ -73,6 +73,9 @@ type CollectionVersion struct {
 	// Indexes contains the secondary indexes that this Collection has.
 	Indexes []IndexDescription
 
+	// EncryptedIndexes contains the encrypted indexes that this Collection has.
+	EncryptedIndexes []EncryptedIndexDescription
+
 	// Policy contains the policy information on this collection.
 	//
 	// It is possible for a collection to not have a policy, a collection

@@ -92,6 +92,9 @@ type DB struct {
 	// If true, block signing is disabled. By default, block signing is enabled.
 	signingDisabled bool
 
+	// The cryptographic key used to generate search tags for searchable encryption.
+	searchableEncryptionKey []byte
+
 	docMergeQueue *mergeQueue
 	colMergeQueue *mergeQueue
 
@@ -124,14 +127,14 @@ func newDB(
 	lens client.LensRegistry,
 	options ...Option,
 ) (*DB, error) {
-	parser, err := graphql.NewParser()
-	if err != nil {
-		return nil, err
-	}
-
 	opts := defaultDBOptions()
 	for _, opt := range options {
 		opt(opts)
+	}
+
+	parser, err := graphql.NewParser(len(opts.searchableEncryptionKey) > 0)
+	if err != nil {
+		return nil, err
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -157,13 +160,14 @@ func newDB(
 
 	db.nodeIdentity = opts.identity
 	db.signingDisabled = opts.disableSigning
+	db.searchableEncryptionKey = opts.searchableEncryptionKey
 
 	if lens != nil {
 		lens.Init(db)
 	}
 
 	if opts.p2p.HasValue() {
-		p, err := p2p.New(ctx, db, opts.p2p.Value())
+		p, err := p2p.New(ctx, db, opts.p2p.Value(), db.nodeIdentity)
 		if err != nil {
 			return nil, err
 		}
@@ -463,6 +467,11 @@ func (db *DB) MaxTxnRetries() int {
 	return defaultMaxTxnRetries
 }
 
+// SearchableEncryptionKey returns the searchable encryption key if configured.
+func (db *DB) SearchableEncryptionKey() []byte {
+	return db.searchableEncryptionKey
+}
+
 // RetryIntervals returns the replicator retry configuration.
 func (db *DB) RetryIntervals() []time.Duration {
 	return db.retryIntervals
@@ -502,6 +511,10 @@ func (db *DB) Close() {
 		if err := db.documentACP.Value().Close(); err != nil {
 			log.ErrorE("Failure closing acp", err)
 		}
+	}
+
+	if db.p2p != nil && db.p2p.SECoordinator() != nil {
+		db.p2p.SECoordinator().Close()
 	}
 
 	log.Info("Successfully closed running process")

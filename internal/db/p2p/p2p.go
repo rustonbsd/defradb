@@ -21,6 +21,8 @@ import (
 	"github.com/ipfs/go-cid"
 	ipld "github.com/ipfs/go-ipld-format"
 
+	"github.com/sourcenetwork/corekv"
+
 	"github.com/sourcenetwork/corelog"
 	"github.com/sourcenetwork/immutable"
 
@@ -34,6 +36,7 @@ import (
 	"github.com/sourcenetwork/defradb/internal/datastore"
 	"github.com/sourcenetwork/defradb/internal/db/p2p/protocol"
 	"github.com/sourcenetwork/defradb/internal/db/permission"
+	"github.com/sourcenetwork/defradb/internal/se"
 	"github.com/sourcenetwork/defradb/internal/telemetry"
 )
 
@@ -44,11 +47,17 @@ var (
 
 const networkRequestTimeout = 10 * time.Second
 
+// PushToReplicatorsHandler is called when documents are pushed to replicators.
+// Implementations can perform additional actions like generating SE artifacts.
+type PushToReplicatorsHandler interface {
+	HandlePushToReplicators(ctx context.Context, evt event.Update) error
+}
+
 // DB hold the database related methods that are required by P2P.
 type DB interface {
 	// NewTxn returns a new transaction on the root store that may be managed externally.
 	NewTxn(readOnly bool) (client.Txn, error)
-	// GetNodeIndentityToken returns an identity token for the given audience.
+	// GetNodeIdentityToken returns an identity token for the given audience.
 	GetNodeIdentityToken(ctx context.Context, audience immutable.Option[string]) ([]byte, error)
 	// GetCollections returns all collections and their descriptions matching the given options
 	// that currently exist within this [Store].
@@ -61,13 +70,19 @@ type DB interface {
 	RetryIntervals() []time.Duration
 	// DocumentACP returns the DocumentACP implementation configured on the database.
 	DocumentACP() immutable.Option[dac.DocumentACP]
+	// Rootstore returns the rootstore
+	Rootstore() corekv.TxnStore
 	// P2PBlockSyncTimeout is the timeout duration for syncing block links.
 	P2PBlockSyncTimeout() time.Duration
+	// SearchableEncryptionKey returns the searchable encryption key if configured.
+	SearchableEncryptionKey() []byte
+	// MaxTxnRetries returns the maximum number of transaction retries.
+	MaxTxnRetries() int
 }
 
 type P2P struct {
 	identityProtocol   *protocol.IdentityProtocol
-	replicatorProtocol *protocol.ReplicatorProtocol
+	replicatorProtocol protocol.CommChannel[protocol.PushLogRequest, protocol.PushLogReply]
 
 	ctx  context.Context
 	db   DB
@@ -90,10 +105,28 @@ type P2P struct {
 
 	// timeout duration for syncing block links.
 	syncBlockLinkTimeout time.Duration
+
+	// seCoordinator manages searchable encryption artifact replication
+	seCoordinator *se.Coordinator
+
+	// pushHandlers are called when documents are pushed to replicators
+	pushHandlers []PushToReplicatorsHandler
+}
+
+// pushLogCommProcessor implements CommProcessor for push log functionality
+type pushLogCommProcessor struct {
+	p2p *P2P
+}
+
+func (proc *pushLogCommProcessor) ProcessRequest(
+	ctx context.Context,
+	req protocol.PushLogRequest,
+) (protocol.PushLogReply, error) {
+	return protocol.PushLogReply{}, proc.p2p.processPushlogRequest(ctx, &req, true)
 }
 
 // New returns a new configured P2P instance.
-func New(ctx context.Context, db DB, host client.Host) (*P2P, error) {
+func New(ctx context.Context, db DB, host client.Host, nodeIdentity immutable.Option[identity.Identity]) (*P2P, error) {
 	p := P2P{
 		ctx:                  ctx,
 		db:                   db,
@@ -105,7 +138,7 @@ func New(ctx context.Context, db DB, host client.Host) (*P2P, error) {
 		processQueue:         newProcessQueue(),
 		syncBlockLinkTimeout: db.P2PBlockSyncTimeout(),
 	}
-	p.replicatorProtocol = protocol.NewReplicatorProtocol(host, p.processPushlogRequest, p.handleReplicatorFailure)
+	p.replicatorProtocol = protocol.NewCommChannel(host, "rep", &pushLogCommProcessor{p2p: &p})
 
 	host.SetBlockAccessFunc(p.hasAccess)
 
@@ -128,7 +161,29 @@ func New(ctx context.Context, db DB, host client.Host) (*P2P, error) {
 		return nil, err
 	}
 
+	if len(db.SearchableEncryptionKey()) > 0 {
+		coord, err := se.NewCoordinator(&p, p.Host(), db, db.SearchableEncryptionKey(), nodeIdentity)
+		if err != nil {
+			return nil, err
+		}
+		p.seCoordinator = coord
+		p.AddPushToReplicatorsHandler(coord)
+	}
+
 	return &p, nil
+}
+
+func (p *P2P) Host() client.Host {
+	return p.host
+}
+
+func (p *P2P) SECoordinator() *se.Coordinator {
+	return p.seCoordinator
+}
+
+// AddPushToReplicatorsHandler registers a handler that will be called when documents are pushed to replicators.
+func (p *P2P) AddPushToReplicatorsHandler(handler PushToReplicatorsHandler) {
+	p.pushHandlers = append(p.pushHandlers, handler)
 }
 
 func (p *P2P) PeerInfo() client.PeerInfo {
@@ -524,4 +579,17 @@ func (m *processQueue) doneOnce(cid cid.Cid) func() {
 	return sync.OnceFunc(func() {
 		m.done(cid)
 	})
+}
+
+// QueryDocIDsWithSETags queries SE artifacts from replicators based on field values.
+func (p *P2P) QueryDocIDsWithSETags(
+	ctx context.Context,
+	collectionID string,
+	fieldValues []se.FieldValueQuery,
+) ([]string, error) {
+	if p.seCoordinator == nil {
+		return []string{}, nil
+	}
+
+	return p.seCoordinator.QueryDocIDsByValues(ctx, collectionID, fieldValues)
 }

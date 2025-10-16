@@ -89,6 +89,7 @@ func (n *Node) Start(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
 	nodeACP, err := NewNodeACP(ctx, filterOptions[NodeACPOpt](n.options)...)
 	if err != nil {
 		return err
@@ -99,7 +100,9 @@ func (n *Node) Start(ctx context.Context) error {
 		return err
 	}
 
-	n.DB, err = db.NewDB(ctx, rootstore, nodeACP, documentACP, lens, filterOptions[db.Option](n.options)...)
+	dbOpts := filterOptions[db.Option](n.options)
+
+	n.DB, err = db.NewDB(ctx, rootstore, nodeACP, documentACP, lens, dbOpts...)
 	if err != nil {
 		return err
 	}

@@ -28,8 +28,10 @@ const (
 	CompositeFieldName = "_C"
 	ShowDeleted        = "showDeleted"
 
-	EncryptDocArgName    = "encrypt"
-	EncryptFieldsArgName = "encryptFields"
+	EncryptDocArgName         = "encrypt"
+	EncryptFieldsArgName      = "encryptFields"
+	EncryptedCollectionPrefix = "encrypted_"
+	EncryptedSearchResultName = "EncryptedSearchResult"
 
 	FilterClause  = "filter"
 	GroupByClause = "groupBy"
@@ -87,6 +89,8 @@ const (
 	SignatureTypeFieldName     = "type"
 	SignatureIdentityFieldName = "identity"
 	SignatureValueFieldName    = "value"
+
+	DocIDsFieldName = "docIDs"
 
 	ASC  = OrderDirection("ASC")
 	DESC = OrderDirection("DESC")

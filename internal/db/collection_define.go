@@ -102,7 +102,7 @@ func (db *DB) createCollections(
 	return returnDescriptions, nil
 }
 
-// PatchCollection takes the given JSON patch string and applies it to the set of CollectionVersions
+// patchCollection takes the given JSON patch string and applies it to the set of CollectionVersions
 // present in the database.
 //
 // It will also update the GQL types used by the query system. It will error and not apply any of the

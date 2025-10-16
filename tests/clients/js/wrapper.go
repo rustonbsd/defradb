@@ -446,3 +446,9 @@ func (w *Wrapper) VerifySignature(ctx context.Context, blockCid string, pubKey c
 	_, err := execute(ctx, w.value, "verifySignature", pubKey.String(), string(pubKey.Type()), blockCid)
 	return err
 }
+
+func (w *Wrapper) ListAllEncryptedIndexes(
+	ctx context.Context,
+) (map[client.CollectionName][]client.EncryptedIndexDescription, error) {
+	return w.node.DB.ListAllEncryptedIndexes(ctx)
+}

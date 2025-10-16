@@ -25,11 +25,12 @@ const (
 )
 
 type dbOptions struct {
-	maxTxnRetries  immutable.Option[int]
-	identity       immutable.Option[identity.Identity]
-	disableSigning bool
-	p2p            immutable.Option[client.Host]
-	retryIntervals []time.Duration
+	maxTxnRetries           immutable.Option[int]
+	identity                immutable.Option[identity.Identity]
+	disableSigning          bool
+	searchableEncryptionKey []byte
+	p2p                     immutable.Option[client.Host]
+	retryIntervals          []time.Duration
 	// timeout duration for syncing block links.
 	p2pBlockSyncTimeout time.Duration
 }
@@ -72,6 +73,14 @@ func WithNodeIdentity(ident identity.Identity) Option {
 func WithEnabledSigning(value bool) Option {
 	return func(opts *dbOptions) {
 		opts.disableSigning = !value
+	}
+}
+
+// WithSearchableEncryptionKey sets the key used for searchable encryption.
+// This key is used to generate search tags for encrypted fields.
+func WithSearchableEncryptionKey(key []byte) Option {
+	return func(opts *dbOptions) {
+		opts.searchableEncryptionKey = key
 	}
 }
 

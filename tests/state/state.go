@@ -127,6 +127,9 @@ type EventState struct {
 
 	// Replicator is the `event.ReplicatorCompletedName` subscription
 	Replicator event.Subscription
+
+	// SESync is the `event.SEArtifactSyncCompleteName` subscription
+	SESync event.Subscription
 }
 
 // NewEventState returns an eventState with all required subscriptions.
@@ -143,10 +146,15 @@ func NewEventState(bus event.Bus) (*EventState, error) {
 	if err != nil {
 		return nil, err
 	}
+	seSync, err := bus.Subscribe(event.SEArtifactReceivedName)
+	if err != nil {
+		return nil, err
+	}
 	return &EventState{
 		Merge:      merge,
 		Update:     update,
 		Replicator: replicator,
+		SESync:     seSync,
 	}, nil
 }
 
@@ -205,6 +213,9 @@ type State struct {
 	// IdentityTypes is a map of identity to key type.
 	// Use it to customize the key type that is used for identity and signing.
 	IdentityTypes map[Identity]crypto.KeyType
+
+	// EnableSearchableEncryption indicates whether searchable encryption is enabled.
+	EnableSearchableEncryption bool
 
 	// Identities contains all Identities created in this test.
 	// The map key is the identity reference that uniquely identifies Identities of different
@@ -278,11 +289,16 @@ func (s *State) GetIdentity(ident Identity) acpIdentity.Identity {
 	return GetIdentity(s, immutable.Some(ident))
 }
 
+func (s *State) GetDocID(collectionIndex, docIndex int) client.DocID {
+	return s.DocIDs[collectionIndex][docIndex]
+}
+
 // NewState returns a new fresh state for the given testCase.
 func NewState(
 	ctx context.Context,
 	t testing.TB,
 	identityTypes map[Identity]crypto.KeyType,
+	enableSearchableEncryption bool,
 	kms KMSType,
 	dbt DatabaseType,
 	clientType ClientType,
@@ -299,6 +315,7 @@ func NewState(
 		DocumentACPOptions:              []node.DocumentACPOpt{},
 		Txns:                            []client.Txn{},
 		IdentityTypes:                   identityTypes,
+		EnableSearchableEncryption:      enableSearchableEncryption,
 		Identities:                      map[Identity]*IdentityHolder{},
 		NextIdentityGenSeed:             0,
 		AllActionsDone:                  make(chan struct{}),

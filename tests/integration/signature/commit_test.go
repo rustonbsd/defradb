@@ -20,7 +20,7 @@ import (
 
 	"github.com/sourcenetwork/defradb/crypto"
 	coreblock "github.com/sourcenetwork/defradb/internal/core/block"
-	corecrdt "github.com/sourcenetwork/defradb/internal/core/crdt"
+	"github.com/sourcenetwork/defradb/internal/core/crdt"
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 	"github.com/sourcenetwork/defradb/tests/state"
@@ -35,7 +35,7 @@ func makeFieldBlock(fieldName string, value any) coreblock.Block {
 		panic("failed to marshal field value")
 	}
 
-	delta := &corecrdt.LWWDelta{
+	delta := &crdt.LWWDelta{
 		Data:            fieldVal,
 		DocID:           []byte(docID),
 		FieldName:       fieldName,
@@ -43,7 +43,7 @@ func makeFieldBlock(fieldName string, value any) coreblock.Block {
 		Priority:        1,
 	}
 
-	block := coreblock.New(delta, nil)
+	block := coreblock.New(crdt.NewCRDT(delta), nil)
 	return *block
 }
 

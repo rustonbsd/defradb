@@ -125,6 +125,7 @@ var createOnlyValidators = []definitionValidator{}
 var updateOnlyValidators = []definitionValidator{
 	validateSourcesNotRedefined,
 	validateIndexesNotModified,
+	validateEncryptedIndexesNotModified,
 	validatePolicyNotModified,
 	validateIDNotEmpty,
 	validateIDUnique,
@@ -172,6 +173,7 @@ var globalValidators = []definitionValidator{
 	validateVersionID,
 	validateCollectionID,
 	validateCollectionSourceFromSameCollection,
+	validateEncryptedIndexes,
 }
 
 var createValidators = append(
@@ -477,6 +479,37 @@ func validateIndexesNotModified(
 				if !reflect.DeepEqual(oldCol.Indexes[i], newCol.Indexes[i]) {
 					errs = append(errs, NewErrCollectionIndexesCannotBeMutated(newCol.VersionID))
 				}
+			}
+		}
+	}
+
+	return errors.Join(errs...)
+}
+
+func validateEncryptedIndexesNotModified(
+	ctx context.Context,
+	db *DB,
+	newState *definitionState,
+	oldState *definitionState,
+) error {
+	var errs []error
+	for _, newCol := range newState.collections {
+		oldCol, ok := oldState.collectionsByID[newCol.VersionID]
+		if !ok {
+			continue
+		}
+
+		if oldCol.IsPlaceholder {
+			continue
+		}
+
+		if len(oldCol.EncryptedIndexes) != len(newCol.EncryptedIndexes) {
+			errs = append(errs, NewErrCollectionEncryptedIndexesCannotBeMutated(newCol.VersionID))
+		}
+
+		for i := range oldCol.EncryptedIndexes {
+			if !reflect.DeepEqual(oldCol.EncryptedIndexes[i], newCol.EncryptedIndexes[i]) {
+				errs = append(errs, NewErrCollectionEncryptedIndexesCannotBeMutated(newCol.VersionID))
 			}
 		}
 	}
@@ -1175,6 +1208,23 @@ func validateCollectionID(
 
 		if !exists {
 			errs = append(errs, NewErrUnknownCID("CollectionID", col.CollectionID))
+		}
+	}
+
+	return errors.Join(errs...)
+}
+
+func validateEncryptedIndexes(
+	ctx context.Context,
+	db *DB,
+	newState *definitionState,
+	oldState *definitionState,
+) error {
+	var errs []error
+
+	for _, newCol := range newState.collections {
+		if err := validateEncryptedIndexesOnCollection(newCol); err != nil {
+			errs = append(errs, err)
 		}
 	}
 

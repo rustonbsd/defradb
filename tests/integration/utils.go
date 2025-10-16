@@ -287,6 +287,7 @@ func executeTestCase(
 		ctx,
 		t,
 		testCase.IdentityTypes,
+		testCase.EnableSearchableEncryption,
 		kms,
 		dbt,
 		clientType,
@@ -446,6 +447,18 @@ func performAction(
 	case GetIndexes:
 		getIndexes(s, action)
 
+	case CreateEncryptedIndex:
+		createEncryptedIndex(s, action)
+
+	case ListEncryptedIndexes:
+		listEncryptedIndexes(s, action)
+
+	case ListAllEncryptedIndexes:
+		listAllEncryptedIndexes(s, action)
+
+	case DeleteEncryptedIndex:
+		deleteEncryptedIndex(s, action)
+
 	case BackupExport:
 		backupExport(s, action)
 
@@ -472,6 +485,9 @@ func performAction(
 
 	case WaitForSync:
 		waitForSync(s, action)
+
+	case WaitForSESync:
+		waitForSESync(s, action)
 
 	case SyncDocs:
 		syncDocs(s, action)
@@ -1708,6 +1724,140 @@ func dropIndex(
 	assertExpectedErrorRaised(s.T, action.ExpectedError, expectedErrorRaised)
 }
 
+func createEncryptedIndex(
+	s *state.State,
+	action CreateEncryptedIndex,
+) {
+	nodeIDs, nodes := getNodesWithIDs(action.NodeID, s.Nodes)
+	for index, node := range nodes {
+		nodeID := nodeIDs[index]
+		collection := s.Nodes[nodeID].Collections[action.CollectionID]
+		if action.FieldName == "" {
+			s.T.Fatalf("fieldName is required for encrypted index")
+		}
+
+		indexDesc := client.EncryptedIndexDescription{
+			FieldName: action.FieldName,
+			Type:      client.EncryptedIndexType(action.Type),
+		}
+
+		err := withRetryOnNode(
+			node,
+			func() error {
+				_, err := collection.CreateEncryptedIndex(s.Ctx, indexDesc)
+				return err
+			},
+		)
+		if AssertError(s.T, err, action.ExpectedError) {
+			return
+		}
+	}
+
+	assertExpectedErrorRaised(s.T, action.ExpectedError, false)
+}
+
+func listEncryptedIndexes(
+	s *state.State,
+	action ListEncryptedIndexes,
+) {
+	if len(s.Nodes) == 0 {
+		return
+	}
+
+	var expectedErrorRaised bool
+
+	nodeIDs, _ := getNodesWithIDs(action.NodeID, s.Nodes)
+	for _, nodeID := range nodeIDs {
+		collections := s.Nodes[nodeID].Collections
+		err := withRetryOnNode(
+			s.Nodes[nodeID],
+			func() error {
+				actualIndexes, err := collections[action.CollectionID].ListEncryptedIndexes(s.Ctx)
+				if err != nil {
+					return err
+				}
+
+				require.ElementsMatch(s.T, action.ExpectedIndexes, actualIndexes,
+					"Unexpected encrypted indexes")
+
+				return nil
+			},
+		)
+		expectedErrorRaised = expectedErrorRaised ||
+			AssertError(s.T, err, action.ExpectedError)
+	}
+
+	assertExpectedErrorRaised(s.T, action.ExpectedError, expectedErrorRaised)
+}
+
+func listAllEncryptedIndexes(
+	s *state.State,
+	action ListAllEncryptedIndexes,
+) {
+	if len(s.Nodes) == 0 {
+		return
+	}
+
+	var expectedErrorRaised bool
+
+	nodeIDs, _ := getNodesWithIDs(action.NodeID, s.Nodes)
+	for _, nodeID := range nodeIDs {
+		err := withRetryOnNode(
+			s.Nodes[nodeID],
+			func() error {
+				allActualIndexes, err := s.Nodes[nodeID].ListAllEncryptedIndexes(s.Ctx)
+				if err != nil {
+					return err
+				}
+
+				for collectionName, expectedIndexes := range action.ExpectedIndexes {
+					actualIndexes, exists := allActualIndexes[collectionName]
+					require.True(s.T, exists, "Collection %s should exist in actual indexes", collectionName)
+					require.ElementsMatch(s.T, expectedIndexes, actualIndexes,
+						"Unexpected encrypted indexes for collection %s", collectionName)
+					delete(allActualIndexes, collectionName)
+				}
+
+				if len(allActualIndexes) > 0 {
+					require.Fail(s.T, "Some collection have unexpected indexes", allActualIndexes)
+				}
+
+				return nil
+			},
+		)
+		expectedErrorRaised = expectedErrorRaised ||
+			AssertError(s.T, err, action.ExpectedError)
+	}
+
+	assertExpectedErrorRaised(s.T, action.ExpectedError, expectedErrorRaised)
+}
+
+func deleteEncryptedIndex(
+	s *state.State,
+	action DeleteEncryptedIndex,
+) {
+	nodeIDs, nodes := getNodesWithIDs(action.NodeID, s.Nodes)
+	for index, node := range nodes {
+		nodeID := nodeIDs[index]
+		collection := s.Nodes[nodeID].Collections[action.CollectionID]
+		if action.FieldName == "" {
+			s.T.Fatalf("fieldName is required for deleting encrypted index")
+		}
+
+		err := withRetryOnNode(
+			node,
+			func() error {
+				return collection.DeleteEncryptedIndex(s.Ctx, action.FieldName)
+			},
+		)
+		if AssertError(s.T, err, action.ExpectedError) {
+			return
+		}
+	}
+
+	assertExpectedErrorRaised(s.T, action.ExpectedError, false)
+}
+
 // backupExport generates a backup using the db api.
 func backupExport(
 	s *state.State,
@@ -2522,17 +2672,44 @@ func traverseGomegaMatchers[T gomega.OmegaMatcher](exp gomega.OmegaMatcher, s *s
 		return
 	}
 
+	var elements []any
+	var matchersList []gomega.OmegaMatcher
+
 	switch exp := exp.(type) {
 	case *matchers.AndMatcher:
-		for _, m := range exp.Matchers {
-			traverseGomegaMatchers(m, s, f)
-		}
+		matchersList = exp.Matchers
 	case *matchers.OrMatcher:
-		for _, m := range exp.Matchers {
+		matchersList = exp.Matchers
+	case *matchers.NotMatcher:
+		matchersList = []gomega.OmegaMatcher{exp.Matcher}
+	case *matchers.ConsistOfMatcher:
+		elements = exp.Elements
+	case *matchers.ContainElementMatcher:
+		elements = []any{exp.Element}
+	case *matchers.BeElementOfMatcher:
+		elements = exp.Elements
+	case *matchers.HaveExactElementsMatcher:
+		elements = exp.Elements
+	case *matchers.ContainElementsMatcher:
+		elements = exp.Elements
+	case *matchers.HaveEachMatcher:
+		elements = []any{exp.Element}
+	case *matchers.WithTransformMatcher:
+		matchersList = []gomega.OmegaMatcher{exp.Matcher}
+	}
+
+	if len(matchersList) > 0 {
+		for _, m := range matchersList {
 			traverseGomegaMatchers(m, s, f)
 		}
-	case *matchers.NotMatcher:
-		traverseGomegaMatchers(exp.Matcher, s, f)
+	}
+
+	if len(elements) > 0 {
+		for _, el := range elements {
+			if m, ok := el.(gomega.OmegaMatcher); ok {
+				traverseGomegaMatchers(m, s, f)
+			}
+		}
 	}
 }
 
