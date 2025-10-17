@@ -41,7 +41,6 @@ import (
 	"github.com/sourcenetwork/defradb/errors"
 	"github.com/sourcenetwork/defradb/internal/db"
 	"github.com/sourcenetwork/defradb/internal/request/graphql/schema/types"
-	netConfig "github.com/sourcenetwork/defradb/net/config"
 	"github.com/sourcenetwork/defradb/node"
 	"github.com/sourcenetwork/defradb/tests/action"
 	changeDetector "github.com/sourcenetwork/defradb/tests/change_detector"
@@ -844,11 +843,9 @@ func startNodes(s *state.State, testCase TestCase, action Start) {
 		opts := []node.Option{
 			db.WithNodeIdentity(state.GetIdentity(s, NodeIdentity(nodeIndex))),
 		}
-		for _, opt := range s.Nodes[nodeIndex].NetOpts {
-			opts = append(opts, opt)
-		}
+		opts = append(opts, s.Nodes[nodeIndex].NetOpts...)
 
-		opts = append(opts, netConfig.WithListenAddresses(s.Nodes[nodeIndex].CachedPeerInfo.Addresses...))
+		opts = withWithListenAddresses(opts, s.Nodes[nodeIndex].CachedAddresses...)
 		opts = append(opts, node.WithEnableNodeACP(action.EnableNAC))
 		node, err := setupNode(
 			s,
@@ -979,12 +976,11 @@ func configureNode(
 	require.NoError(s.T, err)
 
 	netNodeOpts := action()
-	netNodeOpts = append(netNodeOpts, netConfig.WithPrivateKey(privateKey))
+
+	netNodeOpts = withPrivateKey(netNodeOpts, privateKey)
 
 	nodeOpts := []node.Option{db.WithRetryInterval([]time.Duration{time.Millisecond * 1})}
-	for _, opt := range netNodeOpts {
-		nodeOpts = append(nodeOpts, opt)
-	}
+	nodeOpts = append(nodeOpts, netNodeOpts...)
 	nodeOpts = append(nodeOpts, db.WithNodeIdentity(state.GetIdentity(s, NodeIdentity(len(s.Nodes)))))
 
 	node, err := setupNode(s, acpIdentity.None, testCase, nodeOpts...) //disable change detector, or allow it?

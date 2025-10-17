@@ -23,7 +23,6 @@ import (
 	"github.com/sourcenetwork/defradb/client"
 	"github.com/sourcenetwork/defradb/crypto"
 	"github.com/sourcenetwork/defradb/event"
-	netConfig "github.com/sourcenetwork/defradb/net/config"
 	"github.com/sourcenetwork/defradb/node"
 	"github.com/sourcenetwork/defradb/tests/clients"
 )
@@ -167,7 +166,7 @@ type NodeState struct {
 	// P2P contains P2P states for the node.
 	P2P *P2PState
 	// The network configurations for the nodes
-	NetOpts []netConfig.NodeOpt
+	NetOpts []node.Option
 	// The path to any file-based databases active in this test.
 	DbPath string
 	// Collections by index present in the test.
@@ -175,9 +174,9 @@ type NodeState struct {
 	Collections []client.Collection
 	// indicates if the node is Closed.
 	Closed bool
-	// CachedPeerInfo holds the node's PeerInfo so that the node can be
-	// restarded with the same address configuration.
-	CachedPeerInfo client.PeerInfo
+	// CachedAddresses holds the node's addresses so that the node can be
+	// restarted with the same address configuration.
+	CachedAddresses []string
 	// Map of docIDs to their composite CIDs.
 	Composites map[string][]cid.Cid
 }
