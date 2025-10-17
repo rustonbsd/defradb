@@ -499,21 +499,6 @@
                 },
                 "type": "object"
             },
-            "migrate_request": {
-                "properties": {
-                    "CollectionID": {
-                        "type": "string"
-                    },
-                    "Data": {
-                        "items": {
-                            "additionalProperties": {},
-                            "type": "object"
-                        },
-                        "type": "array"
-                    }
-                },
-                "type": "object"
-            },
             "patch_collection_request": {
                 "properties": {
                     "Migration": {},
@@ -566,33 +551,10 @@
                 },
                 "type": "object"
             },
-            "set_migration_request": {
+            "set_migration": {
                 "properties": {
-                    "CollectionID": {
+                    "lensId": {
                         "type": "string"
-                    },
-                    "Config": {
-                        "properties": {
-                            "Lenses": {
-                                "items": {
-                                    "properties": {
-                                        "Arguments": {
-                                            "additionalProperties": {},
-                                            "type": "object"
-                                        },
-                                        "Inverse": {
-                                            "type": "boolean"
-                                        },
-                                        "Path": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                },
-                                "type": "array"
-                            }
-                        },
-                        "type": "object"
                     }
                 },
                 "type": "object"
@@ -1965,137 +1927,14 @@
                 },
                 "responses": {
                     "200": {
-                        "$ref": "#/components/responses/success"
-                    },
-                    "400": {
-                        "$ref": "#/components/responses/error"
-                    },
-                    "default": {
-                        "description": ""
-                    }
-                },
-                "tags": [
-                    "lens"
-                ]
-            }
-        },
-        "/lens/registry": {
-            "post": {
-                "description": "Add a new lens migration to registry",
-                "operationId": "lens_registry_set_migration",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/set_migration_request"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/set_migration"
+                                }
                             }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/success"
-                    },
-                    "400": {
-                        "$ref": "#/components/responses/error"
-                    },
-                    "default": {
-                        "description": ""
-                    }
-                },
-                "tags": [
-                    "lens"
-                ]
-            }
-        },
-        "/lens/registry/reload": {
-            "post": {
-                "description": "Reload lens migrations",
-                "operationId": "lens_registry_reload",
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/success"
-                    },
-                    "400": {
-                        "$ref": "#/components/responses/error"
-                    },
-                    "default": {
-                        "description": ""
-                    }
-                },
-                "tags": [
-                    "lens"
-                ]
-            }
-        },
-        "/lens/registry/{version}/down": {
-            "post": {
-                "description": "Migrate documents from a collection",
-                "operationId": "lens_registry_migrate_down",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "version",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/migrate_request"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/success"
-                    },
-                    "400": {
-                        "$ref": "#/components/responses/error"
-                    },
-                    "default": {
-                        "description": ""
-                    }
-                },
-                "tags": [
-                    "lens"
-                ]
-            }
-        },
-        "/lens/registry/{version}/up": {
-            "post": {
-                "description": "Migrate documents to a collection",
-                "operationId": "lens_registry_migrate_up",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "version",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/migrate_request"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/success"
+                        },
+                        "description": "Lens info"
                     },
                     "400": {
                         "$ref": "#/components/responses/error"
