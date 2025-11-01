@@ -15,8 +15,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/sourcenetwork/immutable"
+	"github.com/ipfs/go-cid"
 	"github.com/stretchr/testify/require"
+
+	"github.com/sourcenetwork/immutable"
 
 	"github.com/sourcenetwork/defradb/client"
 	"github.com/sourcenetwork/defradb/event"
@@ -146,7 +148,7 @@ func waitForUpdateEvents(
 
 		col := node.Collections[collectionIndex]
 		if col.Version().IsBranchable {
-			expect[col.SchemaRoot()] = struct{}{}
+			expect[col.CollectionID()] = struct{}{}
 		}
 		for k := range docIDs {
 			expect[k] = struct{}{}
@@ -154,15 +156,31 @@ func waitForUpdateEvents(
 
 		for len(expect) > 0 {
 			var evt event.Update
-			select {
-			case msg, ok := <-node.Event.Update.Message():
-				if !ok {
-					require.Fail(s.T, "subscription closed waiting for update event", "Node %d", i)
-				}
-				evt = msg.Data.(event.Update)
+		relayCheck:
+			// We need to ensure the message was not from a previously relayed update.
+			// If it is, we try the next one.
+			for {
+				select {
+				case msg, ok := <-node.Event.Update.Message():
+					if !ok {
+						require.Fail(s.T, "subscription closed waiting for update event", "Node %d", i)
+					}
+					evt = msg.Data.(event.Update)
+					// We keep track of the list of cids for all documents in the test
+					// in case we want to use them in subsequent test actions without having
+					// to know in advance what the CID will be.
+					if node.Composites == nil {
+						node.Composites = make(map[string][]cid.Cid)
+					}
+					node.Composites[evt.DocID] = append(node.Composites[evt.DocID], evt.Cid)
 
-			case <-time.After(eventTimeout):
-				require.Fail(s.T, "timeout waiting for update event", "Node %d", i)
+					if !evt.IsRelay {
+						break relayCheck
+					}
+
+				case <-time.After(eventTimeout):
+					require.Fail(s.T, "timeout waiting for update event", "Node %d", i)
+				}
 			}
 
 			// make sure the event is expected
@@ -248,6 +266,52 @@ func waitForMergeEvents(s *state.State, action WaitForSync) {
 	}
 }
 
+func waitForSESync(s *state.State, action WaitForSESync) {
+	var docIDsToWait []string
+	if len(action.DocIDs) > 0 {
+		for _, docIndex := range action.DocIDs {
+			if len(s.DocIDs[0]) <= docIndex {
+				require.Fail(s.T, "doc index %d out of range", docIndex)
+			}
+			docIDsToWait = append(docIDsToWait, s.DocIDs[0][docIndex].String())
+		}
+	} else {
+		// Wait for all documents if no specific IDs provided
+		for _, docID := range s.DocIDs[0] {
+			docIDsToWait = append(docIDsToWait, docID.String())
+		}
+	}
+
+	// SE sync events are only published on replicator nodes (nodes that receive artifacts)
+	// We wait for events from any non-source node with active replicators
+	for nodeID := 1; nodeID < len(s.Nodes); nodeID++ {
+		node := s.Nodes[nodeID]
+		if node.Closed {
+			continue // node is closed
+		}
+
+		expectedSyncs := make(map[string]struct{}, len(docIDsToWait))
+		for _, docID := range docIDsToWait {
+			expectedSyncs[docID] = struct{}{}
+		}
+
+		for len(expectedSyncs) > 0 {
+			select {
+			case msg, ok := <-node.Event.SESync.Message():
+				if !ok {
+					require.Fail(s.T, "subscription closed waiting for SE sync complete event")
+				}
+				evt := msg.Data.(event.SEArtifactReceived)
+
+				delete(expectedSyncs, evt.DocID)
+
+			case <-time.After(30 * eventTimeout):
+				require.Fail(s.T, "timeout waiting for SE sync complete event on node %d. Remaining: %v", nodeID, expectedSyncs)
+			}
+		}
+	}
+}
+
 // updateNetworkState updates the network state by checking which
 // nodes should receive the updated document in the given update event.
 func updateNetworkState(s *state.State, nodeID int, evt event.Update, ident immutable.Option[state.Identity]) {
@@ -279,8 +343,27 @@ func updateNetworkState(s *state.State, nodeID int, evt event.Update, ident immu
 		s.Nodes[id].P2P.ExpectedDAGHeads[getUpdateEventKey(evt)] = evt.Cid
 	}
 
-	// update the expected document heads of connected nodes
-	for id := range node.P2P.Connections {
+	updateConnectedNodes(s, nodeID, map[int]struct{}{}, ident, collectionID, docIndex, evt)
+}
+
+// updateConnectedNodes updates the expected document heads of connected nodes
+func updateConnectedNodes(
+	s *state.State,
+	nodeID int,
+	nodesCovered map[int]struct{},
+	ident immutable.Option[state.Identity],
+	collectionID int,
+	docIndex int,
+	evt event.Update,
+) {
+	if _, ok := nodesCovered[nodeID]; ok {
+		return
+	}
+	nodesCovered[nodeID] = struct{}{}
+	for id := range s.Nodes[nodeID].P2P.Connections {
+		if _, ok := nodesCovered[id]; ok {
+			continue
+		}
 		if ident.HasValue() && ident.Value().Selector != strconv.Itoa(id) {
 			// If the document is created by a specific identity, only the node with the
 			// same index as the identity can initially access it.
@@ -296,6 +379,8 @@ func updateNetworkState(s *state.State, nodeID int, evt event.Update, ident immu
 		if _, ok := s.Nodes[id].P2P.PeerDocuments[state.NewColDocIndex(collectionID, docIndex)]; ok {
 			s.Nodes[id].P2P.ExpectedDAGHeads[getUpdateEventKey(evt)] = evt.Cid
 		}
+
+		updateConnectedNodes(s, id, nodesCovered, ident, collectionID, docIndex, evt)
 	}
 }
 

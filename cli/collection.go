@@ -13,13 +13,14 @@ package cli
 import (
 	"context"
 
-	"github.com/sourcenetwork/immutable"
 	"github.com/spf13/cobra"
+
+	"github.com/sourcenetwork/immutable"
 
 	"github.com/sourcenetwork/defradb/client"
 )
 
-func MakeCollectionCommand() *cobra.Command {
+func MakeCollectionCommand(ctx context.Context) *cobra.Command {
 	var txID uint64
 	var identity string
 	var name string

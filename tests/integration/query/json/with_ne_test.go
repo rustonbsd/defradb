@@ -60,10 +60,11 @@ func TestQueryJSON_WithNotEqualFilterWithObject_ShouldFilter(t *testing.T) {
 				}`,
 				Results: map[string]any{
 					"Users": []map[string]any{
-						{"name": "John"},
 						{"name": "Shahzad"},
+						{"name": "John"},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -207,10 +208,11 @@ func TestQueryJSON_WithNeFilterAgainstNumberField_ShouldFilter(t *testing.T) {
 				}`,
 				Results: map[string]any{
 					"User": []map[string]any{
-						{"name": "Shahzad"},
 						{"name": "Andy"},
+						{"name": "Shahzad"},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -363,10 +365,11 @@ func TestQueryJSON_WithNeFilterAgainstNullField_ShouldFilter(t *testing.T) {
 				}`,
 				Results: map[string]any{
 					"User": []map[string]any{
-						{"name": "Shahzad"},
 						{"name": "John"},
+						{"name": "Shahzad"},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}

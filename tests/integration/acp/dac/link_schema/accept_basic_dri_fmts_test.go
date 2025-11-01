@@ -15,13 +15,11 @@ import (
 
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
-	schemaUtils "github.com/sourcenetwork/defradb/tests/integration/schema"
+	schemaUtils "github.com/sourcenetwork/defradb/tests/integration/collection_version"
 )
 
 func TestACP_LinkSchema_BasicYAML_SchemaAccepted(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, specify basic policy that was added in YAML format, accept schema",
 
 		Actions: []any{
 			testUtils.AddDACPolicy{
@@ -111,8 +109,6 @@ func TestACP_LinkSchema_BasicYAML_SchemaAccepted(t *testing.T) {
 
 func TestACP_LinkSchema_BasicJSON_SchemaAccepted(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, specify basic policy that was added in JSON format, accept schema",
 
 		Actions: []any{
 			testUtils.AddDACPolicy{

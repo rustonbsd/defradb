@@ -21,6 +21,9 @@ import (
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 	"github.com/stretchr/testify/require"
 
+	"github.com/sourcenetwork/corekv/blockstore"
+	"github.com/sourcenetwork/immutable"
+
 	"github.com/sourcenetwork/defradb/client"
 	"github.com/sourcenetwork/defradb/event"
 	coreblock "github.com/sourcenetwork/defradb/internal/core/block"
@@ -48,7 +51,7 @@ func TestMerge_SingleBranch_NoError(t *testing.T) {
 	require.NoError(t, err)
 
 	lsys := cidlink.DefaultLinkSystem()
-	lsys.SetWriteStorage(datastore.BlockstoreFrom(db.rootstore).AsIPLDStorage())
+	lsys.SetWriteStorage(blockstore.NewIPLDStore(datastore.BlockstoreFrom(db.rootstore, immutable.None[int]())))
 
 	initialDocState := map[string]any{
 		"name": "John",
@@ -62,7 +65,7 @@ func TestMerge_SingleBranch_NoError(t *testing.T) {
 	err = db.executeMerge(ctx, col.(*collection), event.Merge{
 		DocID:        docID.String(),
 		Cid:          compInfo2.link.Cid,
-		CollectionID: col.SchemaRoot(),
+		CollectionID: col.CollectionID(),
 	})
 	require.NoError(t, err)
 
@@ -93,7 +96,7 @@ func TestMerge_DualBranch_NoError(t *testing.T) {
 	require.NoError(t, err)
 
 	lsys := cidlink.DefaultLinkSystem()
-	lsys.SetWriteStorage(datastore.BlockstoreFrom(db.rootstore).AsIPLDStorage())
+	lsys.SetWriteStorage(blockstore.NewIPLDStore(datastore.BlockstoreFrom(db.rootstore, immutable.None[int]())))
 
 	initialDocState := map[string]any{
 		"name": "John",
@@ -107,7 +110,7 @@ func TestMerge_DualBranch_NoError(t *testing.T) {
 	err = db.executeMerge(ctx, col.(*collection), event.Merge{
 		DocID:        docID.String(),
 		Cid:          compInfo2.link.Cid,
-		CollectionID: col.SchemaRoot(),
+		CollectionID: col.CollectionID(),
 	})
 	require.NoError(t, err)
 
@@ -117,7 +120,7 @@ func TestMerge_DualBranch_NoError(t *testing.T) {
 	err = db.executeMerge(ctx, col.(*collection), event.Merge{
 		DocID:        docID.String(),
 		Cid:          compInfo3.link.Cid,
-		CollectionID: col.SchemaRoot(),
+		CollectionID: col.CollectionID(),
 	})
 	require.NoError(t, err)
 
@@ -151,7 +154,7 @@ func TestMerge_DualBranchWithOneIncomplete_CouldNotFindCID(t *testing.T) {
 	require.NoError(t, err)
 
 	lsys := cidlink.DefaultLinkSystem()
-	lsys.SetWriteStorage(datastore.BlockstoreFrom(db.rootstore).AsIPLDStorage())
+	lsys.SetWriteStorage(blockstore.NewIPLDStore(datastore.BlockstoreFrom(db.rootstore, immutable.None[int]())))
 
 	initialDocState := map[string]any{
 		"name": "John",
@@ -165,7 +168,7 @@ func TestMerge_DualBranchWithOneIncomplete_CouldNotFindCID(t *testing.T) {
 	err = db.executeMerge(ctx, col.(*collection), event.Merge{
 		DocID:        docID.String(),
 		Cid:          compInfo2.link.Cid,
-		CollectionID: col.SchemaRoot(),
+		CollectionID: col.CollectionID(),
 	})
 	require.NoError(t, err)
 
@@ -184,7 +187,7 @@ func TestMerge_DualBranchWithOneIncomplete_CouldNotFindCID(t *testing.T) {
 	err = db.executeMerge(ctx, col.(*collection), event.Merge{
 		DocID:        docID.String(),
 		Cid:          compInfo3.link.Cid,
-		CollectionID: col.SchemaRoot(),
+		CollectionID: col.CollectionID(),
 	})
 	require.ErrorContains(t, err, "could not find bafyreibdsxukhmkwea4hdd2svvf6fijvuhdxeil2bf75v4wzooldb74uwq")
 
@@ -211,7 +214,7 @@ type dagBuilder struct {
 func newDagBuilder(col client.Collection, initalDocState map[string]any) (*dagBuilder, client.DocID) {
 	doc, err := client.NewDocFromMap(
 		initalDocState,
-		col.Definition(),
+		col.Version(),
 	)
 	if err != nil {
 		panic(err)
@@ -245,7 +248,7 @@ func (d *dagBuilder) generateCompositeUpdate(lsys *linking.LinkSystem, fields ma
 					DocID:           d.docID,
 					FieldName:       field,
 					Priority:        d.fieldsHeight[field],
-					SchemaVersionID: d.col.Schema().VersionID,
+					SchemaVersionID: d.col.Version().VersionID,
 					Data:            encodeValue(val),
 				},
 			},
@@ -261,12 +264,12 @@ func (d *dagBuilder) generateCompositeUpdate(lsys *linking.LinkSystem, fields ma
 	}
 
 	compositeBlock := coreblock.New(
-		&crdt.DocCompositeDelta{
+		crdt.NewCRDT(&crdt.DocCompositeDelta{
 			DocID:           d.docID,
 			Priority:        newPriority,
-			SchemaVersionID: d.col.Schema().VersionID,
+			SchemaVersionID: d.col.Version().VersionID,
 			Status:          1,
-		},
+		}),
 		links,
 		heads...,
 	)

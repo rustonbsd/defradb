@@ -28,29 +28,14 @@ import (
 
 	"github.com/sourcenetwork/defradb/keyring"
 	"github.com/sourcenetwork/defradb/node"
-	"github.com/sourcenetwork/defradb/tests/clients/cli"
-	"github.com/sourcenetwork/defradb/tests/clients/http"
 	"github.com/sourcenetwork/defradb/tests/state"
 
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	toml "github.com/pelletier/go-toml"
-	"github.com/sourcenetwork/immutable"
 	"github.com/stretchr/testify/require"
+
+	"github.com/sourcenetwork/immutable"
 )
-
-func getNodeAudience(s *state.State, nodeIndex int) immutable.Option[string] {
-	if nodeIndex >= len(s.Nodes) {
-		return immutable.None[string]()
-	}
-	switch client := s.Nodes[nodeIndex].Client.(type) {
-	case *http.Wrapper:
-		return immutable.Some(strings.TrimPrefix(client.Host(), "http://"))
-	case *cli.Wrapper:
-		return immutable.Some(strings.TrimPrefix(client.Host(), "http://"))
-	}
-
-	return immutable.None[string]()
-}
 
 func setupSourceHub(s *state.State, testCase TestCase) ([]node.DocumentACPOpt, error) {
 	var isDocumentACPTest bool

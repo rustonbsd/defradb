@@ -13,12 +13,12 @@ package subscription
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
 func TestSubscriptionWithCreateMutations(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Subscription with user creations",
 		Actions: []any{
 			testUtils.SubscriptionRequest{
 				Request: `subscription {
@@ -32,7 +32,7 @@ func TestSubscriptionWithCreateMutations(t *testing.T) {
 					{
 						"User": []map[string]any{
 							{
-								"_docID": "bae-b3ce089b-f543-5984-be9f-ad7d08969f4e",
+								"_docID": "bae-9591c619-4bca-58eb-8820-28028736ef0c",
 								"age":    int64(27),
 								"name":   "John",
 							},
@@ -41,7 +41,7 @@ func TestSubscriptionWithCreateMutations(t *testing.T) {
 					{
 						"User": []map[string]any{
 							{
-								"_docID": "bae-bc20b854-10b3-5408-b28c-f273ddda9434",
+								"_docID": "bae-45e90427-d499-598b-902a-6a3c65d0b504",
 								"age":    int64(31),
 								"name":   "Addo",
 							},
@@ -85,7 +85,6 @@ func TestSubscriptionWithCreateMutations(t *testing.T) {
 
 func TestSubscriptionWithFilterAndOneCreateMutation(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Subscription with filter and one user creation",
 		Actions: []any{
 			testUtils.SubscriptionRequest{
 				Request: `subscription {
@@ -127,7 +126,6 @@ func TestSubscriptionWithFilterAndOneCreateMutation(t *testing.T) {
 
 func TestSubscriptionWithFilterAndOneCreateMutationOutsideFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Subscription with filter and one user creation outside of the filter",
 		Actions: []any{
 			testUtils.SubscriptionRequest{
 				Request: `subscription {
@@ -161,7 +159,6 @@ func TestSubscriptionWithFilterAndOneCreateMutationOutsideFilter(t *testing.T) {
 
 func TestSubscriptionWithFilterAndCreateMutations(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Subscription with filter and user creation in and outside of the filter",
 		Actions: []any{
 			testUtils.SubscriptionRequest{
 				Request: `subscription {
@@ -217,7 +214,6 @@ func TestSubscriptionWithFilterAndCreateMutations(t *testing.T) {
 
 func TestSubscriptionWithUpdateMutations(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Subscription with user creations and single mutation",
 		Actions: []any{
 			testUtils.CreateDoc{
 				CollectionID: 0,
@@ -279,7 +275,6 @@ func TestSubscriptionWithUpdateMutations(t *testing.T) {
 
 func TestSubscriptionWithUpdateAllMutations(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Subscription with user creations and mutations for all",
 		Actions: []any{
 			testUtils.CreateDoc{
 				CollectionID: 0,
@@ -311,8 +306,8 @@ func TestSubscriptionWithUpdateAllMutations(t *testing.T) {
 					{
 						"User": []map[string]any{
 							{
-								"age":    int64(31),
-								"name":   "Addo",
+								"age":    int64(27),
+								"name":   "John",
 								"points": float64(55),
 							},
 						},
@@ -320,8 +315,8 @@ func TestSubscriptionWithUpdateAllMutations(t *testing.T) {
 					{
 						"User": []map[string]any{
 							{
-								"age":    int64(27),
-								"name":   "John",
+								"age":    int64(31),
+								"name":   "Addo",
 								"points": float64(55),
 							},
 						},
@@ -337,10 +332,10 @@ func TestSubscriptionWithUpdateAllMutations(t *testing.T) {
 				Results: map[string]any{
 					"update_User": []map[string]any{
 						{
-							"name": "Addo",
+							"name": "John",
 						},
 						{
-							"name": "John",
+							"name": "Addo",
 						},
 					},
 				},
@@ -349,4 +344,197 @@ func TestSubscriptionWithUpdateAllMutations(t *testing.T) {
 	}
 
 	execute(t, test)
+}
+
+func TestSubscription_WithDocIDFilter_ShouldOnlyGetUpdatesForThatDocID(t *testing.T) {
+	test := testUtils.TestCase{
+		Actions: []any{
+			testUtils.SubscriptionRequest{
+				Request: `subscription {
+					User(docID: "bae-a160ba13-dbf9-50da-a598-018bffa10569") {
+						name
+						age
+					}
+				}`,
+				Results: []map[string]any{
+					{
+						"User": []map[string]any{
+							{
+								"age":  int64(31),
+								"name": "Addo",
+							},
+						},
+					},
+					{
+						"User": []map[string]any{
+							{
+								"age":  int64(32),
+								"name": "Addo",
+							},
+						},
+					},
+				},
+			},
+			testUtils.CreateDoc{
+				CollectionID: 0,
+				DocMap: map[string]any{
+					"name": "John",
+					"age":  27,
+				},
+			},
+			testUtils.CreateDoc{
+				CollectionID: 0,
+				DocMap: map[string]any{
+					"name": "Addo",
+					"age":  31,
+				},
+			},
+			testUtils.UpdateDoc{
+				CollectionID: 0,
+				DocID:        0,
+				Doc:          `{"age": 28}`,
+			},
+			testUtils.UpdateDoc{
+				CollectionID: 0,
+				DocID:        1,
+				Doc:          `{"age": 32}`,
+			},
+		},
+	}
+
+	execute(t, test)
+}
+
+func TestSubscription_WithClose_WontBlock(t *testing.T) {
+	test := testUtils.TestCase{
+		Actions: []any{
+			testUtils.SubscriptionRequest{
+				Request: `subscription {
+					User{
+						name
+						age
+					}
+				}`,
+				Results: nil,
+			},
+			testUtils.Close{},
+		},
+	}
+
+	execute(t, test)
+}
+
+func TestSubscription_WithCounterCRDT_ShouldSucceed(t *testing.T) {
+	test := testUtils.TestCase{
+		Actions: []any{
+			&action.AddSchema{
+				Schema: `
+					type User {
+						counter: Int @crdt(type: pcounter)
+					}
+				`,
+			},
+			testUtils.SubscriptionRequest{
+				Request: `subscription {
+					User {
+						counter
+					}
+				}`,
+				Results: []map[string]any{
+					{
+						"User": []map[string]any{
+							{
+								"counter": int64(1),
+							},
+						},
+					},
+					{
+						"User": []map[string]any{
+							{
+								"counter": int64(2),
+							},
+						},
+					},
+				},
+			},
+			testUtils.CreateDoc{
+				CollectionID: 0,
+				DocMap: map[string]any{
+					"counter": int64(1),
+				},
+			},
+			testUtils.UpdateDoc{
+				CollectionID: 0,
+				DocID:        0,
+				Doc:          `{"counter": 1}`,
+			},
+		},
+	}
+
+	testUtils.ExecuteTestCase(t, test)
+}
+
+func TestSubscription_WithDeleteOperation_ShouldSucceed(t *testing.T) {
+	test := testUtils.TestCase{
+		Actions: []any{
+			&action.AddSchema{
+				Schema: `
+					type User {
+						name: String
+					}
+				`,
+			},
+			testUtils.SubscriptionRequest{
+				Request: `subscription {
+					User (showDeleted: true) { 
+						name
+						_deleted
+					}
+				}`,
+				Results: []map[string]any{
+					{
+						"User": []map[string]any{
+							{
+								"name":     "John",
+								"_deleted": false,
+							},
+						},
+					},
+					{
+						"User": []map[string]any{
+							{
+								"name":     "Johny",
+								"_deleted": false,
+							},
+						},
+					},
+					{
+						"User": []map[string]any{
+							{
+								"name":     "Johny",
+								"_deleted": true,
+							},
+						},
+					},
+				},
+			},
+			testUtils.CreateDoc{
+				CollectionID: 0,
+				DocMap: map[string]any{
+					"name": "John",
+				},
+			},
+			testUtils.UpdateDoc{
+				CollectionID: 0,
+				DocID:        0,
+				Doc:          `{"name": "Johny"}`,
+			},
+			testUtils.DeleteDoc{
+				CollectionID: 0,
+				DocID:        0,
+			},
+		},
+	}
+
+	testUtils.ExecuteTestCase(t, test)
 }

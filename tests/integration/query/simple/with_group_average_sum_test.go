@@ -18,7 +18,6 @@ import (
 
 func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanAndSumOfCountOfInt(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, with child group by boolean, and sum of average on int",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -83,16 +82,6 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanAndSumOfCountOfInt(t *
 							},
 						},
 						{
-							"Name": "Carlo",
-							"_sum": float64(55),
-							"_group": []map[string]any{
-								{
-									"Verified": true,
-									"_avg":     float64(55),
-								},
-							},
-						},
-						{
 							"Name": "Alice",
 							"_sum": float64(19),
 							"_group": []map[string]any{
@@ -102,8 +91,19 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanAndSumOfCountOfInt(t *
 								},
 							},
 						},
+						{
+							"Name": "Carlo",
+							"_sum": float64(55),
+							"_group": []map[string]any{
+								{
+									"Verified": true,
+									"_avg":     float64(55),
+								},
+							},
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -113,11 +113,10 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanAndSumOfCountOfInt(t *
 
 // Note: this test should follow a different code path to `_avg` on it's own
 // utilising the existing `_sum` node instead of adding a new one.  This test cannot
-// verify that that code path is taken, but it does verfiy that the correct result
+// verify that code path is taken, but it does verfiy that the correct result
 // is returned to the consumer in case the more efficient code path is taken.
 func TestQuerySimpleWithGroupByStringWithoutRenderedGroupAndChildIntegerAverageAndSum(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, average and sum on non-rendered group integer value",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{

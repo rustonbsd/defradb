@@ -18,7 +18,6 @@ import (
 
 func TestQueryCommitsWithDocIDAndUnknownField(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple all commits query with docID and unknown field",
 		Actions: []any{
 			updateUserCollectionSchema(),
 			testUtils.CreateDoc{
@@ -30,12 +29,12 @@ func TestQueryCommitsWithDocIDAndUnknownField(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `query {
-						commits(docID: "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3", fieldName: "not a field") {
+						_commits(docID: "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738", fieldName: "not a field") {
 							cid
 						}
 					}`,
 				Results: map[string]any{
-					"commits": []map[string]any{},
+					"_commits": []map[string]any{},
 				},
 			},
 		},
@@ -46,7 +45,6 @@ func TestQueryCommitsWithDocIDAndUnknownField(t *testing.T) {
 
 func TestQueryCommitsWithDocIDAndUnknownFieldId(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple all commits query with docID and unknown field id",
 		Actions: []any{
 			updateUserCollectionSchema(),
 			testUtils.CreateDoc{
@@ -58,12 +56,12 @@ func TestQueryCommitsWithDocIDAndUnknownFieldId(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `query {
-						commits(docID: "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3", fieldName: "999999") {
+						_commits(docID: "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738", fieldName: "999999") {
 							cid
 						}
 					}`,
 				Results: map[string]any{
-					"commits": []map[string]any{},
+					"_commits": []map[string]any{},
 				},
 			},
 		},
@@ -74,7 +72,6 @@ func TestQueryCommitsWithDocIDAndUnknownFieldId(t *testing.T) {
 
 func TestQueryCommitsWithDocIDAndField(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple all commits query with docID and field",
 		Actions: []any{
 			updateUserCollectionSchema(),
 			testUtils.CreateDoc{
@@ -86,14 +83,14 @@ func TestQueryCommitsWithDocIDAndField(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `query {
-						commits(docID: "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3", fieldName: "age") {
+						_commits(docID: "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738", fieldName: "age") {
 							cid
 						}
 					}`,
 				Results: map[string]any{
-					"commits": []map[string]any{
+					"_commits": []map[string]any{
 						{
-							"cid": "bafyreif6dqbkr7t37jcjfxxrjnxt7cspxzvs7qwlbtjca57cc663he4s7e",
+							"cid": "bafyreihakk5jjukb4fw7klfejdmniwhuscnckcjo677p3mtcxrdpiahuea",
 						},
 					},
 				},
@@ -106,7 +103,6 @@ func TestQueryCommitsWithDocIDAndField(t *testing.T) {
 
 func TestQueryCommitsWithDocIDAndCompositeField(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple all commits query with docID and field id",
 		Actions: []any{
 			updateUserCollectionSchema(),
 			testUtils.CreateDoc{
@@ -118,14 +114,14 @@ func TestQueryCommitsWithDocIDAndCompositeField(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `query {
-						commits(docID: "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3", fieldName: "_C") {
+						_commits(docID: "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738", fieldName: "_C") {
 							cid
 						}
 					}`,
 				Results: map[string]any{
-					"commits": []map[string]any{
+					"_commits": []map[string]any{
 						{
-							"cid": "bafyreia2vlbfkcbyogdjzmbqcjneabwwwtw7ti2xbd7yor5mbu2sk4pcoy",
+							"cid": "bafyreihpq4duzngkledmxkxx3jevlp2q4aimhmbjygpv5chmgbf6u2fsqm",
 						},
 					},
 				},

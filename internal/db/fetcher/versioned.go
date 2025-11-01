@@ -35,6 +35,14 @@ import (
 	"github.com/sourcenetwork/defradb/internal/planner/mapper"
 )
 
+const (
+	// 1 MB, this matches the maximum badger-in-memory value size.
+	//
+	// Nearly at least, badger panics if this is set to it's max for reasons not yet
+	// looked into.  Going one byte smaller does not have this issue.
+	chunkSize = (1 << 20) - 1
+)
+
 var (
 	// interface check
 	_ Fetcher = (*VersionedFetcher)(nil)
@@ -107,7 +115,7 @@ func (vf *VersionedFetcher) Init(
 	documentACP immutable.Option[dac.DocumentACP],
 	index immutable.Option[client.IndexDescription],
 	col client.Collection,
-	fields []client.FieldDefinition,
+	fields []client.CollectionFieldDescription,
 	filter *mapper.Filter,
 	ordering []mapper.OrderCondition,
 	docmapper *core.DocumentMapping,
@@ -155,11 +163,13 @@ func (vf *VersionedFetcher) Init(
 	}
 
 	vf.store = datastore.NewTxnFrom(
-		ctx,
 		vf.root,
 		// We can take the parent txn id here
 		txn.ID(),
 		false,
+		// Chunk by default, it is a pain to figure out if it is necessary or not here, so
+		// we chose to take the performance hit and chunk.
+		immutable.Some(chunkSize),
 	) // were going to discard and nuke this later
 
 	// run the DF init, VersionedFetchers only supports the Primary (0) index
@@ -348,7 +358,7 @@ func (vf *VersionedFetcher) merge(c cid.Cid) error {
 		return err
 	}
 
-	var mcrdt core.ReplicatedData
+	var mcrdt crdt.ReplicatedData
 	switch {
 	case block.Delta.IsCollection():
 		mcrdt = crdt.NewCollection(
@@ -368,12 +378,12 @@ func (vf *VersionedFetcher) merge(c cid.Cid) error {
 		)
 
 	default:
-		field, ok := vf.col.Definition().GetFieldByName(block.Delta.GetFieldName())
+		field, ok := vf.col.Version().GetFieldByName(block.Delta.GetFieldName())
 		if !ok {
 			return client.NewErrFieldNotExist(block.Delta.GetFieldName())
 		}
 
-		fieldShortID, err := id.GetShortFieldID(vf.ctx, shortID, field.Name)
+		fieldShortID, err := id.GetShortFieldID(vf.ctx, shortID, field.FieldID)
 		if err != nil {
 			return err
 		}
@@ -407,8 +417,10 @@ func (vf *VersionedFetcher) merge(c cid.Cid) error {
 		return err
 	}
 
-	// handle subgraphs
-	for _, l := range block.AllLinks() {
+	// Handle subgraphs. We range over `Links` only (not `Heads``) because the trunk is already accounted for
+	// by the initial caller or `merge`. Including `Heads` would result in unnecessary recursion and possible
+	// wrong final value for the fields.
+	for _, l := range block.Links {
 		err = vf.merge(l.Cid)
 		if err != nil {
 			return err

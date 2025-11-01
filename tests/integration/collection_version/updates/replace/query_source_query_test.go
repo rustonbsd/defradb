@@ -58,7 +58,7 @@ func TestColVersionUpdateReplaceQuerySourceQuery(t *testing.T) {
 					[
 						{
 							"op": "replace",
-							"path": "/bafkreih4nvljjk7ioviij7sgxzmztqpm3ypf27m4dx4f2cipokkoeegyam/Sources/0/Query",
+							"path": "/View/Query/Query",
 							"value": {"Name": "Users", "Fields":[{"Name":"name"}]}
 						}
 					]
@@ -126,7 +126,7 @@ func TestColVersionUpdateReplaceQuerySourceQueryName(t *testing.T) {
 					[
 						{
 							"op": "replace",
-							"path": "/bafkreih4nvljjk7ioviij7sgxzmztqpm3ypf27m4dx4f2cipokkoeegyam/Sources/0/Query/Name",
+							"path": "/View/Query/Query/Name",
 							"value": "Users"
 						}
 					]

@@ -11,9 +11,19 @@
 package node
 
 import (
+	"github.com/sourcenetwork/defradb/acp/identity"
+	"github.com/sourcenetwork/defradb/internal/db"
 	"github.com/sourcenetwork/defradb/internal/kms"
 
 	"github.com/sourcenetwork/immutable"
+)
+
+const (
+	// 1 MB, this matches the maximum badger-in-memory value size.
+	//
+	// Nearly at least, badger panics if this is set to it's max for reasons not yet
+	// looked into.  Going one byte smaller does not have this issue.
+	defaultChunkSize = (1 << 20) - 1
 )
 
 // Option is a generic option that applies to any subsystem.
@@ -68,6 +78,12 @@ func WithEnableDevelopment(enable bool) NodeOpt {
 	return func(o *Config) {
 		o.enableDevelopment = enable
 	}
+}
+
+// WithNodeIdentity sets the identity for the node. This is the identity that
+// will be used for things like block signatures and P2P sync operations.
+func WithNodeIdentity(ident identity.Identity) db.Option {
+	return db.WithNodeIdentity(ident)
 }
 
 // filterOptions returns a list of options containing

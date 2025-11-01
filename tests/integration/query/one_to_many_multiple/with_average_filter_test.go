@@ -19,7 +19,6 @@ import (
 
 func TestQueryOneToManyMultipleWithAverageOnMultipleJoinsWithAndWithoutFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-many relation query from many side with averages with and without filters",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -126,15 +125,16 @@ func TestQueryOneToManyMultipleWithAverageOnMultipleJoinsWithAndWithoutFilter(t 
 				Results: map[string]any{
 					"Author": []map[string]any{
 						{
-							"name": "Cornelia Funke",
-							"_avg": float64(2.3333333333333335),
-						},
-						{
 							"name": "John Grisham",
 							"_avg": float64(3),
 						},
+						{
+							"name": "Cornelia Funke",
+							"_avg": float64(2.3333333333333335),
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -144,7 +144,6 @@ func TestQueryOneToManyMultipleWithAverageOnMultipleJoinsWithAndWithoutFilter(t 
 
 func TestQueryOneToManyMultipleWithAverageOnMultipleJoinsWithFilters(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-many relation query from many side with averages with filters",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -251,15 +250,16 @@ func TestQueryOneToManyMultipleWithAverageOnMultipleJoinsWithFilters(t *testing.
 				Results: map[string]any{
 					"Author": []map[string]any{
 						{
-							"name": "Cornelia Funke",
-							"_avg": float64(2.3333333333333335),
-						},
-						{
 							"name": "John Grisham",
 							"_avg": float64(0),
 						},
+						{
+							"name": "Cornelia Funke",
+							"_avg": float64(2.3333333333333335),
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}

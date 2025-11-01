@@ -21,7 +21,6 @@ import (
 
 func TestMutationDeletion_WithIDsAndTxn(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple multi-docIDs delete mutation with one ID that exists and txn.",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -44,14 +43,14 @@ func TestMutationDeletion_WithIDsAndTxn(t *testing.T) {
 			testUtils.Request{
 				TransactionID: immutable.Some(0),
 				Request: `mutation {
-					delete_User(docID: ["bae-959725a4-17cb-5e04-8908-98bc78fd06dd"]) {
+					delete_User(docID: ["bae-3b39742b-cfff-5158-b6d5-d69cf79066b4"]) {
 						_docID
 					}
 				}`,
 				Results: map[string]any{
 					"delete_User": []map[string]any{
 						{
-							"_docID": "bae-959725a4-17cb-5e04-8908-98bc78fd06dd",
+							"_docID": "bae-3b39742b-cfff-5158-b6d5-d69cf79066b4",
 						},
 					},
 				},
@@ -59,7 +58,7 @@ func TestMutationDeletion_WithIDsAndTxn(t *testing.T) {
 			testUtils.Request{
 				TransactionID: immutable.Some(0),
 				Request: `query {
-					User(docID: ["bae-959725a4-17cb-5e04-8908-98bc78fd06dd"]) {
+					User(docID: ["bae-3b39742b-cfff-5158-b6d5-d69cf79066b4"]) {
 						_docID
 					}
 				}`,

@@ -18,7 +18,6 @@ import (
 
 func TestQueryLastCommitsWithDocIDProperty(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple latest commits query with docID property",
 		Actions: []any{
 			testUtils.CreateDoc{
 				CollectionID: 0,
@@ -29,14 +28,14 @@ func TestQueryLastCommitsWithDocIDProperty(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `query {
-						latestCommits(docID: "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3") {
+						_latestCommits(docID: "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738") {
 							docID
 						}
 					}`,
 				Results: map[string]any{
-					"latestCommits": []map[string]any{
+					"_latestCommits": []map[string]any{
 						{
-							"docID": "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3",
+							"docID": "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738",
 						},
 					},
 				},

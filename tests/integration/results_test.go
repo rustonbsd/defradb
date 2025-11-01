@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	acpIdentity "github.com/sourcenetwork/defradb/acp/identity"
+	"github.com/sourcenetwork/defradb/client"
 	"github.com/sourcenetwork/defradb/tests/state"
 )
 
@@ -37,6 +38,10 @@ func (m *mockTestState) GetIdentity(_ state.Identity) acpIdentity.Identity {
 	return nil
 }
 
+func (m *mockTestState) GetDocID(_ int, _ int) client.DocID {
+	return client.DocID{}
+}
+
 func TestAnyOfMatcher(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -47,35 +52,35 @@ func TestAnyOfMatcher(t *testing.T) {
 	}{
 		{
 			name:       "HTTP client with matching value",
-			clientType: HTTPClientType,
+			clientType: state.HTTPClientType,
 			values:     []any{"value1", "value2", "value3"},
 			actual:     "value2",
 			want:       true,
 		},
 		{
 			name:       "CLI client with matching value",
-			clientType: CLIClientType,
+			clientType: state.CLIClientType,
 			values:     []any{1, 2, 3},
 			actual:     2,
 			want:       true,
 		},
 		{
 			name:       "Go client with matching value",
-			clientType: GoClientType,
+			clientType: state.GoClientType,
 			values:     []any{"value1", "value2", "value3"},
 			actual:     "value2",
 			want:       true,
 		},
 		{
 			name:       "HTTP client with non-matching value",
-			clientType: HTTPClientType,
+			clientType: state.HTTPClientType,
 			values:     []any{"value1", "value2", "value3"},
 			actual:     "value4",
 			want:       false,
 		},
 		{
 			name:       "Go client with non-matching value",
-			clientType: GoClientType,
+			clientType: state.GoClientType,
 			values:     []any{1, 2, 3},
 			actual:     4,
 			want:       false,

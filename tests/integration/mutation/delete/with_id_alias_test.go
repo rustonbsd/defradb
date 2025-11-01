@@ -19,7 +19,6 @@ import (
 
 func TestMutationDeletion_WithIDAndAlias(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple delete mutation with an alias field name.",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -35,14 +34,14 @@ func TestMutationDeletion_WithIDAndAlias(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `mutation {
-					delete_User(docID: ["bae-22dacd35-4560-583a-9a80-8edbf28aa85c"]) {
+					delete_User(docID: ["bae-390b4419-fe1c-506b-98bd-20847cdab2d9"]) {
 						fancyKey: _docID
 					}
 				}`,
 				Results: map[string]any{
 					"delete_User": []map[string]any{
 						{
-							"fancyKey": "bae-22dacd35-4560-583a-9a80-8edbf28aa85c",
+							"fancyKey": "bae-390b4419-fe1c-506b-98bd-20847cdab2d9",
 						},
 					},
 				},

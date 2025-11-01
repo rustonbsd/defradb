@@ -33,18 +33,22 @@ func (c *collection) DeleteWithFilter(
 	ctx, span := tracer.Start(ctx)
 	defer span.End()
 
+	if err := c.db.checkNodeAccess(ctx, acpTypes.NodeDocumentDeletePerm); err != nil {
+		return nil, err
+	}
+
 	ctx, txn, err := ensureContextTxn(ctx, c.db, false)
 	if err != nil {
 		return nil, err
 	}
-	defer txn.Discard(ctx)
+	defer txn.Discard()
 
 	res, err := c.deleteWithFilter(ctx, filter, client.Deleted)
 	if err != nil {
 		return nil, err
 	}
 
-	return res, txn.Commit(ctx)
+	return res, txn.Commit()
 }
 
 func (c *collection) deleteWithFilter(
@@ -163,7 +167,7 @@ func (c *collection) applyDelete(
 
 	merkleCRDT := crdt.NewDocComposite(
 		txn.Datastore(),
-		c.Schema().VersionID,
+		c.Version().VersionID,
 		primaryKey.ToDataStoreKey().WithFieldID(core.COMPOSITE_NAMESPACE),
 	)
 
@@ -180,17 +184,17 @@ func (c *collection) applyDelete(
 		Block:        b,
 	}
 	txn.OnSuccess(func() {
-		c.db.events.Publish(event.NewMessage(event.UpdateName, updateEvent))
+		c.db.sendUpdate(updateEvent)
 	})
 
-	if c.def.Version.IsBranchable {
+	if c.def.IsBranchable {
 		shortID, err := id.GetShortCollectionID(ctx, c.Version().CollectionID)
 		if err != nil {
 			return err
 		}
 
 		collectionCRDT := crdt.NewCollection(
-			c.Schema().VersionID,
+			c.Version().VersionID,
 			keys.NewHeadstoreColKey(shortID),
 		)
 
@@ -211,7 +215,7 @@ func (c *collection) applyDelete(
 		}
 
 		txn.OnSuccess(func() {
-			c.db.events.Publish(event.NewMessage(event.UpdateName, updateEvent))
+			c.db.sendUpdate(updateEvent)
 		})
 	}
 

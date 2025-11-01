@@ -73,7 +73,7 @@ func TestColVersionUpdateRemovePolicy_Errors(t *testing.T) {
 					[
 						{
 							"op": "remove",
-							"path": "/bafkreihhd6bqrjhl5zidwztgxzeseveplv3cj3fwtn3unjkdx7j2vr2vrq/Policy"
+							"path": "/bafyreihsneodeja4lfer5puptim3lkwvketyckrmkhfpgxm67ch5wenjwq/Policy"
 						}
 					]
 				`,

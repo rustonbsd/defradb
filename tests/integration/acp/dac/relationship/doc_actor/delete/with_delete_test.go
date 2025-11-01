@@ -20,8 +20,6 @@ import (
 func TestACP_OwnerRevokesDeleteAccess_OtherActorCanNoLongerDelete(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Test acp, owner revokes delete access from another actor, they can not delete anymore",
-
 		Actions: []any{
 			testUtils.AddDACPolicy{
 
@@ -161,11 +159,11 @@ func TestACP_OwnerRevokesDeleteAccess_OtherActorCanNoLongerDelete(t *testing.T) 
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"name": "Shahzad",
+							"name": "Shahzad Lone",
 							"age":  int64(28),
 						},
 						{
-							"name": "Shahzad Lone",
+							"name": "Shahzad",
 							"age":  int64(28),
 						},
 					},

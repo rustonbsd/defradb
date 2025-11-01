@@ -30,31 +30,23 @@ var _ client.Collection = (*Collection)(nil)
 // Collection implements the client.Collection interface over HTTP.
 type Collection struct {
 	http *httpClient
-	def  client.CollectionDefinition
+	def  client.CollectionVersion
 }
 
 func (c *Collection) Version() client.CollectionVersion {
-	return c.def.Version
+	return c.def
 }
 
 func (c *Collection) Name() string {
 	return c.Version().Name
 }
 
-func (c *Collection) Schema() client.SchemaDescription {
-	return c.def.Schema
-}
-
 func (c *Collection) VersionID() string {
 	return c.Version().VersionID
 }
 
-func (c *Collection) SchemaRoot() string {
-	return c.Schema().Root
-}
-
-func (c *Collection) Definition() client.CollectionDefinition {
-	return c.def
+func (c *Collection) CollectionID() string {
+	return c.Version().CollectionID
 }
 
 func (c *Collection) Create(
@@ -283,7 +275,7 @@ func (c *Collection) Get(
 	if err != nil {
 		return nil, err
 	}
-	doc, err := client.NewDocWithID(docID, c.def)
+	doc, err := client.NewDocWithID(docID, c.Version())
 	if err != nil {
 		return nil, err
 	}
@@ -394,4 +386,51 @@ func (c *Collection) GetIndexes(ctx context.Context) ([]client.IndexDescription,
 		return nil, err
 	}
 	return indexes, nil
+}
+
+func (c *Collection) CreateEncryptedIndex(
+	ctx context.Context,
+	indexDesc client.EncryptedIndexDescription,
+) (client.EncryptedIndexDescription, error) {
+	methodURL := c.http.apiURL.JoinPath("collections", c.Version().Name, "encrypted-indexes")
+
+	body, err := json.Marshal(&indexDesc)
+	if err != nil {
+		return client.EncryptedIndexDescription{}, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, methodURL.String(), bytes.NewBuffer(body))
+	if err != nil {
+		return client.EncryptedIndexDescription{}, err
+	}
+	var index client.EncryptedIndexDescription
+	if err := c.http.requestJson(req, &index); err != nil {
+		return client.EncryptedIndexDescription{}, err
+	}
+	return index, nil
+}
+
+func (c *Collection) ListEncryptedIndexes(ctx context.Context) ([]client.EncryptedIndexDescription, error) {
+	methodURL := c.http.apiURL.JoinPath("collections", c.Version().Name, "encrypted-indexes")
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, methodURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	var indexes []client.EncryptedIndexDescription
+	if err := c.http.requestJson(req, &indexes); err != nil {
+		return nil, err
+	}
+	return indexes, nil
+}
+
+func (c *Collection) DeleteEncryptedIndex(ctx context.Context, fieldName string) error {
+	methodURL := c.http.apiURL.JoinPath("collections", c.Version().Name, "encrypted-indexes", fieldName)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, methodURL.String(), nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = c.http.request(req)
+	return err
 }

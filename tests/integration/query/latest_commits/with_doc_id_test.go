@@ -18,7 +18,6 @@ import (
 
 func TestQueryLatestCommitsWithDocID(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple latest commits query with docID",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -28,7 +27,7 @@ func TestQueryLatestCommitsWithDocID(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `query {
-					latestCommits(docID: "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3") {
+					_latestCommits(docID: "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738") {
 						cid
 						links {
 							cid
@@ -37,22 +36,23 @@ func TestQueryLatestCommitsWithDocID(t *testing.T) {
 					}
 				}`,
 				Results: map[string]any{
-					"latestCommits": []map[string]any{
+					"_latestCommits": []map[string]any{
 						{
-							"cid": "bafyreia2vlbfkcbyogdjzmbqcjneabwwwtw7ti2xbd7yor5mbu2sk4pcoy",
+							"cid": "bafyreihpq4duzngkledmxkxx3jevlp2q4aimhmbjygpv5chmgbf6u2fsqm",
 							"links": []map[string]any{
 								{
-									"cid":  "bafyreif6dqbkr7t37jcjfxxrjnxt7cspxzvs7qwlbtjca57cc663he4s7e",
+									"cid":  "bafyreihakk5jjukb4fw7klfejdmniwhuscnckcjo677p3mtcxrdpiahuea",
 									"name": "age",
 								},
 								{
-									"cid":  "bafyreigtnj6ntulcilkmin4pgukjwv3nwglqpiiyddz3dyfexdbltze7sy",
+									"cid":  "bafyreihx4lnknvruc6vonsg3dvb3nnlsycwzbbkeulcutnzgidkzfvea64",
 									"name": "name",
 								},
 							},
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -62,7 +62,6 @@ func TestQueryLatestCommitsWithDocID(t *testing.T) {
 
 func TestQueryLatestCommitsWithDocIDWithSchemaVersionIDField(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple latest commits query with docID and schema versiion id field",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -72,16 +71,16 @@ func TestQueryLatestCommitsWithDocIDWithSchemaVersionIDField(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `query {
-					latestCommits(docID: "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3") {
+					_latestCommits(docID: "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738") {
 						cid
 						schemaVersionId
 					}
 				}`,
 				Results: map[string]any{
-					"latestCommits": []map[string]any{
+					"_latestCommits": []map[string]any{
 						{
-							"cid":             "bafyreia2vlbfkcbyogdjzmbqcjneabwwwtw7ti2xbd7yor5mbu2sk4pcoy",
-							"schemaVersionId": "bafkreicprhqxzlw3akyssz2v6pifwfueavp7jq2yj3dghapi3qcq6achs4",
+							"cid":             "bafyreihpq4duzngkledmxkxx3jevlp2q4aimhmbjygpv5chmgbf6u2fsqm",
+							"schemaVersionId": "bafyreicrgjxxcviov5jawe2haq5fbtd4jxt63vsdhqpcyaaahiothj72tu",
 						},
 					},
 				},
@@ -94,7 +93,6 @@ func TestQueryLatestCommitsWithDocIDWithSchemaVersionIDField(t *testing.T) {
 
 func TestQueryLatestCommits_WithDocIDAndAliased_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple latest commits query with docID and aliased",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -104,7 +102,7 @@ func TestQueryLatestCommits_WithDocIDAndAliased_Succeeds(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `query {
-					history: latestCommits(docID: "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3") {
+					history: _latestCommits(docID: "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738") {
 						cid
 						links {
 							cid
@@ -115,20 +113,21 @@ func TestQueryLatestCommits_WithDocIDAndAliased_Succeeds(t *testing.T) {
 				Results: map[string]any{
 					"history": []map[string]any{
 						{
-							"cid": "bafyreia2vlbfkcbyogdjzmbqcjneabwwwtw7ti2xbd7yor5mbu2sk4pcoy",
+							"cid": "bafyreihpq4duzngkledmxkxx3jevlp2q4aimhmbjygpv5chmgbf6u2fsqm",
 							"links": []map[string]any{
 								{
-									"cid":  "bafyreif6dqbkr7t37jcjfxxrjnxt7cspxzvs7qwlbtjca57cc663he4s7e",
+									"cid":  "bafyreihakk5jjukb4fw7klfejdmniwhuscnckcjo677p3mtcxrdpiahuea",
 									"name": "age",
 								},
 								{
-									"cid":  "bafyreigtnj6ntulcilkmin4pgukjwv3nwglqpiiyddz3dyfexdbltze7sy",
+									"cid":  "bafyreihx4lnknvruc6vonsg3dvb3nnlsycwzbbkeulcutnzgidkzfvea64",
 									"name": "name",
 								},
 							},
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}

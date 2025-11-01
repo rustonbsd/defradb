@@ -17,9 +17,10 @@ import (
 	"strings"
 
 	"github.com/joho/godotenv"
-	"github.com/sourcenetwork/corelog"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+
+	"github.com/sourcenetwork/corelog"
 )
 
 const (
@@ -54,6 +55,7 @@ var configFlags = map[string]string{
 	"max-txn-retries":            "datastore.maxtxnretries",
 	"store":                      "datastore.store",
 	"no-encryption":              "datastore.noencryption",
+	"no-searchable-encryption":   "datastore.nosearchableencryption",
 	"no-signing":                 "datastore.nosigning",
 	"default-key-type":           "datastore.defaultkeytype",
 	"valuelogfilesize":           "datastore.badger.valuelogfilesize",
@@ -104,6 +106,7 @@ var configDefaults = map[string]any{
 	"secretfile":                        ".env",
 	"telemetry.disabled":                false,
 	"datastore.nosigning":               false,
+	"datastore.nosearchableencryption":  false,
 	"datastore.defaultkeytype":          "secp256k1",
 	"acp.node.enable":                   false,
 	"acp.document.type":                 "none",

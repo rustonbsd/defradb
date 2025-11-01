@@ -20,7 +20,6 @@ import (
 // desired behaviour (it looks totally broken to me).
 func TestQueryLatestCommitsWithDocIDAndFieldName(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple latest commits query with docID and field name",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -30,7 +29,7 @@ func TestQueryLatestCommitsWithDocIDAndFieldName(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `query {
-					latestCommits(docID: "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3", fieldName: "age") {
+					_latestCommits(docID: "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738", fieldName: "age") {
 						cid
 						links {
 							cid
@@ -39,9 +38,9 @@ func TestQueryLatestCommitsWithDocIDAndFieldName(t *testing.T) {
 					}
 				}`,
 				Results: map[string]any{
-					"latestCommits": []map[string]any{
+					"_latestCommits": []map[string]any{
 						{
-							"cid":   "bafyreif6dqbkr7t37jcjfxxrjnxt7cspxzvs7qwlbtjca57cc663he4s7e",
+							"cid":   "bafyreihakk5jjukb4fw7klfejdmniwhuscnckcjo677p3mtcxrdpiahuea",
 							"links": []map[string]any{},
 						},
 					},
@@ -55,7 +54,6 @@ func TestQueryLatestCommitsWithDocIDAndFieldName(t *testing.T) {
 
 func TestQueryLatestCommitsWithDocIDAndFieldId(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple latest commits query with docID and field id",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -65,7 +63,7 @@ func TestQueryLatestCommitsWithDocIDAndFieldId(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `query {
-					latestCommits(docID: "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3", fieldName: "1") {
+					_latestCommits(docID: "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738", fieldName: "1") {
 						cid
 						links {
 							cid
@@ -74,7 +72,7 @@ func TestQueryLatestCommitsWithDocIDAndFieldId(t *testing.T) {
 					}
 				}`,
 				Results: map[string]any{
-					"latestCommits": []map[string]any{},
+					"_latestCommits": []map[string]any{},
 				},
 			},
 		},
@@ -87,7 +85,6 @@ func TestQueryLatestCommitsWithDocIDAndFieldId(t *testing.T) {
 // desired behaviour (Users should not be specifying field ids).
 func TestQueryLatestCommitsWithDocIDAndCompositeFieldId(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple latest commits query with docID and composite field id",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -97,7 +94,7 @@ func TestQueryLatestCommitsWithDocIDAndCompositeFieldId(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `query {
-					latestCommits(docID: "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3", fieldName: "_C") {
+					_latestCommits(docID: "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738", fieldName: "_C") {
 						cid
 						links {
 							cid
@@ -106,16 +103,16 @@ func TestQueryLatestCommitsWithDocIDAndCompositeFieldId(t *testing.T) {
 					}
 				}`,
 				Results: map[string]any{
-					"latestCommits": []map[string]any{
+					"_latestCommits": []map[string]any{
 						{
-							"cid": "bafyreia2vlbfkcbyogdjzmbqcjneabwwwtw7ti2xbd7yor5mbu2sk4pcoy",
+							"cid": "bafyreihpq4duzngkledmxkxx3jevlp2q4aimhmbjygpv5chmgbf6u2fsqm",
 							"links": []map[string]any{
 								{
-									"cid":  "bafyreif6dqbkr7t37jcjfxxrjnxt7cspxzvs7qwlbtjca57cc663he4s7e",
+									"cid":  "bafyreihakk5jjukb4fw7klfejdmniwhuscnckcjo677p3mtcxrdpiahuea",
 									"name": "age",
 								},
 								{
-									"cid":  "bafyreigtnj6ntulcilkmin4pgukjwv3nwglqpiiyddz3dyfexdbltze7sy",
+									"cid":  "bafyreihx4lnknvruc6vonsg3dvb3nnlsycwzbbkeulcutnzgidkzfvea64",
 									"name": "name",
 								},
 							},

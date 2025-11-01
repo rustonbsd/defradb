@@ -18,7 +18,6 @@ import (
 
 func TestQuerySimple_WithGroupByStringWithoutRenderedGroupAndMinOfUndefined_ReturnsError(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with min on unspecified field",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -43,7 +42,6 @@ func TestQuerySimple_WithGroupByStringWithoutRenderedGroupAndMinOfUndefined_Retu
 
 func TestQuerySimple_WithGroupByStringWithoutRenderedGroupAndChildIntegerMinOnEmptyCollection_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by number, no children, min on non-rendered group, empty collection",
 		Actions: []any{
 			testUtils.Request{
 				Request: `query {
@@ -64,7 +62,6 @@ func TestQuerySimple_WithGroupByStringWithoutRenderedGroupAndChildIntegerMinOnEm
 
 func TestQuerySimple_WithGroupByStringWithoutRenderedGroupAndChildIntegerMin_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, min on non-rendered group integer value",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -113,7 +110,6 @@ func TestQuerySimple_WithGroupByStringWithoutRenderedGroupAndChildIntegerMin_Suc
 
 func TestQuerySimple_WithGroupByStringWithoutRenderedGroupAndChildNilMin_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, min on non-rendered group nil and integer values",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -161,7 +157,6 @@ func TestQuerySimple_WithGroupByStringWithoutRenderedGroupAndChildNilMin_Succeed
 
 func TestQuerySimple_WithGroupByStringWithInnerGroupBooleanAndMinOfMinOfInt_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, with child group by boolean, and min of min on int",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -226,16 +221,6 @@ func TestQuerySimple_WithGroupByStringWithInnerGroupBooleanAndMinOfMinOfInt_Succ
 							},
 						},
 						{
-							"Name": "Carlo",
-							"_min": int64(55),
-							"_group": []map[string]any{
-								{
-									"Verified": true,
-									"_min":     int64(55),
-								},
-							},
-						},
-						{
 							"Name": "Alice",
 							"_min": int64(19),
 							"_group": []map[string]any{
@@ -245,8 +230,19 @@ func TestQuerySimple_WithGroupByStringWithInnerGroupBooleanAndMinOfMinOfInt_Succ
 								},
 							},
 						},
+						{
+							"Name": "Carlo",
+							"_min": int64(55),
+							"_group": []map[string]any{
+								{
+									"Verified": true,
+									"_min":     int64(55),
+								},
+							},
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -256,7 +252,6 @@ func TestQuerySimple_WithGroupByStringWithInnerGroupBooleanAndMinOfMinOfInt_Succ
 
 func TestQuerySimple_WithGroupByStringWithoutRenderedGroupAndChildEmptyFloatMin_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, min on non-rendered group float (default) value",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -303,7 +298,6 @@ func TestQuerySimple_WithGroupByStringWithoutRenderedGroupAndChildEmptyFloatMin_
 
 func TestQuerySimple_WithGroupByStringWithoutRenderedGroupAndChildFloatMin_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, min on non-rendered group float value",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -351,7 +345,6 @@ func TestQuerySimple_WithGroupByStringWithoutRenderedGroupAndChildFloatMin_Succe
 
 func TestQuerySimple_WithGroupByStringWithInnerGroupBooleanAndMinOfMinOfFloat_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, with child group by boolean, and min of min on float",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -402,12 +395,12 @@ func TestQuerySimple_WithGroupByStringWithInnerGroupBooleanAndMinOfMinOfFloat_Su
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"Name": "Alice",
-							"_min": float64(2.04),
+							"Name": "Carlo",
+							"_min": float64(1.74),
 							"_group": []map[string]any{
 								{
-									"Verified": false,
-									"_min":     float64(2.04),
+									"Verified": true,
+									"_min":     float64(1.74),
 								},
 							},
 						},
@@ -426,17 +419,18 @@ func TestQuerySimple_WithGroupByStringWithInnerGroupBooleanAndMinOfMinOfFloat_Su
 							},
 						},
 						{
-							"Name": "Carlo",
-							"_min": float64(1.74),
+							"Name": "Alice",
+							"_min": float64(2.04),
 							"_group": []map[string]any{
 								{
-									"Verified": true,
-									"_min":     float64(1.74),
+									"Verified": false,
+									"_min":     float64(2.04),
 								},
 							},
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -446,7 +440,6 @@ func TestQuerySimple_WithGroupByStringWithInnerGroupBooleanAndMinOfMinOfFloat_Su
 
 func TestQuerySimple_WithGroupByStringWithInnerGroupBooleanAndMinOfMinOfMinOfFloat_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, with child group by boolean, and min of min of min of float",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -506,22 +499,6 @@ func TestQuerySimple_WithGroupByStringWithInnerGroupBooleanAndMinOfMinOfMinOfFlo
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"Name": "Carlo",
-							"_min": float64(1.74),
-							"_group": []map[string]any{
-								{
-									"Verified": true,
-									"_min":     float64(1.74),
-									"_group": []map[string]any{
-										{
-											"Age":  int64(55),
-											"_min": float64(1.74),
-										},
-									},
-								},
-							},
-						},
-						{
 							"Name": "Alice",
 							"_min": float64(2.04),
 							"_group": []map[string]any{
@@ -567,8 +544,25 @@ func TestQuerySimple_WithGroupByStringWithInnerGroupBooleanAndMinOfMinOfMinOfFlo
 								},
 							},
 						},
+						{
+							"Name": "Carlo",
+							"_min": float64(1.74),
+							"_group": []map[string]any{
+								{
+									"Verified": true,
+									"_min":     float64(1.74),
+									"_group": []map[string]any{
+										{
+											"Age":  int64(55),
+											"_min": float64(1.74),
+										},
+									},
+								},
+							},
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}

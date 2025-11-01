@@ -43,7 +43,7 @@ func TestDocEncryptionPeer_UponSync_ShouldSyncEncryptedDAG(t *testing.T) {
 				NodeID: immutable.Some(1),
 				Request: `
 					query {
-						commits {
+						_commits {
 							cid
 							delta
 							docID
@@ -57,9 +57,9 @@ func TestDocEncryptionPeer_UponSync_ShouldSyncEncryptedDAG(t *testing.T) {
 					}
 				`,
 				Results: map[string]any{
-					"commits": []map[string]any{
+					"_commits": []map[string]any{
 						{
-							"cid":       "bafyreiba7bxnqquldhojcnkak7afamaxssvjk4uav4ev4lwqgixarvvp4i",
+							"cid":       "bafyreidxqtu7lxotzahlnu5lxqewy4kvwskiqx7lgfcrlv66kbgbcdbyue",
 							"delta":     encrypt(testUtils.CBORValue(21), john21DocID, ""),
 							"docID":     john21DocID,
 							"fieldName": "age",
@@ -67,7 +67,7 @@ func TestDocEncryptionPeer_UponSync_ShouldSyncEncryptedDAG(t *testing.T) {
 							"links":     []map[string]any{},
 						},
 						{
-							"cid":       "bafyreigawlzc5zi2juad5vldnwvels5qsehymb45maoeamdbckajwcao24",
+							"cid":       "bafyreiaatouuapteh55x7o7mo2nes3bmj3u4d2wmi4i2zepfmmdmd74sjy",
 							"delta":     encrypt(testUtils.CBORValue("John"), john21DocID, ""),
 							"docID":     john21DocID,
 							"fieldName": "name",
@@ -75,24 +75,25 @@ func TestDocEncryptionPeer_UponSync_ShouldSyncEncryptedDAG(t *testing.T) {
 							"links":     []map[string]any{},
 						},
 						{
-							"cid":       "bafyreidl77w6pex7uworttm5bsqyvli5qxqoqy3q2n2xqor5vrqfr3woee",
+							"cid":       "bafyreif4w2sctatv6q4juyytwfge2z4e5fe5z27xtz6q5qm4h542vqdgtm",
 							"delta":     nil,
 							"docID":     john21DocID,
 							"fieldName": "_C",
 							"height":    int64(1),
 							"links": []map[string]any{
 								{
-									"cid":  "bafyreiba7bxnqquldhojcnkak7afamaxssvjk4uav4ev4lwqgixarvvp4i",
-									"name": "age",
+									"cid":  "bafyreiaatouuapteh55x7o7mo2nes3bmj3u4d2wmi4i2zepfmmdmd74sjy",
+									"name": "name",
 								},
 								{
-									"cid":  "bafyreigawlzc5zi2juad5vldnwvels5qsehymb45maoeamdbckajwcao24",
-									"name": "name",
+									"cid":  "bafyreidxqtu7lxotzahlnu5lxqewy4kvwskiqx7lgfcrlv66kbgbcdbyue",
+									"name": "age",
 								},
 							},
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}

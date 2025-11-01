@@ -13,8 +13,6 @@ package signature
 import (
 	"testing"
 
-	"github.com/sourcenetwork/immutable"
-
 	"github.com/sourcenetwork/defradb/crypto"
 	coreblock "github.com/sourcenetwork/defradb/internal/core/block"
 	"github.com/sourcenetwork/defradb/tests/action"
@@ -25,14 +23,6 @@ import (
 func TestSignatureVerify_WithValidData_ShouldVerify(t *testing.T) {
 	test := testUtils.TestCase{
 		EnableSigning: true,
-		SupportedClientTypes: immutable.Some([]state.ClientType{
-			// TODO: C binding test harness must be reworked to support this test
-			// See: https://github.com/sourcenetwork/defradb/issues/3919
-			testUtils.GoClientType,
-			testUtils.CLIClientType,
-			testUtils.HTTPClientType,
-			testUtils.JSClientType,
-		}),
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -49,7 +39,7 @@ func TestSignatureVerify_WithValidData_ShouldVerify(t *testing.T) {
 			},
 			testUtils.VerifyBlockSignature{
 				SignerIdentity: testUtils.NodeIdentity(0).Value(),
-				Cid:            "bafyreicwhd5s762awsrx6eowwqkkfpq7r5nnjosiru7blgaxo32wx6enp4",
+				Cid:            "bafyreibphszakimmug77fvftqmpv4uqtn3rmc5rv4u6qafeqiuu7oyeyca",
 			},
 			testUtils.UpdateDoc{
 				Doc: `{
@@ -58,12 +48,12 @@ func TestSignatureVerify_WithValidData_ShouldVerify(t *testing.T) {
 			},
 			testUtils.VerifyBlockSignature{
 				SignerIdentity: testUtils.NodeIdentity(0).Value(),
-				Cid:            "bafyreidenvkbjuqismfbng463tfxsjmapvnvdyh4hmdx74ec5skj63ma2a",
+				Cid:            "bafyreiemskbirmphqngy3kivou4e4phcuiffcdql4mvqp3twmiipwt3pta",
 			},
 			testUtils.DeleteDoc{},
 			testUtils.VerifyBlockSignature{
 				SignerIdentity: testUtils.NodeIdentity(0).Value(),
-				Cid:            "bafyreih3xjkq7vmfxjajfshr56nbuw6p2bfx4ow4bqayoaih55wq26vsuq",
+				Cid:            "bafyreifv2o6ywzdxkbvfxlwtks4u3nfplprnbakl663rykwp3zscx5b3ay",
 			},
 		},
 	}
@@ -77,14 +67,6 @@ func TestSignatureVerify_WithDifferentKeyType_ShouldVerify(t *testing.T) {
 		IdentityTypes: map[state.Identity]crypto.KeyType{
 			testUtils.NodeIdentity(0).Value(): crypto.KeyTypeEd25519,
 		},
-		SupportedClientTypes: immutable.Some([]state.ClientType{
-			// TODO: C binding test harness must be reworked to support this test
-			// See: https://github.com/sourcenetwork/defradb/issues/3919
-			testUtils.GoClientType,
-			testUtils.CLIClientType,
-			testUtils.HTTPClientType,
-			testUtils.JSClientType,
-		}),
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -101,7 +83,7 @@ func TestSignatureVerify_WithDifferentKeyType_ShouldVerify(t *testing.T) {
 			},
 			testUtils.VerifyBlockSignature{
 				SignerIdentity: testUtils.NodeIdentity(0).Value(),
-				Cid:            "bafyreifawqsvcshb77gorqbnopnyg6mi6ft3iz7begvlhm67hnkhyqnfla",
+				Cid:            "bafyreihvuvkk6qa2rmnujlwwpbvzd6nxkahqmlv22n4x7hb6q4obmf7euy",
 			},
 		},
 	}
@@ -112,14 +94,6 @@ func TestSignatureVerify_WithDifferentKeyType_ShouldVerify(t *testing.T) {
 func TestSignatureVerify_WithWrongIdentity_ShouldError(t *testing.T) {
 	test := testUtils.TestCase{
 		EnableSigning: true,
-		SupportedClientTypes: immutable.Some([]state.ClientType{
-			// TODO: C binding test harness must be reworked to support this test
-			// See: https://github.com/sourcenetwork/defradb/issues/3919
-			testUtils.GoClientType,
-			testUtils.CLIClientType,
-			testUtils.HTTPClientType,
-			testUtils.JSClientType,
-		}),
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -136,7 +110,7 @@ func TestSignatureVerify_WithWrongIdentity_ShouldError(t *testing.T) {
 			},
 			testUtils.VerifyBlockSignature{
 				SignerIdentity: testUtils.NodeIdentity(1).Value(),
-				Cid:            "bafyreicwhd5s762awsrx6eowwqkkfpq7r5nnjosiru7blgaxo32wx6enp4",
+				Cid:            "bafyreibphszakimmug77fvftqmpv4uqtn3rmc5rv4u6qafeqiuu7oyeyca",
 				ExpectedError:  coreblock.ErrSignaturePubKeyMismatch.Error(),
 			},
 		},
@@ -164,7 +138,7 @@ func TestSignatureVerify_WithWrongCid_ShouldError(t *testing.T) {
 			},
 			testUtils.VerifyBlockSignature{
 				SignerIdentity: testUtils.NodeIdentity(0).Value(),
-				Cid:            "bafyreidenvkbjuqismfbng463tfxsjmapvnvdyh4hmdx74ec5skj63ma2a",
+				Cid:            "bafyreiemskbirmphqngy3kivou4e4phcuiffcdql4mvqp3twmiipwt3pta",
 				ExpectedError:  "could not find",
 			},
 		},

@@ -20,8 +20,6 @@ import (
 func TestACP_OwnerRevokesAccessFromAllNonExplicitActors_ActorsCanNotReadAnymore(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Test acp, owner revokes read access from actors that were given read access implicitly",
-
 		Actions: []any{
 			testUtils.AddDACPolicy{
 
@@ -134,7 +132,7 @@ func TestACP_OwnerRevokesAccessFromAllNonExplicitActors_ActorsCanNotReadAnymore(
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},
@@ -158,7 +156,7 @@ func TestACP_OwnerRevokesAccessFromAllNonExplicitActors_ActorsCanNotReadAnymore(
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},
@@ -223,8 +221,6 @@ func TestACP_OwnerRevokesAccessFromAllNonExplicitActors_ActorsCanNotReadAnymore(
 
 func TestACP_OwnerRevokesAccessFromAllNonExplicitActors_ExplicitActorsCanStillRead(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, owner revokes read access from actors that were given read access implicitly",
 
 		Actions: []any{
 			testUtils.AddDACPolicy{
@@ -366,7 +362,7 @@ func TestACP_OwnerRevokesAccessFromAllNonExplicitActors_ExplicitActorsCanStillRe
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},
@@ -390,7 +386,7 @@ func TestACP_OwnerRevokesAccessFromAllNonExplicitActors_ExplicitActorsCanStillRe
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},
@@ -414,7 +410,7 @@ func TestACP_OwnerRevokesAccessFromAllNonExplicitActors_ExplicitActorsCanStillRe
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},
@@ -438,7 +434,7 @@ func TestACP_OwnerRevokesAccessFromAllNonExplicitActors_ExplicitActorsCanStillRe
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},
@@ -512,7 +508,7 @@ func TestACP_OwnerRevokesAccessFromAllNonExplicitActors_ExplicitActorsCanStillRe
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},
@@ -536,7 +532,7 @@ func TestACP_OwnerRevokesAccessFromAllNonExplicitActors_ExplicitActorsCanStillRe
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},
@@ -551,8 +547,6 @@ func TestACP_OwnerRevokesAccessFromAllNonExplicitActors_ExplicitActorsCanStillRe
 
 func TestACP_OwnerRevokesAccessFromAllNonExplicitActors_NonIdentityRequestsCanNotReadAnymore(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, owner revokes read access from actors that were given read access implicitly, non-identity actors can't read anymore",
 
 		Actions: []any{
 			testUtils.AddDACPolicy{
@@ -666,7 +660,7 @@ func TestACP_OwnerRevokesAccessFromAllNonExplicitActors_NonIdentityRequestsCanNo
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},

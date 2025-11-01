@@ -141,17 +141,18 @@ func TestP2PWithMultipleDocumentsSingleDeleteWithShowDeleted(t *testing.T) {
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_deleted": true,
-							"Name":     "John",
-							"Age":      int64(43),
-						},
-						{
 							"_deleted": false,
 							"Name":     "Andy",
 							"Age":      int64(74),
 						},
+						{
+							"_deleted": true,
+							"Name":     "John",
+							"Age":      int64(43),
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -220,17 +221,18 @@ func TestP2PWithMultipleDocumentsWithSingleUpdateBeforeConnectSingleDeleteWithSh
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_deleted": true,
-							"Name":     "John",
-							"Age":      int64(60),
-						},
-						{
 							"_deleted": false,
 							"Name":     "Andy",
 							"Age":      int64(74),
 						},
+						{
+							"_deleted": true,
+							"Name":     "John",
+							"Age":      int64(60),
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -307,17 +309,18 @@ func TestP2PWithMultipleDocumentsWithMultipleUpdatesBeforeConnectSingleDeleteWit
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_deleted": true,
-							"Name":     "John",
-							"Age":      int64(62),
-						},
-						{
 							"_deleted": false,
 							"Name":     "Andy",
 							"Age":      int64(74),
 						},
+						{
+							"_deleted": true,
+							"Name":     "John",
+							"Age":      int64(62),
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -403,17 +406,18 @@ func TestP2PWithMultipleDocumentsWithUpdateAndDeleteBeforeConnectSingleDeleteWit
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_deleted": true,
-							"Name":     "John",
-							"Age":      int64(62),
-						},
-						{
 							"_deleted": false,
 							"Name":     "Andy",
 							"Age":      int64(74),
 						},
+						{
+							"_deleted": true,
+							"Name":     "John",
+							"Age":      int64(62),
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 			// The target node currently won't receive the pre-connection updates from the source.
 			// We should look into adding a head exchange mechanic on connect.
@@ -430,16 +434,17 @@ func TestP2PWithMultipleDocumentsWithUpdateAndDeleteBeforeConnectSingleDeleteWit
 					"Users": []map[string]any{
 						{
 							"_deleted": false,
-							"Name":     "John",
-							"Age":      int64(66),
-						},
-						{
-							"_deleted": false,
 							"Name":     "Andy",
 							"Age":      int64(74),
 						},
+						{
+							"_deleted": false,
+							"Name":     "John",
+							"Age":      int64(66),
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}

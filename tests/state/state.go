@@ -15,7 +15,6 @@ import (
 	"testing"
 
 	"github.com/ipfs/go-cid"
-	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/onsi/gomega/types"
 
 	"github.com/sourcenetwork/immutable"
@@ -24,7 +23,6 @@ import (
 	"github.com/sourcenetwork/defradb/client"
 	"github.com/sourcenetwork/defradb/crypto"
 	"github.com/sourcenetwork/defradb/event"
-	netConfig "github.com/sourcenetwork/defradb/net/config"
 	"github.com/sourcenetwork/defradb/node"
 	"github.com/sourcenetwork/defradb/tests/clients"
 )
@@ -41,7 +39,13 @@ type DatabaseType string
 // KMSType is the type of KMS to use.
 type KMSType string
 
-type ClientType string
+// DocumentACPType is the type of document acp to use.
+type DocumentACPType string
+
+const (
+	SourceHubDocumentACPType DocumentACPType = "source-hub"
+	LocalDocumentACPType     DocumentACPType = "local"
+)
 
 type ColDocIndex struct {
 	Col int
@@ -122,6 +126,9 @@ type EventState struct {
 
 	// Replicator is the `event.ReplicatorCompletedName` subscription
 	Replicator event.Subscription
+
+	// SESync is the `event.SEArtifactSyncCompleteName` subscription
+	SESync event.Subscription
 }
 
 // NewEventState returns an eventState with all required subscriptions.
@@ -138,10 +145,15 @@ func NewEventState(bus event.Bus) (*EventState, error) {
 	if err != nil {
 		return nil, err
 	}
+	seSync, err := bus.Subscribe(event.SEArtifactReceivedName)
+	if err != nil {
+		return nil, err
+	}
 	return &EventState{
 		Merge:      merge,
 		Update:     update,
 		Replicator: replicator,
+		SESync:     seSync,
 	}, nil
 }
 
@@ -154,7 +166,7 @@ type NodeState struct {
 	// P2P contains P2P states for the node.
 	P2P *P2PState
 	// The network configurations for the nodes
-	NetOpts []netConfig.NodeOpt
+	NetOpts []node.Option
 	// The path to any file-based databases active in this test.
 	DbPath string
 	// Collections by index present in the test.
@@ -162,8 +174,11 @@ type NodeState struct {
 	Collections []client.Collection
 	// indicates if the node is Closed.
 	Closed bool
-	// AddrInfo contains the peer information for the node.
-	AddrInfo peer.AddrInfo
+	// CachedAddresses holds the node's addresses so that the node can be
+	// restarted with the same address configuration.
+	CachedAddresses []string
+	// Map of docIDs to their composite CIDs.
+	Composites map[string][]cid.Cid
 }
 
 // State contains all testing State.
@@ -183,6 +198,12 @@ type State struct {
 	// The type of client currently being tested.
 	ClientType ClientType
 
+	// The type of Document ACP
+	DocumentACPType DocumentACPType
+
+	// The Document ACP options to share between each node (currently only used for sourcehub).
+	DocumentACPOptions []node.DocumentACPOpt
+
 	// Any explicit transactions active in this test.
 	//
 	// This is order dependent and the property is accessed by index.
@@ -191,6 +212,9 @@ type State struct {
 	// IdentityTypes is a map of identity to key type.
 	// Use it to customize the key type that is used for identity and signing.
 	IdentityTypes map[Identity]crypto.KeyType
+
+	// EnableSearchableEncryption indicates whether searchable encryption is enabled.
+	EnableSearchableEncryption bool
 
 	// Identities contains all Identities created in this test.
 	// The map key is the identity reference that uniquely identifies Identities of different
@@ -216,9 +240,6 @@ type State struct {
 	// The Nodes active in this test.
 	Nodes []*NodeState
 
-	// The ACP options to share between each node.
-	DocumentACPOptions []node.DocumentACPOpt
-
 	// The names of the collections active in this test.
 	// Indexes matches that of initial collections.
 	CollectionNames []string
@@ -227,6 +248,12 @@ type State struct {
 	// identification of collections in a natural, human readable, order
 	// even when they are renamed.
 	CollectionIndexesByCollectionID map[string]int
+
+	// The VersionIDs of all collection versions created so far by the test.
+	//
+	// WARNING: This does not actually include patch versions yet.  Please add that when
+	// the need arrises.
+	CollectionVersions []string
 
 	// Document IDs by index, by collection index.
 	//
@@ -253,6 +280,9 @@ type State struct {
 	// nodes, e.g. within the same node Cids should be unique, but across different nodes the same block
 	// should have the same Cid.
 	CurrentNodeID int
+
+	// LenIDs of lenses added to Defra.
+	LensIDs []string
 }
 
 func (s *State) GetClientType() ClientType {
@@ -267,14 +297,20 @@ func (s *State) GetIdentity(ident Identity) acpIdentity.Identity {
 	return GetIdentity(s, immutable.Some(ident))
 }
 
+func (s *State) GetDocID(collectionIndex, docIndex int) client.DocID {
+	return s.DocIDs[collectionIndex][docIndex]
+}
+
 // NewState returns a new fresh state for the given testCase.
 func NewState(
 	ctx context.Context,
 	t testing.TB,
 	identityTypes map[Identity]crypto.KeyType,
+	enableSearchableEncryption bool,
 	kms KMSType,
 	dbt DatabaseType,
 	clientType ClientType,
+	documentACPType DocumentACPType,
 	collectionNames []string,
 ) *State {
 	s := &State{
@@ -283,14 +319,16 @@ func NewState(
 		KMS:                             kms,
 		DbType:                          dbt,
 		ClientType:                      clientType,
+		DocumentACPType:                 documentACPType,
+		DocumentACPOptions:              []node.DocumentACPOpt{},
 		Txns:                            []client.Txn{},
 		IdentityTypes:                   identityTypes,
+		EnableSearchableEncryption:      enableSearchableEncryption,
 		Identities:                      map[Identity]*IdentityHolder{},
 		NextIdentityGenSeed:             0,
 		AllActionsDone:                  make(chan struct{}),
 		SubscriptionResultsChans:        []chan func(){},
 		Nodes:                           []*NodeState{},
-		DocumentACPOptions:              []node.DocumentACPOpt{},
 		CollectionNames:                 collectionNames,
 		CollectionIndexesByCollectionID: map[string]int{},
 		DocIDs:                          [][]client.DocID{},

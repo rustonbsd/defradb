@@ -146,7 +146,7 @@ func getCollectionHistory(
 	ctx context.Context,
 	schemaRoot string,
 ) (map[schemaVersionID]*collectionHistoryLink, error) {
-	cols, err := description.GetCollectionsBySchemaRoot(ctx, schemaRoot)
+	cols, err := description.GetCollectionsByCollectionID(ctx, schemaRoot)
 	if err != nil {
 		return nil, err
 	}
@@ -161,8 +161,8 @@ func getCollectionHistory(
 	}
 
 	for _, historyItem := range history {
-		for _, source := range historyItem.collection.CollectionSources() {
-			src := history[source.SourceCollectionID]
+		if historyItem.collection.PreviousVersion.HasValue() {
+			src := history[historyItem.collection.PreviousVersion.Value().SourceCollectionID]
 			historyItem.previous = append(
 				historyItem.previous,
 				src,

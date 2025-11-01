@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"github.com/onsi/gomega"
+
 	"github.com/sourcenetwork/immutable"
 
 	coreblock "github.com/sourcenetwork/defradb/internal/core/block"
@@ -27,10 +28,10 @@ func TestSignature_WithBranchableCollection_ShouldSignCollectionBlocks(t *testin
 		EnableSigning: true,
 		SupportedClientTypes: immutable.Some([]state.ClientType{
 			// C bindings do not support calling functions with non-Secp256k key yet
-			testUtils.GoClientType,
-			testUtils.CLIClientType,
-			testUtils.HTTPClientType,
-			testUtils.JSClientType,
+			state.GoClientType,
+			state.CLIClientType,
+			state.HTTPClientType,
+			state.JSClientType,
 		}),
 		Actions: []any{
 			&action.AddSchema{
@@ -47,7 +48,7 @@ func TestSignature_WithBranchableCollection_ShouldSignCollectionBlocks(t *testin
 			},
 			testUtils.Request{
 				Request: `query {
-						commits {
+						_commits {
 							fieldName
 							signature {
 								type
@@ -57,7 +58,7 @@ func TestSignature_WithBranchableCollection_ShouldSignCollectionBlocks(t *testin
 						}
 					}`,
 				Results: map[string]any{
-					"commits": []map[string]any{
+					"_commits": []map[string]any{
 						{
 							"fieldName": nil,
 							"signature": map[string]any{

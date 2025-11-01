@@ -13,7 +13,6 @@
 package js
 
 import (
-	"context"
 	"fmt"
 	"sync"
 	"syscall/js"
@@ -39,18 +38,15 @@ func newTransaction(txn client.Txn, txns *sync.Map) js.Value {
 		"commit":                     goji.Async(wrapper.commit),
 		"discard":                    goji.Async(wrapper.discard),
 		"addSchema":                  goji.Async(wrapper.addSchema),
-		"patchSchema":                goji.Async(wrapper.patchSchema),
 		"patchCollection":            goji.Async(wrapper.patchCollection),
-		"setActiveSchemaVersion":     goji.Async(wrapper.setActiveSchemaVersion),
+		"setActiveCollectionVersion": goji.Async(wrapper.setActiveCollectionVersion),
 		"addView":                    goji.Async(wrapper.addView),
 		"refreshViews":               goji.Async(wrapper.refreshViews),
 		"setMigration":               goji.Async(wrapper.setMigration),
-		"lensRegistry":               goji.Async(wrapper.lensRegistry),
 		"getCollectionByName":        goji.Async(wrapper.getCollectionByName),
 		"getCollections":             goji.Async(wrapper.getCollections),
-		"getSchemaByVersionID":       goji.Async(wrapper.getSchemaByVersionID),
-		"getSchemas":                 goji.Async(wrapper.getSchemas),
 		"getAllIndexes":              goji.Async(wrapper.getAllIndexes),
+		"listAllEncryptedIndexes":    goji.Async(wrapper.listAllEncryptedIndexes),
 		"execRequest":                goji.Async(wrapper.execRequest),
 		"addDACPolicy":               goji.Async(wrapper.addDACPolicy),
 		"addDACActorRelationship":    goji.Async(wrapper.addDACActorRelationship),
@@ -66,12 +62,12 @@ func newTransaction(txn client.Txn, txns *sync.Map) js.Value {
 }
 
 func (t *transaction) commit(this js.Value, args []js.Value) (js.Value, error) {
-	err := t.txn.Commit(context.Background())
+	err := t.txn.Commit()
 	return js.Undefined(), err
 }
 
 func (t *transaction) discard(this js.Value, args []js.Value) (js.Value, error) {
-	t.txn.Discard(context.Background())
+	t.txn.Discard()
 	return js.Undefined(), nil
 }
 
@@ -91,7 +87,7 @@ func (t *transaction) addSchema(this js.Value, args []js.Value) (js.Value, error
 	return goji.MarshalJS(cols)
 }
 
-func (t *transaction) patchSchema(this js.Value, args []js.Value) (js.Value, error) {
+func (t *transaction) patchCollection(this js.Value, args []js.Value) (js.Value, error) {
 	patch, err := stringArg(args, 0, "patch")
 	if err != nil {
 		return js.Undefined(), err
@@ -100,32 +96,15 @@ func (t *transaction) patchSchema(this js.Value, args []js.Value) (js.Value, err
 	if err := structArg(args, 1, "lens", &migration); err != nil {
 		return js.Undefined(), err
 	}
-	setAsDefaultVersion, err := boolArg(args, 2, "setAsDefaultVersion")
+	ctx, err := contextArg(args, 2, t.txns)
 	if err != nil {
 		return js.Undefined(), err
 	}
-	ctx, err := contextArg(args, 3, t.txns)
-	if err != nil {
-		return js.Undefined(), err
-	}
-	err = t.txn.PatchSchema(ctx, patch, migration, setAsDefaultVersion)
+	err = t.txn.PatchCollection(ctx, patch, migration)
 	return js.Undefined(), err
 }
 
-func (t *transaction) patchCollection(this js.Value, args []js.Value) (js.Value, error) {
-	patch, err := stringArg(args, 0, "patch")
-	if err != nil {
-		return js.Undefined(), err
-	}
-	ctx, err := contextArg(args, 1, t.txns)
-	if err != nil {
-		return js.Undefined(), err
-	}
-	err = t.txn.PatchCollection(ctx, patch)
-	return js.Undefined(), err
-}
-
-func (t *transaction) setActiveSchemaVersion(this js.Value, args []js.Value) (js.Value, error) {
+func (t *transaction) setActiveCollectionVersion(this js.Value, args []js.Value) (js.Value, error) {
 	version, err := stringArg(args, 0, "version")
 	if err != nil {
 		return js.Undefined(), err
@@ -134,7 +113,7 @@ func (t *transaction) setActiveSchemaVersion(this js.Value, args []js.Value) (js
 	if err != nil {
 		return js.Undefined(), err
 	}
-	err = t.txn.SetActiveSchemaVersion(ctx, version)
+	err = t.txn.SetActiveCollectionVersion(ctx, version)
 	return js.Undefined(), err
 }
 
@@ -184,12 +163,11 @@ func (t *transaction) setMigration(this js.Value, args []js.Value) (js.Value, er
 	if err != nil {
 		return js.Undefined(), err
 	}
-	err = t.txn.SetMigration(ctx, config)
-	return js.Undefined(), err
-}
-
-func (t *transaction) lensRegistry(this js.Value, args []js.Value) (js.Value, error) {
-	return newLensRegistry(t.txn.LensRegistry(), t.txns), nil
+	lensID, err := t.txn.SetMigration(ctx, config)
+	if err != nil {
+		return js.Undefined(), err
+	}
+	return js.ValueOf(lensID), err
 }
 
 func (t *transaction) getCollectionByName(this js.Value, args []js.Value) (js.Value, error) {
@@ -228,44 +206,24 @@ func (t *transaction) getCollections(this js.Value, args []js.Value) (js.Value, 
 	return js.ValueOf(wrappers), nil
 }
 
-func (t *transaction) getSchemaByVersionID(this js.Value, args []js.Value) (js.Value, error) {
-	version, err := stringArg(args, 0, "version")
-	if err != nil {
-		return js.Undefined(), err
-	}
-	ctx, err := contextArg(args, 1, t.txns)
-	if err != nil {
-		return js.Undefined(), err
-	}
-	schema, err := t.txn.GetSchemaByVersionID(ctx, version)
-	if err != nil {
-		return js.Undefined(), err
-	}
-	return goji.MarshalJS(schema)
-}
-
-func (t *transaction) getSchemas(this js.Value, args []js.Value) (js.Value, error) {
-	var options client.SchemaFetchOptions
-	if err := structArg(args, 0, "options", &options); err != nil {
-		return js.Undefined(), err
-	}
-	ctx, err := contextArg(args, 1, t.txns)
-	if err != nil {
-		return js.Undefined(), err
-	}
-	schemas, err := t.txn.GetSchemas(ctx, options)
-	if err != nil {
-		return js.Undefined(), err
-	}
-	return goji.MarshalJS(schemas)
-}
-
 func (t *transaction) getAllIndexes(this js.Value, args []js.Value) (js.Value, error) {
 	ctx, err := contextArg(args, 0, t.txns)
 	if err != nil {
 		return js.Undefined(), err
 	}
 	indexes, err := t.txn.GetAllIndexes(ctx)
+	if err != nil {
+		return js.Undefined(), err
+	}
+	return goji.MarshalJS(indexes)
+}
+
+func (t *transaction) listAllEncryptedIndexes(this js.Value, args []js.Value) (js.Value, error) {
+	ctx, err := contextArg(args, 0, t.txns)
+	if err != nil {
+		return js.Undefined(), err
+	}
+	indexes, err := t.txn.ListAllEncryptedIndexes(ctx)
 	if err != nil {
 		return js.Undefined(), err
 	}

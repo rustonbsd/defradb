@@ -15,13 +15,11 @@ import (
 
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
-	schemaUtils "github.com/sourcenetwork/defradb/tests/integration/schema"
+	schemaUtils "github.com/sourcenetwork/defradb/tests/integration/collection_version"
 )
 
 func TestACP_LinkSchema_WithExtraPermsHavingRequiredRelation_AcceptSchema(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, link schema, with extra permissions having required relation, schema accepted",
 
 		Actions: []any{
 
@@ -117,8 +115,6 @@ func TestACP_LinkSchema_WithExtraPermsHavingRequiredRelation_AcceptSchema(t *tes
 func TestACP_LinkSchema_WithExtraPermsHavingRequiredRelationInTheEnd_AcceptSchema(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Test acp, link schema, with extra permissions having required relation in the end, schema accepted",
-
 		Actions: []any{
 
 			testUtils.AddDACPolicy{
@@ -212,8 +208,6 @@ func TestACP_LinkSchema_WithExtraPermsHavingRequiredRelationInTheEnd_AcceptSchem
 
 func TestACP_LinkSchema_WithExtraPermsHavingNoRequiredRelation_AcceptSchema(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, link schema, with extra permissions having no required relation, schema accepted",
 
 		Actions: []any{
 

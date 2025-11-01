@@ -19,10 +19,9 @@ import (
 )
 
 func TestMutationUpdateOneToOne_SelfReferencingFromPrimary(t *testing.T) {
-	user1ID := "bae-93b58e20-b3e1-55b9-b5b8-0617fabe710e"
+	user1ID := "bae-0e45c185-722e-5795-9205-98d8a488e364"
 
 	test := testUtils.TestCase{
-		Description: "One to one update mutation, self referencing from primary",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -76,6 +75,7 @@ func TestMutationUpdateOneToOne_SelfReferencingFromPrimary(t *testing.T) {
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 			testUtils.Request{
 				Request: `
@@ -101,6 +101,7 @@ func TestMutationUpdateOneToOne_SelfReferencingFromPrimary(t *testing.T) {
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}

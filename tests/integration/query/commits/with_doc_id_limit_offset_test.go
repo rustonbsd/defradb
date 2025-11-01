@@ -18,7 +18,6 @@ import (
 
 func TestQueryCommitsWithDocIDAndLimitAndOffset(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple all commits query with docID, limit and offset",
 		Actions: []any{
 			updateUserCollectionSchema(),
 			testUtils.CreateDoc{
@@ -51,20 +50,21 @@ func TestQueryCommitsWithDocIDAndLimitAndOffset(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: ` {
-						commits(docID: "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3", limit: 2, offset: 1) {
+						_commits(docID: "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738", limit: 2, offset: 1) {
 							cid
 						}
 					}`,
 				Results: map[string]any{
-					"commits": []map[string]any{
+					"_commits": []map[string]any{
 						{
-							"cid": "bafyreig3qosmew7pkq27dijjvwe35jjpvh3ed3f5dxpzemtqhw7xka7hga",
+							"cid": "bafyreicq5lp5kzbj4pop6prenjfyrlhzm3ihkamhj4if24lxopybmrye5a",
 						},
 						{
-							"cid": "bafyreih5h6i6ohfsgrcjtg76iarebqcurpaft73gpobl2z2cfsvihsgdqu",
+							"cid": "bafyreia5jhb6ughpzd2rjszl4qbdd4w5zrdjfoseyrvnmhm2xiyrudvja4",
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}

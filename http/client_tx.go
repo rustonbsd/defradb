@@ -44,10 +44,10 @@ func (txn *Transaction) ID() uint64 {
 	return txn.id
 }
 
-func (txn *Transaction) Commit(ctx context.Context) error {
+func (txn *Transaction) Commit() error {
 	methodURL := txn.http.apiURL.JoinPath("tx", fmt.Sprintf("%d", txn.id))
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, methodURL.String(), nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, methodURL.String(), nil)
 	if err != nil {
 		return err
 	}
@@ -55,10 +55,10 @@ func (txn *Transaction) Commit(ctx context.Context) error {
 	return err
 }
 
-func (txn *Transaction) Discard(ctx context.Context) {
+func (txn *Transaction) Discard() {
 	methodURL := txn.http.apiURL.JoinPath("tx", fmt.Sprintf("%d", txn.id))
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, methodURL.String(), nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodDelete, methodURL.String(), nil)
 	if err != nil {
 		return
 	}
@@ -112,24 +112,18 @@ func (txn *Transaction) AddSchema(ctx context.Context, sdl string) ([]client.Col
 	return txn.Client.AddSchema(ctx, sdl)
 }
 
-func (txn *Transaction) PatchSchema(
+func (txn *Transaction) PatchCollection(
 	ctx context.Context,
 	patch string,
 	migration immutable.Option[model.Lens],
-	setDefault bool,
 ) error {
 	ctx = datastore.CtxSetFromClientTxn(ctx, txn)
-	return txn.Client.PatchSchema(ctx, patch, migration, setDefault)
+	return txn.Client.PatchCollection(ctx, patch, migration)
 }
 
-func (txn *Transaction) PatchCollection(ctx context.Context, patch string) error {
+func (txn *Transaction) SetActiveCollectionVersion(ctx context.Context, version string) error {
 	ctx = datastore.CtxSetFromClientTxn(ctx, txn)
-	return txn.Client.PatchCollection(ctx, patch)
-}
-
-func (txn *Transaction) SetActiveSchemaVersion(ctx context.Context, version string) error {
-	ctx = datastore.CtxSetFromClientTxn(ctx, txn)
-	return txn.Client.SetActiveSchemaVersion(ctx, version)
+	return txn.Client.SetActiveCollectionVersion(ctx, version)
 }
 
 func (txn *Transaction) AddView(
@@ -137,7 +131,7 @@ func (txn *Transaction) AddView(
 	gqlQuery string,
 	sdl string,
 	transform immutable.Option[model.Lens],
-) ([]client.CollectionDefinition, error) {
+) ([]client.CollectionVersion, error) {
 	ctx = datastore.CtxSetFromClientTxn(ctx, txn)
 	return txn.Client.AddView(ctx, gqlQuery, sdl, transform)
 }
@@ -147,13 +141,9 @@ func (txn *Transaction) RefreshViews(ctx context.Context, options client.Collect
 	return txn.Client.RefreshViews(ctx, options)
 }
 
-func (txn *Transaction) SetMigration(ctx context.Context, config client.LensConfig) error {
+func (txn *Transaction) SetMigration(ctx context.Context, config client.LensConfig) (string, error) {
 	ctx = datastore.CtxSetFromClientTxn(ctx, txn)
 	return txn.Client.SetMigration(ctx, config)
-}
-
-func (txn *Transaction) LensRegistry() client.LensRegistry {
-	return txn.Client.LensRegistry()
 }
 
 func (txn *Transaction) GetCollectionByName(
@@ -172,24 +162,18 @@ func (txn *Transaction) GetCollections(
 	return txn.Client.GetCollections(ctx, options)
 }
 
-func (txn *Transaction) GetSchemaByVersionID(ctx context.Context, versionID string) (client.SchemaDescription, error) {
-	ctx = datastore.CtxSetFromClientTxn(ctx, txn)
-	return txn.Client.GetSchemaByVersionID(ctx, versionID)
-}
-
-func (txn *Transaction) GetSchemas(
-	ctx context.Context,
-	options client.SchemaFetchOptions,
-) ([]client.SchemaDescription, error) {
-	ctx = datastore.CtxSetFromClientTxn(ctx, txn)
-	return txn.Client.GetSchemas(ctx, options)
-}
-
 func (txn *Transaction) GetAllIndexes(
 	ctx context.Context,
 ) (map[client.CollectionName][]client.IndexDescription, error) {
 	ctx = datastore.CtxSetFromClientTxn(ctx, txn)
 	return txn.Client.GetAllIndexes(ctx)
+}
+
+func (txn *Transaction) ListAllEncryptedIndexes(
+	ctx context.Context,
+) (map[client.CollectionName][]client.EncryptedIndexDescription, error) {
+	ctx = datastore.CtxSetFromClientTxn(ctx, txn)
+	return txn.Client.ListAllEncryptedIndexes(ctx)
 }
 
 func (txn *Transaction) ExecRequest(

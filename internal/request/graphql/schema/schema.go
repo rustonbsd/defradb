@@ -26,9 +26,14 @@ func defaultSchema() (gql.Schema, error) {
 	commitObject := types.CommitObject(commitLinkObject)
 	commitsOrderArg := types.CommitsOrderArg(orderEnum)
 
+	encryptedSearchResult := types.EncryptedSearchResultObject()
+
 	indexFieldInput := types.IndexFieldInputObject(orderEnum)
 
-	return gql.NewSchema(gql.SchemaConfig{
+	queryCommits := types.QueryCommits(commitObject, commitsOrderArg)
+	queryLatestCommits := types.QueryLatestCommits(commitObject)
+
+	sch, err := gql.NewSchema(gql.SchemaConfig{
 		Types: defaultTypes(
 			commitObject,
 			commitLinkObject,
@@ -37,32 +42,19 @@ func defaultSchema() (gql.Schema, error) {
 			crdtEnum,
 			explainEnum,
 			indexFieldInput,
+			encryptedSearchResult,
 		),
-		Query:        defaultQueryType(commitObject, commitsOrderArg),
+		Query:        defaultQueryType(queryCommits, queryLatestCommits),
 		Mutation:     defaultMutationType(),
 		Directives:   defaultDirectivesType(crdtEnum, explainEnum, orderEnum, indexFieldInput),
-		Subscription: defaultSubscriptionType(),
+		Subscription: defaultSubscriptionType(queryCommits),
 	})
+
+	return sch, err
 }
 
-// @todo: Use a better default Query type
-func defaultQueryType(commitObject *gql.Object, commitsOrderArg *gql.InputObject) *gql.Object {
-	queryCommits := types.QueryCommits(commitObject, commitsOrderArg)
-	queryLatestCommits := types.QueryLatestCommits(commitObject)
-
-	return gql.NewObject(gql.ObjectConfig{
-		Name: "Query",
-		Fields: gql.Fields{
-			"_": &gql.Field{
-				Name: "_",
-				Type: gql.Boolean,
-			},
-
-			// database API queries
-			queryCommits.Name:       queryCommits,
-			queryLatestCommits.Name: queryLatestCommits,
-		},
-	})
+func defaultQueryType(fields ...*gql.Field) *gql.Object {
+	return defaultOperationType("Query", fields...)
 }
 
 func defaultMutationType() *gql.Object {
@@ -77,15 +69,19 @@ func defaultMutationType() *gql.Object {
 	})
 }
 
-func defaultSubscriptionType() *gql.Object {
+func defaultSubscriptionType(fields ...*gql.Field) *gql.Object {
+	return defaultOperationType("Subscription", fields...)
+}
+
+func defaultOperationType(name string, fields ...*gql.Field) *gql.Object {
+	fieldsCfg := make(gql.Fields, len(fields))
+	for _, field := range fields {
+		fieldsCfg[field.Name] = field
+	}
+
 	return gql.NewObject(gql.ObjectConfig{
-		Name: "Subscription",
-		Fields: gql.Fields{
-			"_": &gql.Field{
-				Name: "_",
-				Type: gql.Boolean,
-			},
-		},
+		Name:   name,
+		Fields: fieldsCfg,
 	})
 }
 
@@ -108,6 +104,7 @@ func defaultDirectivesType(
 		types.BranchableDirective(),
 		types.VectorEmbeddingDirective(),
 		types.ConstraintsDirective(),
+		types.EncryptedIndexDirective(),
 	}
 }
 
@@ -135,17 +132,15 @@ func defaultTypes(
 	crdtEnum *gql.Enum,
 	explainEnum *gql.Enum,
 	indexFieldInput *gql.InputObject,
+	encryptedSearchResult *gql.Object,
 ) []gql.Type {
-	blobScalarType := types.BlobScalarType()
-	jsonScalarType := types.JSONScalarType()
-
 	idOpBlock := types.IDOperatorBlock()
 	intOpBlock := types.IntOperatorBlock()
 	float64OpBlock := types.Float64OperatorBlock()
 	float32OpBlock := types.Float32OperatorBlock()
 	booleanOpBlock := types.BooleanOperatorBlock()
 	stringOpBlock := types.StringOperatorBlock()
-	blobOpBlock := types.BlobOperatorBlock(blobScalarType)
+	blobOpBlock := types.BlobOperatorBlock(types.Blob)
 	dateTimeOpBlock := types.DateTimeOperatorBlock()
 
 	notNullIntOpBlock := types.NotNullIntOperatorBlock()
@@ -153,7 +148,7 @@ func defaultTypes(
 	notNullFloat32OpBlock := types.NotNullFloat32OperatorBlock()
 	notNullBooleanOpBlock := types.NotNullBooleanOperatorBlock()
 	notNullStringOpBlock := types.NotNullStringOperatorBlock()
-	notNullBlobOpBlock := types.NotNullBlobOperatorBlock(blobScalarType)
+	notNullBlobOpBlock := types.NotNullBlobOperatorBlock(types.Blob)
 
 	return []gql.Type{
 		// Base Scalar types
@@ -167,8 +162,8 @@ func defaultTypes(
 		gql.String,
 
 		// Custom Scalar types
-		blobScalarType,
-		jsonScalarType,
+		types.Blob,
+		types.JSON,
 
 		// Base Query types
 
@@ -215,5 +210,6 @@ func defaultTypes(
 		explainEnum,
 
 		indexFieldInput,
+		encryptedSearchResult,
 	}
 }

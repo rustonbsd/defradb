@@ -24,7 +24,7 @@ import (
 
 // transactionDB is a db that can create transactions.
 type transactionDB interface {
-	NewTxn(context.Context, bool) (client.Txn, error)
+	NewTxn(bool) (client.Txn, error)
 }
 
 // ensureContextTxn ensures that the returned context has a transaction.
@@ -69,7 +69,7 @@ func ensureContextTxn(ctx context.Context, db transactionDB, readOnly bool) (con
 			return nil, nil, NewErrUnsupportedTxnType(ctxTxn)
 		}
 	}
-	clientTxn, err := db.NewTxn(ctx, readOnly)
+	clientTxn, err := db.NewTxn(readOnly)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -93,24 +93,24 @@ func wrapDatastoreTxn(txn *datastore.BasicTxn, db *DB) *Txn {
 	}
 }
 
-func (txn *Txn) Commit(ctx context.Context) error {
+func (txn *Txn) Commit() error {
 	if txn.explicit {
 		// If the transaction has been explicitly defined, `Commit` should
 		// only be executed by the transaction creator. As such, a call to
 		// `Commit` on an explicit transaction should result in a no-op.
 		return nil
 	}
-	return txn.BasicTxn.Commit(ctx)
+	return txn.BasicTxn.Commit()
 }
 
-func (txn *Txn) Discard(ctx context.Context) {
+func (txn *Txn) Discard() {
 	if txn.explicit {
 		// If the transaction has been explicitly defined, `Discard` should
 		// only be executed by the transaction creator. As such, a call to
 		// `Discard` on an explicit transaction should result in a no-op.
 		return
 	}
-	txn.BasicTxn.Discard(ctx)
+	txn.BasicTxn.Discard()
 }
 
 func (txn *Txn) PrintDump(ctx context.Context) error {
@@ -192,24 +192,18 @@ func (txn *Txn) AddSchema(ctx context.Context, sdl string) ([]client.CollectionV
 	return txn.db.AddSchema(ctx, sdl)
 }
 
-func (txn *Txn) PatchSchema(
+func (txn *Txn) PatchCollection(
 	ctx context.Context,
 	patch string,
 	migration immutable.Option[model.Lens],
-	setDefault bool,
 ) error {
 	ctx = InitContext(ctx, txn)
-	return txn.db.PatchSchema(ctx, patch, migration, setDefault)
+	return txn.db.PatchCollection(ctx, patch, migration)
 }
 
-func (txn *Txn) PatchCollection(ctx context.Context, patch string) error {
+func (txn *Txn) SetActiveCollectionVersion(ctx context.Context, version string) error {
 	ctx = InitContext(ctx, txn)
-	return txn.db.PatchCollection(ctx, patch)
-}
-
-func (txn *Txn) SetActiveSchemaVersion(ctx context.Context, version string) error {
-	ctx = InitContext(ctx, txn)
-	return txn.db.SetActiveSchemaVersion(ctx, version)
+	return txn.db.SetActiveCollectionVersion(ctx, version)
 }
 
 func (txn *Txn) AddView(
@@ -217,7 +211,7 @@ func (txn *Txn) AddView(
 	gqlQuery string,
 	sdl string,
 	transform immutable.Option[model.Lens],
-) ([]client.CollectionDefinition, error) {
+) ([]client.CollectionVersion, error) {
 	ctx = InitContext(ctx, txn)
 	return txn.db.AddView(ctx, gqlQuery, sdl, transform)
 }
@@ -227,13 +221,9 @@ func (txn *Txn) RefreshViews(ctx context.Context, options client.CollectionFetch
 	return txn.db.RefreshViews(ctx, options)
 }
 
-func (txn *Txn) SetMigration(ctx context.Context, config client.LensConfig) error {
+func (txn *Txn) SetMigration(ctx context.Context, config client.LensConfig) (string, error) {
 	ctx = InitContext(ctx, txn)
 	return txn.db.SetMigration(ctx, config)
-}
-
-func (txn *Txn) LensRegistry() client.LensRegistry {
-	return txn.db.LensRegistry()
 }
 
 func (txn *Txn) GetCollectionByName(ctx context.Context, name client.CollectionName) (client.Collection, error) {
@@ -249,19 +239,16 @@ func (txn *Txn) GetCollections(
 	return txn.db.GetCollections(ctx, options)
 }
 
-func (txn *Txn) GetSchemaByVersionID(ctx context.Context, versionID string) (client.SchemaDescription, error) {
-	ctx = InitContext(ctx, txn)
-	return txn.db.GetSchemaByVersionID(ctx, versionID)
-}
-
-func (txn *Txn) GetSchemas(ctx context.Context, options client.SchemaFetchOptions) ([]client.SchemaDescription, error) {
-	ctx = InitContext(ctx, txn)
-	return txn.db.GetSchemas(ctx, options)
-}
-
 func (txn *Txn) GetAllIndexes(ctx context.Context) (map[client.CollectionName][]client.IndexDescription, error) {
 	ctx = InitContext(ctx, txn)
 	return txn.db.GetAllIndexes(ctx)
+}
+
+func (txn *Txn) ListAllEncryptedIndexes(
+	ctx context.Context,
+) (map[client.CollectionName][]client.EncryptedIndexDescription, error) {
+	ctx = InitContext(ctx, txn)
+	return txn.db.ListAllEncryptedIndexes(ctx)
 }
 
 func (txn *Txn) ExecRequest(ctx context.Context, request string, opts ...client.RequestOption) *client.RequestResult {
@@ -277,4 +264,67 @@ func (txn *Txn) BasicImport(ctx context.Context, filepath string) error {
 func (txn *Txn) BasicExport(ctx context.Context, config *client.BackupConfig) error {
 	ctx = InitContext(ctx, txn)
 	return txn.db.BasicExport(ctx, config)
+}
+
+func (txn *Txn) PeerInfo() ([]string, error) {
+	return txn.db.PeerInfo()
+}
+
+func (txn *Txn) Connect(ctx context.Context, addresses []string) error {
+	return txn.db.Connect(ctx, addresses)
+}
+
+func (txn *Txn) SetReplicator(ctx context.Context, addresses []string, collectionNames ...string) error {
+	ctx = InitContext(ctx, txn)
+	return txn.db.SetReplicator(ctx, addresses, collectionNames...)
+}
+
+func (txn *Txn) DeleteReplicator(ctx context.Context, id string, collectionNames ...string) error {
+	ctx = InitContext(ctx, txn)
+	return txn.db.DeleteReplicator(ctx, id, collectionNames...)
+}
+
+func (txn *Txn) GetAllReplicators(ctx context.Context) ([]client.Replicator, error) {
+	ctx = InitContext(ctx, txn)
+	return txn.db.GetAllReplicators(ctx)
+}
+
+func (txn *Txn) AddP2PCollections(ctx context.Context, collectionNames ...string) error {
+	ctx = InitContext(ctx, txn)
+	return txn.db.AddP2PCollections(ctx, collectionNames...)
+}
+
+func (txn *Txn) RemoveP2PCollections(ctx context.Context, collectionNames ...string) error {
+	ctx = InitContext(ctx, txn)
+	return txn.db.RemoveP2PCollections(ctx, collectionNames...)
+}
+
+func (txn *Txn) GetAllP2PCollections(ctx context.Context) ([]string, error) {
+	ctx = InitContext(ctx, txn)
+	return txn.db.GetAllP2PCollections(ctx)
+}
+
+func (txn *Txn) AddP2PDocuments(ctx context.Context, docIDs ...string) error {
+	ctx = InitContext(ctx, txn)
+	return txn.db.AddP2PDocuments(ctx, docIDs...)
+}
+
+func (txn *Txn) RemoveP2PDocuments(ctx context.Context, docIDs ...string) error {
+	ctx = InitContext(ctx, txn)
+	return txn.db.RemoveP2PDocuments(ctx, docIDs...)
+}
+
+func (txn *Txn) GetAllP2PDocuments(ctx context.Context) ([]string, error) {
+	ctx = InitContext(ctx, txn)
+	return txn.db.GetAllP2PDocuments(ctx)
+}
+
+func (txn *Txn) SyncDocuments(ctx context.Context, collectionName string, docIDs []string) error {
+	ctx = InitContext(ctx, txn)
+	return txn.db.SyncDocuments(ctx, collectionName, docIDs)
+}
+
+func (txn *Txn) SyncCollections(ctx context.Context, versionIDs ...string) error {
+	ctx = InitContext(ctx, txn)
+	return txn.db.SyncCollections(ctx, versionIDs...)
 }

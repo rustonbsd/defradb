@@ -19,7 +19,6 @@ import (
 
 func TestQueryOneToOneToOne(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-one-to-one relation primary direction",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -95,20 +94,20 @@ func TestQueryOneToOneToOne(t *testing.T) {
 				Results: map[string]any{
 					"Publisher": []map[string]any{
 						{
-							"name": "Old Publisher",
-							"printed": map[string]any{
-								"name": "Painted House",
-								"author": map[string]any{
-									"name": "John Grisham",
-								},
-							},
-						},
-						{
 							"name": "New Publisher",
 							"printed": map[string]any{
 								"name": "Theif Lord",
 								"author": map[string]any{
 									"name": "Cornelia Funke",
+								},
+							},
+						},
+						{
+							"name": "Old Publisher",
+							"printed": map[string]any{
+								"name": "Painted House",
+								"author": map[string]any{
+									"name": "John Grisham",
 								},
 							},
 						},
@@ -123,7 +122,6 @@ func TestQueryOneToOneToOne(t *testing.T) {
 
 func TestQueryOneToOneToOneSecondaryThenPrimary(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-one-to-one relation, secondary then primary direction",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -218,6 +216,7 @@ func TestQueryOneToOneToOneSecondaryThenPrimary(t *testing.T) {
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -227,7 +226,6 @@ func TestQueryOneToOneToOneSecondaryThenPrimary(t *testing.T) {
 
 func TestQueryOneToOneToOnePrimaryThenSecondary(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-one-to-one relation, primary then secondary direction",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -303,20 +301,20 @@ func TestQueryOneToOneToOnePrimaryThenSecondary(t *testing.T) {
 				Results: map[string]any{
 					"Publisher": []map[string]any{
 						{
-							"name": "New Publisher",
-							"printed": map[string]any{
-								"name": "Theif Lord",
-								"author": map[string]any{
-									"name": "Cornelia Funke",
-								},
-							},
-						},
-						{
 							"name": "Old Publisher",
 							"printed": map[string]any{
 								"name": "Painted House",
 								"author": map[string]any{
 									"name": "John Grisham",
+								},
+							},
+						},
+						{
+							"name": "New Publisher",
+							"printed": map[string]any{
+								"name": "Theif Lord",
+								"author": map[string]any{
+									"name": "Cornelia Funke",
 								},
 							},
 						},
@@ -331,7 +329,6 @@ func TestQueryOneToOneToOnePrimaryThenSecondary(t *testing.T) {
 
 func TestQueryOneToOneToOneSecondary(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-one-to-one relation, secondary direction",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -426,6 +423,7 @@ func TestQueryOneToOneToOneSecondary(t *testing.T) {
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}

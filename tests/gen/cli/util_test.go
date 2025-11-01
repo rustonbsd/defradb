@@ -16,9 +16,10 @@ import (
 	"testing"
 
 	badgerds "github.com/dgraph-io/badger/v4"
+	"github.com/stretchr/testify/require"
+
 	"github.com/sourcenetwork/corekv/badger"
 	"github.com/sourcenetwork/corelog"
-	"github.com/stretchr/testify/require"
 
 	"github.com/sourcenetwork/defradb/acp/dac"
 	"github.com/sourcenetwork/defradb/client"
@@ -56,12 +57,12 @@ func start(ctx context.Context) (*defraInstance, error) {
 	if err != nil {
 		return nil, errors.Wrap("failed to setup node access control info", err)
 	}
-	db, err := db.NewDB(ctx, rootstore, adminInfo, dac.NoDocumentACP, nil)
+	db, err := db.NewDB(ctx, rootstore, adminInfo, dac.NoDocumentACP)
 	if err != nil {
 		return nil, errors.Wrap("failed to create a database", err)
 	}
 
-	handler, err := httpapi.NewHandler(db, nil)
+	handler, err := httpapi.NewHandler(db)
 	if err != nil {
 		return nil, errors.Wrap("failed to create http handler", err)
 	}

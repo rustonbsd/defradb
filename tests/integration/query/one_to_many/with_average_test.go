@@ -18,7 +18,6 @@ import (
 
 func TestQueryOneToMany_WithAverageAliasFilter_ShouldMatchAll(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-many relation query from many side with average alias",
 		Actions: []any{
 			testUtils.CreateDoc{
 				CollectionID: 1,
@@ -70,15 +69,16 @@ func TestQueryOneToMany_WithAverageAliasFilter_ShouldMatchAll(t *testing.T) {
 				Results: map[string]any{
 					"Author": []map[string]any{
 						{
-							"name":          "Cornelia Funke",
-							"averageRating": 4.8,
-						},
-						{
 							"name":          "John Grisham",
 							"averageRating": 4.7,
 						},
+						{
+							"name":          "Cornelia Funke",
+							"averageRating": 4.8,
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -88,7 +88,6 @@ func TestQueryOneToMany_WithAverageAliasFilter_ShouldMatchAll(t *testing.T) {
 
 func TestQueryOneToMany_WithAverageAliasFilter_ShouldMatchOne(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-many relation query from many side with average alias",
 		Actions: []any{
 			testUtils.CreateDoc{
 				CollectionID: 1,

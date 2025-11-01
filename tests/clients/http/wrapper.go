@@ -14,7 +14,6 @@ import (
 	"context"
 	"net/http/httptest"
 
-	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/sourcenetwork/lens/host-go/config/model"
 
 	"github.com/sourcenetwork/immutable"
@@ -33,21 +32,24 @@ var _ client.P2P = (*Wrapper)(nil)
 // Wrapper combines an HTTP client and server into a
 // single struct that implements the client.TxnStore interface.
 type Wrapper struct {
-	node       *node.Node
-	handler    *http.Handler
-	client     *http.Client
-	httpServer *httptest.Server
+	node         *node.Node
+	handler      *http.Handler
+	client       *http.Client
+	httpServer   *httptest.Server
+	serverCancel context.CancelFunc
 }
 
 func NewWrapper(node *node.Node) (*Wrapper, error) {
-	handler, err := http.NewHandler(node.DB, node.Peer)
+	handler, err := http.NewHandler(node.DB)
 	if err != nil {
 		return nil, err
 	}
-
-	httpServer := httptest.NewServer(handler)
+	ctx, cancel := context.WithCancel(context.Background())
+	handlerWithCtx := http.InjectServerContext(ctx)(handler)
+	httpServer := httptest.NewServer(handlerWithCtx)
 	client, err := http.NewClient(httpServer.URL)
 	if err != nil {
+		cancel()
 		return nil, err
 	}
 
@@ -56,19 +58,24 @@ func NewWrapper(node *node.Node) (*Wrapper, error) {
 		handler,
 		client,
 		httpServer,
+		cancel,
 	}, nil
 }
 
-func (w *Wrapper) PeerInfo() peer.AddrInfo {
+func (w *Wrapper) PeerInfo() ([]string, error) {
 	return w.client.PeerInfo()
 }
 
-func (w *Wrapper) SetReplicator(ctx context.Context, info peer.AddrInfo, collections ...string) error {
-	return w.client.SetReplicator(ctx, info, collections...)
+func (w *Wrapper) Connect(ctx context.Context, addresses []string) error {
+	return w.client.Connect(ctx, addresses)
 }
 
-func (w *Wrapper) DeleteReplicator(ctx context.Context, info peer.AddrInfo, collections ...string) error {
-	return w.client.DeleteReplicator(ctx, info, collections...)
+func (w *Wrapper) SetReplicator(ctx context.Context, addresses []string, collections ...string) error {
+	return w.client.SetReplicator(ctx, addresses, collections...)
+}
+
+func (w *Wrapper) DeleteReplicator(ctx context.Context, id string, collections ...string) error {
+	return w.client.DeleteReplicator(ctx, id, collections...)
 }
 
 func (w *Wrapper) GetAllReplicators(ctx context.Context) ([]client.Replicator, error) {
@@ -105,6 +112,10 @@ func (w *Wrapper) SyncDocuments(
 	docIDs []string,
 ) error {
 	return w.client.SyncDocuments(ctx, collectionName, docIDs)
+}
+
+func (w *Wrapper) SyncCollections(ctx context.Context, versionIDs ...string) error {
+	return w.client.SyncCollections(ctx, versionIDs...)
 }
 
 func (w *Wrapper) BasicImport(ctx context.Context, filepath string) error {
@@ -194,24 +205,16 @@ func (w *Wrapper) GetNACStatus(ctx context.Context) (client.NACStatusResult, err
 	return w.client.GetNACStatus(ctx)
 }
 
-func (w *Wrapper) PatchSchema(
-	ctx context.Context,
-	patch string,
-	migration immutable.Option[model.Lens],
-	setAsDefaultVersion bool,
-) error {
-	return w.client.PatchSchema(ctx, patch, migration, setAsDefaultVersion)
-}
-
 func (w *Wrapper) PatchCollection(
 	ctx context.Context,
 	patch string,
+	migration immutable.Option[model.Lens],
 ) error {
-	return w.client.PatchCollection(ctx, patch)
+	return w.client.PatchCollection(ctx, patch, migration)
 }
 
-func (w *Wrapper) SetActiveSchemaVersion(ctx context.Context, schemaVersionID string) error {
-	return w.client.SetActiveSchemaVersion(ctx, schemaVersionID)
+func (w *Wrapper) SetActiveCollectionVersion(ctx context.Context, schemaVersionID string) error {
+	return w.client.SetActiveCollectionVersion(ctx, schemaVersionID)
 }
 
 func (w *Wrapper) AddView(
@@ -219,7 +222,7 @@ func (w *Wrapper) AddView(
 	query string,
 	sdl string,
 	transform immutable.Option[model.Lens],
-) ([]client.CollectionDefinition, error) {
+) ([]client.CollectionVersion, error) {
 	return w.client.AddView(ctx, query, sdl, transform)
 }
 
@@ -227,12 +230,8 @@ func (w *Wrapper) RefreshViews(ctx context.Context, opts client.CollectionFetchO
 	return w.client.RefreshViews(ctx, opts)
 }
 
-func (w *Wrapper) SetMigration(ctx context.Context, config client.LensConfig) error {
+func (w *Wrapper) SetMigration(ctx context.Context, config client.LensConfig) (string, error) {
 	return w.client.SetMigration(ctx, config)
-}
-
-func (w *Wrapper) LensRegistry() client.LensRegistry {
-	return w.client.LensRegistry()
 }
 
 func (w *Wrapper) GetCollectionByName(ctx context.Context, name client.CollectionName) (client.Collection, error) {
@@ -246,19 +245,14 @@ func (w *Wrapper) GetCollections(
 	return w.client.GetCollections(ctx, options)
 }
 
-func (w *Wrapper) GetSchemaByVersionID(ctx context.Context, versionID string) (client.SchemaDescription, error) {
-	return w.client.GetSchemaByVersionID(ctx, versionID)
-}
-
-func (w *Wrapper) GetSchemas(
-	ctx context.Context,
-	options client.SchemaFetchOptions,
-) ([]client.SchemaDescription, error) {
-	return w.client.GetSchemas(ctx, options)
-}
-
 func (w *Wrapper) GetAllIndexes(ctx context.Context) (map[client.CollectionName][]client.IndexDescription, error) {
 	return w.client.GetAllIndexes(ctx)
+}
+
+func (w *Wrapper) ListAllEncryptedIndexes(
+	ctx context.Context,
+) (map[client.CollectionName][]client.EncryptedIndexDescription, error) {
+	return w.client.ListAllEncryptedIndexes(ctx)
 }
 
 func (w *Wrapper) ExecRequest(
@@ -269,8 +263,8 @@ func (w *Wrapper) ExecRequest(
 	return w.client.ExecRequest(ctx, query, opts...)
 }
 
-func (w *Wrapper) NewTxn(ctx context.Context, readOnly bool) (client.Txn, error) {
-	clientTxn, err := w.client.NewTxn(ctx, readOnly)
+func (w *Wrapper) NewTxn(readOnly bool) (client.Txn, error) {
+	clientTxn, err := w.client.NewTxn(readOnly)
 	if err != nil {
 		return nil, err
 	}
@@ -281,8 +275,8 @@ func (w *Wrapper) NewTxn(ctx context.Context, readOnly bool) (client.Txn, error)
 	return &Transaction{w, serverTxn}, nil
 }
 
-func (w *Wrapper) NewConcurrentTxn(ctx context.Context, readOnly bool) (client.Txn, error) {
-	clientTxn, err := w.client.NewConcurrentTxn(ctx, readOnly)
+func (w *Wrapper) NewConcurrentTxn(readOnly bool) (client.Txn, error) {
+	clientTxn, err := w.client.NewConcurrentTxn(readOnly)
 	if err != nil {
 		return nil, err
 	}
@@ -294,7 +288,7 @@ func (w *Wrapper) NewConcurrentTxn(ctx context.Context, readOnly bool) (client.T
 }
 
 func (w *Wrapper) Close() {
-	w.httpServer.CloseClientConnections()
+	w.serverCancel()
 	w.httpServer.Close()
 	_ = w.node.Close(context.Background())
 }
@@ -309,10 +303,6 @@ func (w *Wrapper) MaxTxnRetries() int {
 
 func (w *Wrapper) PrintDump(ctx context.Context) error {
 	return w.node.DB.PrintDump(ctx)
-}
-
-func (w *Wrapper) Connect(ctx context.Context, addr peer.AddrInfo) error {
-	return w.node.Peer.Connect(ctx, addr)
 }
 
 func (w *Wrapper) Host() string {

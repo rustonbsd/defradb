@@ -11,33 +11,26 @@
 package cli
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"os"
 	"strings"
 
-	"github.com/sourcenetwork/lens/host-go/config/model"
 	"github.com/spf13/cobra"
+
+	"github.com/sourcenetwork/lens/host-go/config/model"
 
 	"github.com/sourcenetwork/defradb/client"
 )
 
-func MakeLensSetCommand() *cobra.Command {
+func MakeLensSetCommand(ctx context.Context) *cobra.Command {
 	var lensFile string
 	var cmd = &cobra.Command{
 		Use:   "set [src] [dst] [cfg]",
 		Short: "Set a schema migration within DefraDB",
 		Long: `Set a migration from a source schema version to a destination schema version for
 all collections that are on the given source schema version within the local DefraDB node.
-
-Example: set from an argument string:
-  defradb client lens set bae123 bae456 '{"lenses": [...'
-
-Example: set from file:
-  defradb client lens set bae123 bae456 -f schema_migration.lens
-
-Example: add from stdin:
-  cat schema_migration.lens | defradb client lens set bae123 bae456 -
 
 Learn more about the DefraDB GraphQL Schema Language on https://docs.source.network.`,
 		Args: cobra.RangeArgs(2, 3),
@@ -81,9 +74,24 @@ Learn more about the DefraDB GraphQL Schema Language on https://docs.source.netw
 				Lens:                       lensCfg,
 			}
 
-			return cliClient.SetMigration(cmd.Context(), migrationCfg)
+			lensID, err := cliClient.SetMigration(cmd.Context(), migrationCfg)
+			if err != nil {
+				return err
+			}
+
+			return writeJSON(cmd, lensID)
 		},
 	}
+
+	EmbedCLIExample(ctx, cmd, "set from an argument string",
+		`defradb client lens set bae123 bae456 '{"lenses": [...'`)
+
+	EmbedCLIExample(ctx, cmd, "set from file",
+		`defradb client lens set bae123 bae456 -f schema_migration.lens`)
+
+	EmbedCLIExample(ctx, cmd, "add from stdin",
+		`cat schema_migration.lens | defradb client lens set bae123 bae456 -`)
+
 	cmd.Flags().StringVarP(&lensFile, "file", "f", "", "Lens configuration file")
 	return cmd
 }

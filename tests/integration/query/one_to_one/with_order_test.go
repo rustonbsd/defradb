@@ -18,7 +18,6 @@ import (
 
 func TestQueryOneToOneWithChildBooleanOrderDescending(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-one relation query with simple descending order by sub type",
 		Actions: []any{
 			testUtils.CreateDoc{
 				CollectionID: 0,
@@ -40,7 +39,7 @@ func TestQueryOneToOneWithChildBooleanOrderDescending(t *testing.T) {
 					"name": "John Grisham",
 					"age": 65,
 					"verified": true,
-					"published_id": "bae-be6d8024-4953-5a92-84b4-f042d25230c6"
+					"published_id": "bae-8627532a-2ed3-50ed-91d5-26f6b9b44c25"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -49,7 +48,7 @@ func TestQueryOneToOneWithChildBooleanOrderDescending(t *testing.T) {
 					"name": "Cornelia Funke",
 					"age": 62,
 					"verified": false,
-					"published_id": "bae-26a28d23-ae5b-5257-91b7-d4f2c6abef7b"
+					"published_id": "bae-9793af00-a131-5ef2-b2c9-22b8053a11e7"
 				}`,
 			},
 			testUtils.Request{
@@ -92,7 +91,6 @@ func TestQueryOneToOneWithChildBooleanOrderDescending(t *testing.T) {
 
 func TestQueryOneToOneWithChildBooleanOrderAscending(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-one relation query with simple ascending order by sub type",
 		Actions: []any{
 			testUtils.CreateDoc{
 				CollectionID: 0,
@@ -114,7 +112,7 @@ func TestQueryOneToOneWithChildBooleanOrderAscending(t *testing.T) {
 					"name": "John Grisham",
 					"age": 65,
 					"verified": true,
-					"published_id": "bae-be6d8024-4953-5a92-84b4-f042d25230c6"
+					"published_id": "bae-8627532a-2ed3-50ed-91d5-26f6b9b44c25"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -123,7 +121,7 @@ func TestQueryOneToOneWithChildBooleanOrderAscending(t *testing.T) {
 					"name": "Cornelia Funke",
 					"age": 62,
 					"verified": false,
-					"published_id": "bae-26a28d23-ae5b-5257-91b7-d4f2c6abef7b"
+					"published_id": "bae-9793af00-a131-5ef2-b2c9-22b8053a11e7"
 				}`,
 			},
 			testUtils.Request{
@@ -166,7 +164,6 @@ func TestQueryOneToOneWithChildBooleanOrderAscending(t *testing.T) {
 
 func TestQueryOneToOneWithChildIntOrderDescendingWithNoSubTypeFieldsSelected(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Relation query with descending order by sub-type's int field, but only parent fields are selected.",
 		Actions: []any{
 			testUtils.CreateDoc{
 				CollectionID: 0,
@@ -188,7 +185,7 @@ func TestQueryOneToOneWithChildIntOrderDescendingWithNoSubTypeFieldsSelected(t *
 					"name": "John Grisham",
 					"age": 65,
 					"verified": true,
-					"published_id": "bae-be6d8024-4953-5a92-84b4-f042d25230c6"
+					"published_id": "bae-8627532a-2ed3-50ed-91d5-26f6b9b44c25"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -197,7 +194,7 @@ func TestQueryOneToOneWithChildIntOrderDescendingWithNoSubTypeFieldsSelected(t *
 					"name": "Cornelia Funke",
 					"age": 62,
 					"verified": false,
-					"published_id": "bae-26a28d23-ae5b-5257-91b7-d4f2c6abef7b"
+					"published_id": "bae-9793af00-a131-5ef2-b2c9-22b8053a11e7"
 				}`,
 			},
 			testUtils.Request{
@@ -228,7 +225,6 @@ func TestQueryOneToOneWithChildIntOrderDescendingWithNoSubTypeFieldsSelected(t *
 
 func TestQueryOneToOneWithChildIntOrderAscendingWithNoSubTypeFieldsSelected(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Relation query with ascending order by sub-type's int field, but only parent fields are selected.",
 		Actions: []any{
 			testUtils.CreateDoc{
 				CollectionID: 0,
@@ -250,7 +246,7 @@ func TestQueryOneToOneWithChildIntOrderAscendingWithNoSubTypeFieldsSelected(t *t
 					"name": "John Grisham",
 					"age": 65,
 					"verified": true,
-					"published_id": "bae-be6d8024-4953-5a92-84b4-f042d25230c6"
+					"published_id": "bae-8627532a-2ed3-50ed-91d5-26f6b9b44c25"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -259,7 +255,7 @@ func TestQueryOneToOneWithChildIntOrderAscendingWithNoSubTypeFieldsSelected(t *t
 					"name": "Cornelia Funke",
 					"age": 62,
 					"verified": false,
-					"published_id": "bae-26a28d23-ae5b-5257-91b7-d4f2c6abef7b"
+					"published_id": "bae-9793af00-a131-5ef2-b2c9-22b8053a11e7"
 				}`,
 			},
 			testUtils.Request{
@@ -290,7 +286,6 @@ func TestQueryOneToOneWithChildIntOrderAscendingWithNoSubTypeFieldsSelected(t *t
 
 func TestQueryOneToOne_WithAliasedChildIntOrderAscending_ShouldOrder(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Relation query with ascending order by aliased child's int field.",
 		Actions: []any{
 			testUtils.CreateDoc{
 				CollectionID: 0,
@@ -361,7 +356,6 @@ func TestQueryOneToOne_WithAliasedChildIntOrderAscending_ShouldOrder(t *testing.
 
 func TestQueryOneToOne_WithChildAliasedIntOrderAscending_ShouldOrder(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Relation query with ascending order by child's aliased int field.",
 		Actions: []any{
 			testUtils.CreateDoc{
 				CollectionID: 0,

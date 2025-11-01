@@ -13,6 +13,8 @@ package event
 import (
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p/core/peer"
+
+	"github.com/sourcenetwork/defradb/client"
 )
 
 // Bus handles routing and publishing of messages to subscribers.
@@ -48,6 +50,8 @@ const (
 	MergeCompleteName = Name("merge-complete")
 	// UpdateName is the name of the database update event.
 	UpdateName = Name("update")
+	// SEArtifactReceivedName is the name of the SE artifact received event.
+	SEArtifactReceivedName = Name("se-artifact-received")
 	// PubSubName is the name of the network pubsub event.
 	PubSubName = Name("pubsub")
 	// PeerInfoName is the name of the network peer info event.
@@ -89,6 +93,9 @@ type Update struct {
 
 	// IsRetry is true if this update is a retry of a previously failed update.
 	IsRetry bool
+
+	// Is relay is set to true if this update is created from a P2P sync.
+	IsRelay bool
 }
 
 // Merge is a notification that a merge can be performed up to the provided CID.
@@ -97,10 +104,10 @@ type Merge struct {
 	DocID string
 
 	// ByPeer is the id of the peer that created the push log request.
-	ByPeer peer.ID
+	ByPeer string
 
 	// FromPeer is the id of the peer that received the push log request.
-	FromPeer peer.ID
+	FromPeer string
 
 	// Cid is the id of the composite commit that formed this update in the DAG.
 	Cid cid.Cid
@@ -116,6 +123,18 @@ type MergeComplete struct {
 
 	// Decrypted specifies if the merge payload was decrypted.
 	Decrypted bool
+}
+
+// SEArtifactReceived is a notification that SE artifacts have been successfully received.
+type SEArtifactReceived struct {
+	// DocID is the document ID for which SE artifacts were received.
+	DocID string
+
+	// CollectionID is the collection ID.
+	CollectionID string
+
+	// FieldNames are the fields for which artifacts were received.
+	FieldNames []string
 }
 
 // Message contains event info.
@@ -134,13 +153,13 @@ func NewMessage(name Name, data any) Message {
 
 // PeerInfo is an event that is published when the node has updated its peer info.
 type PeerInfo struct {
-	Info peer.AddrInfo
+	Info client.PeerInfo
 }
 
 // Replicator is an event that is published when a replicator is added or updated.
 type Replicator struct {
 	// The peer info for the replicator instance.
-	Info peer.AddrInfo
+	Info client.PeerInfo
 	// The map of schema roots that the replicator will receive updates for.
 	Schemas map[string]struct{}
 	// Docs will receive Updates if new collections have been added to the replicator

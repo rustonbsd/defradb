@@ -12,6 +12,7 @@ package http
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -22,6 +23,7 @@ import (
 	"golang.org/x/exp/slices"
 
 	"github.com/sourcenetwork/defradb/client"
+	"github.com/sourcenetwork/defradb/errors"
 	"github.com/sourcenetwork/defradb/internal/db"
 )
 
@@ -41,12 +43,11 @@ func CorsMiddleware(allowedOrigins []string) func(http.Handler) http.Handler {
 }
 
 // ApiMiddleware sets the required context values for all API requests.
-func ApiMiddleware(db client.TxnStore, p2p client.P2P, txs *sync.Map) func(http.Handler) http.Handler {
+func ApiMiddleware(db client.TxnStore, txs *sync.Map) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
 			ctx = context.WithValue(ctx, dbContextKey, db)
-			ctx = context.WithValue(ctx, p2pContextKey, p2p)
 			ctx = context.WithValue(ctx, txsContextKey, txs)
 			next.ServeHTTP(rw, req.WithContext(ctx))
 		})
@@ -88,7 +89,13 @@ func CollectionMiddleware(next http.Handler) http.Handler {
 
 		col, err := db.GetCollectionByName(req.Context(), chi.URLParam(req, "name"))
 		if err != nil {
+			if errors.Is(err, client.ErrNotAuthorizedToPerformOperation) {
+				rw.WriteHeader(http.StatusUnauthorized)
+				_, _ = fmt.Fprintln(rw, err.Error())
+				return
+			}
 			rw.WriteHeader(http.StatusNotFound)
+			_, _ = fmt.Fprintln(rw, err.Error())
 			return
 		}
 

@@ -12,13 +12,12 @@ package client
 
 import (
 	"time"
-
-	"github.com/libp2p/go-libp2p/core/peer"
 )
 
 // Replicator is a peer that a set of local collections are replicated to.
 type Replicator struct {
-	Info             peer.AddrInfo
+	ID               string
+	Addresses        []string
 	CollectionIDs    []string
 	Status           ReplicatorStatus
 	LastStatusChange time.Time

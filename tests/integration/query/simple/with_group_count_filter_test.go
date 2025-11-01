@@ -18,7 +18,6 @@ import (
 
 func TestQuerySimpleWithGroupByNumberWithoutRenderedGroupAndChildCountWithFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by number, no children, count on non-rendered, unfiltered group",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -66,7 +65,6 @@ func TestQuerySimpleWithGroupByNumberWithoutRenderedGroupAndChildCountWithFilter
 
 func TestQuerySimpleWithGroupByNumberWithRenderedGroupAndChildCountWithFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by number, no children, count on non-rendered, filtered group",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -121,6 +119,7 @@ func TestQuerySimpleWithGroupByNumberWithRenderedGroupAndChildCountWithFilter(t 
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -130,7 +129,6 @@ func TestQuerySimpleWithGroupByNumberWithRenderedGroupAndChildCountWithFilter(t 
 
 func TestQuerySimpleWithGroupByNumberWithRenderedGroupWithFilterAndChildCountWithMatchingFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by number, no children, count on non-rendered, matching filtered group",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -187,7 +185,6 @@ func TestQuerySimpleWithGroupByNumberWithRenderedGroupWithFilterAndChildCountWit
 
 func TestQuerySimpleWithGroupByNumberWithRenderedGroupWithFilterAndChildCountWithDifferentFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by number, no children, count on non-rendered, different group filter",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -244,7 +241,6 @@ func TestQuerySimpleWithGroupByNumberWithRenderedGroupWithFilterAndChildCountWit
 
 func TestQuerySimpleWithGroupByNumberWithoutRenderedGroupAndChildCountsWithDifferentFilters(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by number, no children, multiple counts on non-rendered, unfiltered group",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{

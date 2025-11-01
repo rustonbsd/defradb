@@ -18,6 +18,7 @@ import (
 
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
+	"github.com/sourcenetwork/defradb/tests/state"
 )
 
 const policy = `
@@ -75,8 +76,8 @@ func TestDocEncryptionACP_IfUserAndNodeHaveAccess_ShouldFetch(t *testing.T) {
 	test := testUtils.TestCase{
 		KMS: testUtils.KMS{Activated: true},
 		SupportedDocumentACPTypes: immutable.Some(
-			[]testUtils.DocumentACPType{
-				testUtils.SourceHubDocumentACPType,
+			[]state.DocumentACPType{
+				state.SourceHubDocumentACPType,
 			},
 		),
 		Actions: []any{
@@ -157,8 +158,8 @@ func TestDocEncryptionACP_IfUserHasAccessButNotNode_ShouldNotFetch(t *testing.T)
 	test := testUtils.TestCase{
 		KMS: testUtils.KMS{Activated: true},
 		SupportedDocumentACPTypes: immutable.Some(
-			[]testUtils.DocumentACPType{
-				testUtils.SourceHubDocumentACPType,
+			[]state.DocumentACPType{
+				state.SourceHubDocumentACPType,
 			},
 		),
 		Actions: []any{
@@ -219,6 +220,23 @@ func TestDocEncryptionACP_IfUserHasAccessButNotNode_ShouldNotFetch(t *testing.T)
 					"Users": []map[string]any{},
 				},
 			},
+			// If the instance doesn't have rights to the doc, it can't do block sync
+			// and therefore doesn't have the related commit blocks.
+			testUtils.Request{
+				NodeID:   immutable.Some(1),
+				Identity: testUtils.ClientIdentity(1),
+				Request: `
+					query {
+						_commits {
+							delta
+							docID
+						}
+					}
+				`,
+				Results: map[string]any{
+					"_commits": []map[string]any{},
+				},
+			},
 		},
 	}
 
@@ -229,8 +247,8 @@ func TestDocEncryptionACP_IfNodeHasAccessToSomeDocs_ShouldFetchOnlyThem(t *testi
 	test := testUtils.TestCase{
 		KMS: testUtils.KMS{Activated: true},
 		SupportedDocumentACPTypes: immutable.Some(
-			[]testUtils.DocumentACPType{
-				testUtils.SourceHubDocumentACPType,
+			[]state.DocumentACPType{
+				state.SourceHubDocumentACPType,
 			},
 		),
 		Actions: []any{
@@ -353,12 +371,13 @@ func TestDocEncryptionACP_IfNodeHasAccessToSomeDocs_ShouldFetchOnlyThem(t *testi
 				`,
 				Results: map[string]any{
 					"Users": []map[string]any{
+						{"name": "Fred"},
 						{"name": "John"},
 						{"name": "Islam"},
 						{"name": "Shahzad"},
-						{"name": "Fred"},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -370,8 +389,8 @@ func TestDocEncryptionACP_IfClientNodeHasDocPermissionButServerNodeIsNotAvailabl
 	test := testUtils.TestCase{
 		KMS: testUtils.KMS{Activated: true},
 		SupportedDocumentACPTypes: immutable.Some(
-			[]testUtils.DocumentACPType{
-				testUtils.SourceHubDocumentACPType,
+			[]state.DocumentACPType{
+				state.SourceHubDocumentACPType,
 			},
 		),
 		Actions: []any{

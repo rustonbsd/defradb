@@ -19,16 +19,27 @@ import (
 	"time"
 
 	"github.com/onsi/gomega"
+	"github.com/onsi/gomega/format"
 	"github.com/onsi/gomega/types"
 
-	"github.com/sourcenetwork/immutable"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/sourcenetwork/immutable"
 
 	acpIdentity "github.com/sourcenetwork/defradb/acp/identity"
 	"github.com/sourcenetwork/defradb/client"
 	"github.com/sourcenetwork/defradb/tests/state"
 )
+
+func init() {
+	format.RegisterCustomFormatter(func(value any) (string, bool) {
+		if matcher, ok := value.(*docIDAt); ok {
+			return matcher.String(), true
+		}
+		return "", false
+	})
+}
 
 // TestState is read-only interface for test state. It allows passing the state to custom matchers
 // without allowing them to modify the state.
@@ -39,6 +50,8 @@ type TestState interface {
 	GetCurrentNodeID() int
 	// GetIdentity returns the identity for the given node index.
 	GetIdentity(state.Identity) acpIdentity.Identity
+	// GetDocID returns the document ID for the given collection index and document index.
+	GetDocID(collectionIndex, docIndex int) client.DocID
 }
 
 type testStateMatcher struct {
@@ -81,7 +94,7 @@ var _ TestStateMatcher = (*anyOf)(nil)
 
 func (matcher *anyOf) Match(actual any) (bool, error) {
 	switch matcher.s.GetClientType() {
-	case HTTPClientType, CLIClientType, JSClientType, CClientType:
+	case state.HTTPClientType, state.CLIClientType, state.JSClientType, state.CClientType:
 		if !areResultsAnyOf(matcher.Values, actual) {
 			return gomega.ContainElement(actual).Match(matcher.Values)
 		}
@@ -203,17 +216,75 @@ func (matcher *SameValue) NegatedFailureMessage(actual any) string {
 		matcher.value, actual)
 }
 
+// DocIDAt returns a matcher that checks if the actual value is a document ID
+// at the specified collection index and document index.
+func DocIDAt(collectionIndex, docIndex int) *docIDAt {
+	return &docIDAt{
+		collectionIndex: collectionIndex,
+		docIndex:        docIndex,
+	}
+}
+
+// docIDAt is a matcher that checks if the actual value is a document ID
+// at the specified collection index and document index.
+type docIDAt struct {
+	testStateMatcher
+	collectionIndex int
+	docIndex        int
+}
+
+var _ TestStateMatcher = (*docIDAt)(nil)
+
+func (matcher *docIDAt) Match(actual any) (bool, error) {
+	actualDocID, ok := actual.(string)
+	if !ok {
+		return false, fmt.Errorf("expected a document ID string, got %T", actual)
+	}
+	expectedDocID := matcher.s.GetDocID(matcher.collectionIndex, matcher.docIndex).String()
+	return actualDocID == expectedDocID, nil
+}
+
+func (matcher *docIDAt) FailureMessage(actual any) string {
+	expectedDocID := matcher.s.GetDocID(matcher.collectionIndex, matcher.docIndex).String()
+	return fmt.Sprintf("Expected\n\t%v\nto be a doID: %s", actual, expectedDocID)
+}
+
+func (matcher *docIDAt) NegatedFailureMessage(actual any) string {
+	expectedDocID := matcher.s.GetDocID(matcher.collectionIndex, matcher.docIndex).String()
+	return fmt.Sprintf("Expected\n\t%v\nnot to be a doID: %s", actual, expectedDocID)
+}
+
+func (matcher *docIDAt) String() string {
+	return fmt.Sprintf("DocIDAt(collectionIndex: %d, docIndex: %d): %s", matcher.collectionIndex,
+		matcher.docIndex, matcher.s.GetDocID(matcher.collectionIndex, matcher.docIndex).String())
+}
+
 // assertResultsEqual asserts that actual result is equal to the expected result.
 //
 // The comparison is relaxed when using client types other than goClientType.
 func assertResultsEqual(t testing.TB, client state.ClientType, expected any, actual any, msgAndArgs ...any) {
 	switch client {
-	case HTTPClientType, CLIClientType, JSClientType, CClientType:
+	case state.HTTPClientType, state.CLIClientType, state.JSClientType, state.CClientType:
 		if !areResultsEqual(expected, actual) {
 			assert.EqualValues(t, expected, actual, msgAndArgs...)
 		}
 	default:
 		assert.EqualValues(t, expected, actual, msgAndArgs...)
+	}
+}
+
+// isResultsEqual checks that actual result is equal to the expected result and returns true if they are.
+//
+// The comparison is relaxed when using client types other than goClientType.
+func isResultsEqual(client state.ClientType, expected any, actual any) bool {
+	switch client {
+	case state.HTTPClientType, state.CLIClientType, state.JSClientType, state.CClientType:
+		if !areResultsEqual(expected, actual) {
+			return assert.ObjectsAreEqualValues(expected, actual)
+		}
+		return true
+	default:
+		return assert.ObjectsAreEqualValues(expected, actual)
 	}
 }
 
@@ -374,6 +445,13 @@ func assertCollectionVersions(
 
 	for i, expected := range expected {
 		actual := actual[i]
+		require.Equal(s.T, expected.Name, actual.Name)
+
+		if expected.CollectionSet.HasValue() {
+			require.Equal(s.T, expected.CollectionSet.Value().CollectionSetID, actual.CollectionSet.Value().CollectionSetID)
+			require.Equal(s.T, expected.CollectionSet.Value().RelativeID, actual.CollectionSet.Value().RelativeID)
+		}
+
 		if expected.VersionID != "" {
 			require.Equal(s.T, expected.VersionID, actual.VersionID)
 		}
@@ -381,7 +459,6 @@ func assertCollectionVersions(
 			require.Equal(s.T, expected.CollectionID, actual.CollectionID)
 		}
 
-		require.Equal(s.T, expected.Name, actual.Name)
 		require.Equal(s.T, expected.IsMaterialized, actual.IsMaterialized)
 		require.Equal(s.T, expected.IsBranchable, actual.IsBranchable)
 		require.Equal(s.T, expected.IsActive, actual.IsActive)
@@ -392,14 +469,51 @@ func assertCollectionVersions(
 			require.Equal(s.T, expected.Indexes, actual.Indexes)
 		}
 
-		if expected.Sources != nil {
-			// Dont bother asserting this if the expected is nil and the actual is nil/empty.
-			// This is to save each test action from having to bother declaring an empty slice (if there are no sources)
-			require.Equal(s.T, expected.Sources, actual.Sources)
+		require.Equal(s.T, expected.PreviousVersion.HasValue(), actual.PreviousVersion.HasValue())
+		if expected.PreviousVersion.HasValue() {
+			require.Equal(
+				s.T,
+				expected.PreviousVersion.Value().SourceCollectionID,
+				actual.PreviousVersion.Value().SourceCollectionID,
+			)
+			require.Equal(
+				s.T,
+				expected.PreviousVersion.Value().Transform.HasValue(),
+				actual.PreviousVersion.Value().Transform.HasValue(),
+			)
+
+			if expected.PreviousVersion.Value().Transform.HasValue() {
+				// Dont bother asserting this by default, the transform object is too complex to bother with in most cases.
+				require.Equal(
+					s.T,
+					expected.PreviousVersion.Value().Transform.Value(),
+					actual.PreviousVersion.Value().Transform.Value(),
+				)
+			}
+		}
+
+		if expected.Query.HasValue() {
+			// Dont bother asserting this by default, the query object is to complex to bother with in most cases.
+			require.Equal(s.T, expected.Query, actual.Query)
 		}
 
 		if expected.Fields != nil {
-			require.Equal(s.T, expected.Fields, actual.Fields)
+			require.Equal(s.T, len(expected.Fields), len(actual.Fields))
+			for i := range expected.Fields {
+				expectedField := expected.Fields[i]
+				actualField := actual.Fields[i]
+
+				require.Equal(s.T, expectedField.Name, actualField.Name)
+				if expectedField.FieldID != "" {
+					require.Equal(s.T, expectedField.FieldID, actualField.FieldID)
+				}
+				require.Equal(s.T, expectedField.IsPrimary, actualField.IsPrimary)
+				require.Equal(s.T, expectedField.Kind, actualField.Kind)
+				require.Equal(s.T, expectedField.Typ, actualField.Typ)
+				require.Equal(s.T, expectedField.DefaultValue, actualField.DefaultValue)
+				require.Equal(s.T, expectedField.RelationName, actualField.RelationName)
+				require.Equal(s.T, expectedField.Size, actualField.Size)
+			}
 		}
 
 		if expected.VectorEmbeddings != nil {

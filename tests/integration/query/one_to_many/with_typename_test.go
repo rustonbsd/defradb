@@ -18,14 +18,13 @@ import (
 
 func TestQueryOneToManyWithTypeName(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-many relation query from one side with typename",
 		Actions: []any{
 			testUtils.CreateDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Painted House",
 					"rating": 4.9,
-					"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b"
+					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
 			testUtils.CreateDoc{

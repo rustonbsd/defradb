@@ -19,7 +19,6 @@ import (
 
 func TestQueryOneToOneWithGroupRelatedIDAlias(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-one relation query with group by related id alias (primary side)",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -75,18 +74,7 @@ func TestQueryOneToOneWithGroupRelatedIDAlias(t *testing.T) {
 				Results: map[string]any{
 					"Book": []map[string]any{
 						{
-							"author_id": "bae-547eb3d8-7fc8-5c21-bcef-590813451e55",
-							"author": map[string]any{
-								"name": "Andrew Lone",
-							},
-							"_group": []map[string]any{
-								{
-									"name": "Go Guide for Rust developers",
-								},
-							},
-						},
-						{
-							"author_id": "bae-ee5973cf-73c3-558f-8aec-8b590b8e77cf",
+							"author_id": "bae-5181bbe5-c134-5e97-8928-30c33d3b83ad",
 							"author": map[string]any{
 								"name": "John Grisham",
 							},
@@ -96,8 +84,20 @@ func TestQueryOneToOneWithGroupRelatedIDAlias(t *testing.T) {
 								},
 							},
 						},
+						{
+							"author_id": "bae-b1a6f637-bbbb-59aa-8a54-938249e21cdd",
+							"author": map[string]any{
+								"name": "Andrew Lone",
+							},
+							"_group": []map[string]any{
+								{
+									"name": "Go Guide for Rust developers",
+								},
+							},
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -107,7 +107,6 @@ func TestQueryOneToOneWithGroupRelatedIDAlias(t *testing.T) {
 
 func TestQueryOneToOneWithGroupRelatedIDAliasFromSecondaryWithoutInnerGroup(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-one relation query with group by related id alias (secondary side)",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -157,10 +156,10 @@ func TestQueryOneToOneWithGroupRelatedIDAliasFromSecondaryWithoutInnerGroup(t *t
 				Results: map[string]any{
 					"Book": []map[string]any{
 						{
-							"author_id": "bae-23a33112-7345-52f1-8816-0481747645f2",
+							"author_id": "bae-f281e7e3-9ad5-5bbe-9e90-13e5ccbec2b5",
 						},
 						{
-							"author_id": "bae-35fc1c36-4347-5bf4-a41f-bf676b145075",
+							"author_id": "bae-d92e6b41-9df9-519f-b823-c3e13f4e1b0b",
 						},
 					},
 				},
@@ -173,7 +172,6 @@ func TestQueryOneToOneWithGroupRelatedIDAliasFromSecondaryWithoutInnerGroup(t *t
 
 func TestQueryOneToOneWithGroupRelatedIDAliasFromSecondaryWithoutInnerGroupWithJoin(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-one relation query with group by related id alias (secondary side)",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -226,19 +224,20 @@ func TestQueryOneToOneWithGroupRelatedIDAliasFromSecondaryWithoutInnerGroupWithJ
 				Results: map[string]any{
 					"Book": []map[string]any{
 						{
-							"author_id": "bae-23a33112-7345-52f1-8816-0481747645f2",
-							"author": map[string]any{
-								"name": "Andrew Lone",
-							},
-						},
-						{
-							"author_id": "bae-35fc1c36-4347-5bf4-a41f-bf676b145075",
+							"author_id": "bae-d92e6b41-9df9-519f-b823-c3e13f4e1b0b",
 							"author": map[string]any{
 								"name": "John Grisham",
 							},
 						},
+						{
+							"author_id": "bae-f281e7e3-9ad5-5bbe-9e90-13e5ccbec2b5",
+							"author": map[string]any{
+								"name": "Andrew Lone",
+							},
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -248,7 +247,6 @@ func TestQueryOneToOneWithGroupRelatedIDAliasFromSecondaryWithoutInnerGroupWithJ
 
 func TestQueryOneToOneWithGroupRelatedIDAliasFromSecondaryWithInnerGroup(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-one relation query with group by related id alias (secondary side)",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -301,23 +299,24 @@ func TestQueryOneToOneWithGroupRelatedIDAliasFromSecondaryWithInnerGroup(t *test
 				Results: map[string]any{
 					"Book": []map[string]any{
 						{
-							"author_id": "bae-23a33112-7345-52f1-8816-0481747645f2",
-							"_group": []map[string]any{
-								{
-									"name": "Go Guide for Rust developers",
-								},
-							},
-						},
-						{
-							"author_id": "bae-35fc1c36-4347-5bf4-a41f-bf676b145075",
+							"author_id": "bae-d92e6b41-9df9-519f-b823-c3e13f4e1b0b",
 							"_group": []map[string]any{
 								{
 									"name": "Painted House",
 								},
 							},
 						},
+						{
+							"author_id": "bae-f281e7e3-9ad5-5bbe-9e90-13e5ccbec2b5",
+							"_group": []map[string]any{
+								{
+									"name": "Go Guide for Rust developers",
+								},
+							},
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -327,7 +326,6 @@ func TestQueryOneToOneWithGroupRelatedIDAliasFromSecondaryWithInnerGroup(t *test
 
 func TestQueryOneToOneWithGroupRelatedIDAliasFromSecondaryWithInnerGroupWithJoin(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-one relation query with group by related id alias (secondary side)",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -383,18 +381,7 @@ func TestQueryOneToOneWithGroupRelatedIDAliasFromSecondaryWithInnerGroupWithJoin
 				Results: map[string]any{
 					"Book": []map[string]any{
 						{
-							"author_id": "bae-23a33112-7345-52f1-8816-0481747645f2",
-							"author": map[string]any{
-								"name": "Andrew Lone",
-							},
-							"_group": []map[string]any{
-								{
-									"name": "Go Guide for Rust developers",
-								},
-							},
-						},
-						{
-							"author_id": "bae-35fc1c36-4347-5bf4-a41f-bf676b145075",
+							"author_id": "bae-d92e6b41-9df9-519f-b823-c3e13f4e1b0b",
 							"author": map[string]any{
 								"name": "John Grisham",
 							},
@@ -404,8 +391,20 @@ func TestQueryOneToOneWithGroupRelatedIDAliasFromSecondaryWithInnerGroupWithJoin
 								},
 							},
 						},
+						{
+							"author_id": "bae-f281e7e3-9ad5-5bbe-9e90-13e5ccbec2b5",
+							"author": map[string]any{
+								"name": "Andrew Lone",
+							},
+							"_group": []map[string]any{
+								{
+									"name": "Go Guide for Rust developers",
+								},
+							},
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}

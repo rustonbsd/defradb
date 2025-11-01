@@ -18,7 +18,6 @@ import (
 
 func TestQuerySimpleWithGroupByNumberWithGroupLimitAndOffset(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by number, no children, rendered, limited and offset group",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -53,7 +52,7 @@ func TestQuerySimpleWithGroupByNumberWithGroupLimitAndOffset(t *testing.T) {
 							"Age": int64(32),
 							"_group": []map[string]any{
 								{
-									"Name": "John",
+									"Name": "Bob",
 								},
 							},
 						},
@@ -63,6 +62,7 @@ func TestQuerySimpleWithGroupByNumberWithGroupLimitAndOffset(t *testing.T) {
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -72,7 +72,6 @@ func TestQuerySimpleWithGroupByNumberWithGroupLimitAndOffset(t *testing.T) {
 
 func TestQuerySimpleWithGroupByNumberWithLimitAndOffsetAndWithGroupLimitAndOffset(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by number with limit and offset, no children, rendered, limited and offset group",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{

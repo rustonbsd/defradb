@@ -385,6 +385,7 @@ func TestP2POneToOneReplicatorManyDocs(t *testing.T) {
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -447,6 +448,7 @@ func TestP2POneToManyReplicatorManyDocs(t *testing.T) {
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -508,12 +510,12 @@ func TestP2POneToOneReplicatorOrderIndependent(t *testing.T) {
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-0b2f15e5-bfe7-5cb7-8045-471318d7dbc3",
+							"_docID": "bae-c65ccba7-7d6c-55c8-9d46-e865305f7790",
 							"age":    int64(21),
 							"name":   "John",
 							"_version": []map[string]any{
 								{
-									"schemaVersionId": "bafkreihhd6bqrjhl5zidwztgxzeseveplv3cj3fwtn3unjkdx7j2vr2vrq",
+									"schemaVersionId": "bafyreihsneodeja4lfer5puptim3lkwvketyckrmkhfpgxm67ch5wenjwq",
 								},
 							},
 						},
@@ -572,10 +574,10 @@ func TestP2POneToOneReplicatorOrderIndependentDirectCreate(t *testing.T) {
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-0b2f15e5-bfe7-5cb7-8045-471318d7dbc3",
+							"_docID": "bae-c65ccba7-7d6c-55c8-9d46-e865305f7790",
 							"_version": []map[string]any{
 								{
-									"schemaVersionId": "bafkreihhd6bqrjhl5zidwztgxzeseveplv3cj3fwtn3unjkdx7j2vr2vrq",
+									"schemaVersionId": "bafyreihsneodeja4lfer5puptim3lkwvketyckrmkhfpgxm67ch5wenjwq",
 								},
 							},
 						},
@@ -651,6 +653,7 @@ func TestP2POneToOneReplicator_ManyDocsWithTargetNodeTemporarilyOffline_ShouldSu
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}

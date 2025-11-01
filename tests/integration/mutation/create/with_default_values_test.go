@@ -22,7 +22,6 @@ import (
 
 func TestMutationCreate_WithDefaultValues_NoValuesProvided_SetsDefaultValue(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple create mutation, with default values and no values provided",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -66,7 +65,7 @@ func TestMutationCreate_WithDefaultValues_NoValuesProvided_SetsDefaultValue(t *t
 							"points":   float64(10),
 							"points32": float64(11),
 							"points64": float64(12),
-							"created":  time.Time(time.Date(2000, time.July, 23, 3, 0, 0, 0, time.UTC)),
+							"created":  time.Date(2000, time.July, 23, 3, 0, 0, 0, time.UTC),
 							"metadata": "{\"one\":1}",
 							"image":    "ff0099",
 						},
@@ -81,7 +80,6 @@ func TestMutationCreate_WithDefaultValues_NoValuesProvided_SetsDefaultValue(t *t
 
 func TestMutationCreate_WithDefaultValues_NilValuesProvided_SetsNilValue(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple create mutation, with default values and null values provided",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -149,7 +147,6 @@ func TestMutationCreate_WithDefaultValues_NilValuesProvided_SetsNilValue(t *test
 
 func TestMutationCreate_WithDefaultValues_ValuesProvided_SetsValue(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple create mutation, with default values and values provided",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -174,7 +171,7 @@ func TestMutationCreate_WithDefaultValues_ValuesProvided_SetsValue(t *testing.T)
 					"points":   float64(5),
 					"points32": float32(6),
 					"points64": float64(7),
-					"created":  time.Time(time.Date(2024, time.June, 18, 1, 0, 0, 0, time.UTC)),
+					"created":  time.Date(2024, time.June, 18, 1, 0, 0, 0, time.UTC),
 					"metadata": "{\"two\":2}",
 					"image":    "aabb33",
 				},
@@ -202,7 +199,7 @@ func TestMutationCreate_WithDefaultValues_ValuesProvided_SetsValue(t *testing.T)
 							"points":   float64(5),
 							"points32": float32(6),
 							"points64": float64(7),
-							"created":  time.Time(time.Date(2024, time.June, 18, 1, 0, 0, 0, time.UTC)),
+							"created":  time.Date(2024, time.June, 18, 1, 0, 0, 0, time.UTC),
 							"metadata": "{\"two\":2}",
 							"image":    "aabb33",
 						},
@@ -217,7 +214,6 @@ func TestMutationCreate_WithDefaultValues_ValuesProvided_SetsValue(t *testing.T)
 
 func TestMutationCreate_WithDefaultValue_NoValueProvided_CreatedTwice_ReturnsError(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple create mutation, with default value, no value provided, and created twice",
 		SupportedMutationTypes: immutable.Some([]testUtils.MutationType{
 			// This test will fail if using the collection save
 			// method because it does not create two unique docs
@@ -252,7 +248,6 @@ func TestMutationCreate_WithDefaultValue_NoValueProvided_CreatedTwice_ReturnsErr
 
 func TestMutationCreate_WithDefaultValue_NoValueProvided_CreatedTwice_UniqueIndex_ReturnsError(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple create mutation, with default value, no value provided, created twice, and unique index",
 		SupportedMutationTypes: immutable.Some([]testUtils.MutationType{
 			// This test will fail if using the collection save
 			// method because it does not create two unique docs
@@ -279,6 +274,204 @@ func TestMutationCreate_WithDefaultValue_NoValueProvided_CreatedTwice_UniqueInde
 					"age": int64(50),
 				},
 				ExpectedError: "can not index a doc's field(s) that violates unique index",
+			},
+		},
+	}
+
+	testUtils.ExecuteTestCase(t, test)
+}
+
+func TestMutationCreate_WithDefaultJSONIntValue_ShouldBeSet(t *testing.T) {
+	test := testUtils.TestCase{
+		Actions: []any{
+			&action.AddSchema{
+				Schema: `
+					type User {
+						name: String
+						metadata: JSON @default(json: 1)
+					}
+				`,
+			},
+			testUtils.CreateDoc{
+				DocMap: map[string]any{
+					"name": "John",
+				},
+			},
+			testUtils.Request{
+				Request: `query {
+					User {
+						metadata
+					}
+				}`,
+				Results: map[string]any{
+					"User": []map[string]any{
+						{
+							"metadata": 1,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	testUtils.ExecuteTestCase(t, test)
+}
+
+func TestMutationCreate_WithDefaultJSONFloatValue_ShouldBeSet(t *testing.T) {
+	test := testUtils.TestCase{
+		Actions: []any{
+			&action.AddSchema{
+				Schema: `
+					type User {
+						name: String
+						metadata: JSON @default(json: 1.2)
+					}
+				`,
+			},
+			testUtils.CreateDoc{
+				DocMap: map[string]any{
+					"name": "John",
+				},
+			},
+			testUtils.Request{
+				Request: `query {
+					User {
+						metadata
+					}
+				}`,
+				Results: map[string]any{
+					"User": []map[string]any{
+						{
+							"metadata": 1.2,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	testUtils.ExecuteTestCase(t, test)
+}
+
+func TestMutationCreate_WithDefaultJSONBoolValue_ShouldBeSet(t *testing.T) {
+	test := testUtils.TestCase{
+		Actions: []any{
+			&action.AddSchema{
+				Schema: `
+					type User {
+						name: String
+						metadata: JSON @default(json: true)
+					}
+				`,
+			},
+			testUtils.CreateDoc{
+				DocMap: map[string]any{
+					"name": "John",
+				},
+			},
+			testUtils.Request{
+				Request: `query {
+					User {
+						metadata
+					}
+				}`,
+				Results: map[string]any{
+					"User": []map[string]any{
+						{
+							"metadata": true,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	testUtils.ExecuteTestCase(t, test)
+}
+
+func TestMutationCreate_WithDefaultJSONNullValue_ReturnError(t *testing.T) {
+	test := testUtils.TestCase{
+		Actions: []any{
+			&action.AddSchema{
+				Schema: `
+					type User {
+						name: String
+						metadata: JSON @default(json: null)
+					}
+				`,
+				ExpectedError: "default value is invalid",
+			},
+		},
+	}
+
+	testUtils.ExecuteTestCase(t, test)
+}
+
+func TestMutationCreate_WithDefaultJSONObjectValues_ShouldBeSet(t *testing.T) {
+	test := testUtils.TestCase{
+		Actions: []any{
+			&action.AddSchema{
+				Schema: `
+					type User {
+						name: String
+						metadata: JSON @default(json: {one: 1})
+					}
+				`,
+			},
+			testUtils.CreateDoc{
+				DocMap: map[string]any{
+					"name": "John",
+				},
+			},
+			testUtils.Request{
+				Request: `query {
+					User {
+						metadata
+					}
+				}`,
+				Results: map[string]any{
+					"User": []map[string]any{
+						{
+							"metadata": "{\"one\":1}",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	testUtils.ExecuteTestCase(t, test)
+}
+
+func TestMutationCreate_WithDefaultJSONDeepObjectValue_ShouldBeSet(t *testing.T) {
+	test := testUtils.TestCase{
+		Actions: []any{
+			&action.AddSchema{
+				Schema: `
+					type User {
+						name: String
+						metadata: JSON @default(json: {one: {two: {i: 3, f: 1.2, b: true, s: "three", n: null}}})
+					}
+				`,
+			},
+			testUtils.CreateDoc{
+				DocMap: map[string]any{
+					"name": "John",
+				},
+			},
+			testUtils.Request{
+				Request: `query {
+					User {
+						metadata
+					}
+				}`,
+				Results: map[string]any{
+					"User": []map[string]any{
+						{
+							"metadata": "{\"one\":{\"two\":{\"b\":true,\"f\":1.2,\"i\":3,\"n\":null,\"s\":\"three\"}}}",
+						},
+					},
+				},
 			},
 		},
 	}

@@ -71,7 +71,7 @@ func TestP2POneToManyPeerWithCreateUpdateLinkingSyncedDocToUnsyncedDoc(t *testin
 				CollectionID: 1,
 				DocID:        0,
 				Doc: `{
-					"Author_id": "bae-6a4c24c0-7b0b-5f51-a274-132d7ca90499"
+					"Author_id": "bae-9ace7ed9-8229-5d2f-9e30-ffd5d2c84406"
 				}`,
 			},
 			testUtils.WaitForSync{},

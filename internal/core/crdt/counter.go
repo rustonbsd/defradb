@@ -18,12 +18,12 @@ import (
 	"math/big"
 
 	"github.com/fxamacker/cbor/v2"
-	"github.com/sourcenetwork/corekv"
 	"golang.org/x/exp/constraints"
+
+	"github.com/sourcenetwork/corekv"
 
 	"github.com/sourcenetwork/defradb/client"
 	"github.com/sourcenetwork/defradb/errors"
-	"github.com/sourcenetwork/defradb/internal/core"
 	"github.com/sourcenetwork/defradb/internal/db/base"
 	"github.com/sourcenetwork/defradb/internal/keys"
 )
@@ -47,7 +47,7 @@ type CounterDelta struct {
 	Data            []byte
 }
 
-var _ core.Delta = (*CounterDelta)(nil)
+var _ Delta = (*CounterDelta)(nil)
 
 // IPLDSchemaBytes returns the IPLD schema representation for the type.
 //
@@ -85,7 +85,7 @@ type Counter struct {
 }
 
 var _ FieldLevelCRDT = (*Counter)(nil)
-var _ core.ReplicatedData = (*Counter)(nil)
+var _ ReplicatedData = (*Counter)(nil)
 
 // NewCounter creates a new instance (or loaded from DB) of a MerkleCRDT
 // backed by a Counter CRDT.
@@ -107,8 +107,8 @@ func NewCounter(
 	}
 }
 
-func (m *Counter) HeadstorePrefix() keys.HeadstoreKey {
-	return m.key.ToHeadStoreKey()
+func (c *Counter) HeadstorePrefix() keys.HeadstoreKey {
+	return c.key.ToHeadStoreKey()
 }
 
 // Save the value of the  Counter to the DAG.
@@ -116,7 +116,7 @@ func (m *Counter) HeadstorePrefix() keys.HeadstoreKey {
 // WARNING: Incrementing an integer and causing it to overflow the int64 max value
 // will cause the value to roll over to the int64 min value. Incremeting a float and
 // causing it to overflow the float64 max value will act like a no-op.
-func (m *Counter) Delta(ctx context.Context, data *DocField) (core.Delta, error) {
+func (c *Counter) Delta(ctx context.Context, data *DocField) (Delta, error) {
 	bytes, err := data.FieldValue.Bytes()
 	if err != nil {
 		return nil, err
@@ -125,7 +125,7 @@ func (m *Counter) Delta(ctx context.Context, data *DocField) (core.Delta, error)
 	// To ensure that the dag block is unique, we add a random number to the delta.
 	// This is done only on update (if the doc doesn't already exist) to ensure that the
 	// initial dag block of a document can be reproducible.
-	exists, err := m.store.Has(ctx, m.key.ToPrimaryDataStoreKey().Bytes())
+	exists, err := c.store.Has(ctx, c.key.ToPrimaryDataStoreKey().Bytes())
 	if err != nil {
 		return nil, err
 	}
@@ -140,17 +140,17 @@ func (m *Counter) Delta(ctx context.Context, data *DocField) (core.Delta, error)
 	}
 
 	return &CounterDelta{
-		DocID:           []byte(m.key.DocID),
-		FieldName:       m.fieldName,
+		DocID:           []byte(c.key.DocID),
+		FieldName:       c.fieldName,
 		Data:            bytes,
-		SchemaVersionID: m.schemaVersionID,
+		SchemaVersionID: c.schemaVersionID,
 		Nonce:           nonce,
 	}, nil
 }
 
 // Merge implements ReplicatedData interface.
 // It merges two CounterRegisty by adding the values together.
-func (c *Counter) Merge(ctx context.Context, delta core.Delta) error {
+func (c *Counter) Merge(ctx context.Context, delta Delta) error {
 	d, ok := delta.(*CounterDelta)
 	if !ok {
 		return ErrMismatchedMergeType

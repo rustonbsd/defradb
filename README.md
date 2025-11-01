@@ -36,6 +36,7 @@ Read the documentation on [docs.source.network](https://docs.source.network/).
    * [Backing up and restoring](#backing-up-and-restoring)
    * [Telemetry](#telemetry)
    * [Community](#community)
+   * [Playground](#playground)
    * [Licensing](#licensing)
    * [Contributors](#contributors)
 <!--te-->
@@ -216,7 +217,7 @@ To get the most recent commit in the MerkleDAG for the document identified as `b
 ```shell
 defradb client query '
   query {
-    latestCommits(docID: "bae-91171025-ed21-50e3-b0dc-e31bccdfa1ab") {
+    _latestCommits(docID: "bae-91171025-ed21-50e3-b0dc-e31bccdfa1ab") {
       cid
       delta
       height
@@ -234,7 +235,7 @@ It returns a structure similar to the following, which contains the update paylo
 ```json
 {
   "data": {
-    "latestCommits": [
+    "_latestCommits": [
       {
         "cid": "bafybeifhtfs6vgu7cwbhkojneh7gghwwinh5xzmf7nqkqqdebw5rqino7u",
         "delta": "pGNhZ2UYH2RuYW1lY0JvYmZwb2ludHMYWmh2ZXJpZmllZPU=",
@@ -268,7 +269,7 @@ Obtain a specific commit by its content identifier (`cid`):
 ```shell
 defradb client query '
   query {
-    commits(cid: "bafybeifhtfs6vgu7cwbhkojneh7gghwwinh5xzmf7nqkqqdebw5rqino7u") {
+    _commits(cid: "bafybeifhtfs6vgu7cwbhkojneh7gghwwinh5xzmf7nqkqqdebw5rqino7u") {
       cid
       delta
       height
@@ -285,7 +286,7 @@ defradb client query '
 
 DQL is compatible with GraphQL but features various extensions.
 
-Read its documentation at [docs.source.network](https://docs.source.network/references/query-specification/query-language-overview) to discover its filtering, ordering, limiting, relationships, variables, aggregate functions, and other useful features.
+Read its documentation at [docs.source.network](https://docs.source.network/defradb/references/query-specification/query-language-overview) to discover its filtering, ordering, limiting, relationships, variables, aggregate functions, and other useful features.
 
 ## Peer-to-peer data synchronization
 
@@ -486,6 +487,9 @@ DefraDB has no telemetry reporting by default. To enable OpenTelemetry in DefraD
 
 Discuss on [Discord](https://discord.gg/w7jYQVJ) or [Github Discussions](https://github.com/sourcenetwork/defradb/discussions). The Source project is on [Twitter](https://twitter.com/sourcenetwrk).
 
+## Playground
+
+Instructions for the playground can be found [here](./playground/README.md).
 
 ## Licensing
 
@@ -500,5 +504,7 @@ DefraDB's code is released under the [Business Source License (BSL)](licenses/BS
 - Fred Carle ([@fredcarle](https://github.com/fredcarle))
 - Islam Aliev ([@islamaliev](https://github.com/islamaliev))
 - Keenan Nemetz ([@nasdf](https://github.com/nasdf))
+- Ivan Vercenco ([@iverc](https://github.com/iverc))
+- Chris Quigley ([@ChrisBQu](https://github.com/ChrisBQu))
 
 You are invited to contribute to DefraDB. Follow the [Contributing guide](./CONTRIBUTING.md) to get started.

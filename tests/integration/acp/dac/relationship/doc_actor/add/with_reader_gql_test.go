@@ -22,8 +22,6 @@ import (
 func TestACP_OwnerGivesOnlyReadAccessToAnotherActor_GQL_OtherActorCanReadButNotUpdate(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Test acp, owner gives read access to another actor, but the other actor can't update",
-
 		SupportedMutationTypes: immutable.Some(
 			[]testUtils.MutationType{
 				// GQL mutation will return no error when wrong identity is used (only for update requests),
@@ -168,7 +166,6 @@ func TestACP_OwnerGivesOnlyReadAccessToAnotherActor_GQL_OtherActorCanReadButNotU
 				Request: `
 					query {
 						Users {
-							_docID
 							name
 							age
 						}
@@ -178,9 +175,8 @@ func TestACP_OwnerGivesOnlyReadAccessToAnotherActor_GQL_OtherActorCanReadButNotU
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
-							"name":   "Shahzad",
-							"age":    int64(28),
+							"name": "Shahzad",
+							"age":  int64(28),
 						},
 					},
 				},

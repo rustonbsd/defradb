@@ -18,7 +18,6 @@ import (
 
 func TestNAC_AdminRelation_CanDeleteNACRelationship(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Grant admin relation, gain ability to add nac relationship",
 		Actions: []any{
 			// Starting with NAC, so only authorized user(s) can perform operations from here on out.
 			testUtils.Close{},
@@ -27,7 +26,7 @@ func TestNAC_AdminRelation_CanDeleteNACRelationship(t *testing.T) {
 				EnableNAC: true,
 			},
 			// Note: Doing setup steps after starting with nac enabled, otherwise the in-memory tests
-			// will loose setup state when the restart happens (i.e. the restart that started nac).
+			// will lose setup state when the restart happens (i.e. the restart that started nac).
 			testUtils.AddNACActorRelationship{
 				RequestorIdentity: testUtils.ClientIdentity(1),
 				TargetIdentity:    testUtils.ClientIdentity(3), // Try deleting relationship for this actor.

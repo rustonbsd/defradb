@@ -35,7 +35,7 @@ func (db *DB) addView(
 	inputQuery string,
 	sdl string,
 	transform immutable.Option[model.Lens],
-) ([]client.CollectionDefinition, error) {
+) ([]client.CollectionVersion, error) {
 	// Wrap the given query as part of the GQL query object - this simplifies the syntax for users
 	// and ensures that we can't be given mutations.  In the future this line should disappear along
 	// with the all calls to the parser appart from `ParseSDL` when we implement the DQL stuff.
@@ -66,27 +66,25 @@ func (db *DB) addView(
 	}
 
 	for i := range parseResults {
+		var lensID immutable.Option[string]
+		if transform.HasValue() {
+			cid, err := db.getLensStore(ctx).Add(ctx, transform.Value())
+			if err != nil {
+				return nil, err
+			}
+			lensID = immutable.Some(cid.String())
+		}
+
 		source := client.QuerySource{
 			Query:     *baseQuery,
-			Transform: transform,
+			Transform: lensID,
 		}
-		parseResults[i].Definition.Version.Sources = append(parseResults[i].Definition.Version.Sources, &source)
+		parseResults[i].Definition.Query = immutable.Some(source)
 	}
 
 	returnDescriptions, err := db.createCollections(ctx, parseResults)
 	if err != nil {
 		return nil, err
-	}
-
-	for _, definition := range returnDescriptions {
-		for _, source := range definition.Version.QuerySources() {
-			if source.Transform.HasValue() {
-				err = db.LensRegistry().SetMigration(ctx, definition.Version.VersionID, source.Transform.Value())
-				if err != nil {
-					return nil, err
-				}
-			}
-		}
 	}
 
 	err = db.loadSchema(ctx)
@@ -105,7 +103,7 @@ func (db *DB) refreshViews(ctx context.Context, opts client.CollectionFetchOptio
 	}
 
 	for _, col := range cols {
-		if !col.Version.IsMaterialized {
+		if !col.IsMaterialized {
 			// We only care about materialized views here, so skip any that aren't
 			continue
 		}
@@ -127,39 +125,46 @@ func (db *DB) refreshViews(ctx context.Context, opts client.CollectionFetchOptio
 	return nil
 }
 
-func (db *DB) getViews(ctx context.Context, opts client.CollectionFetchOptions) ([]client.CollectionDefinition, error) {
+func (db *DB) getViews(ctx context.Context, opts client.CollectionFetchOptions) ([]client.CollectionVersion, error) {
 	cols, err := db.getCollections(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	var views []client.CollectionDefinition
+	var views []client.CollectionVersion
 	for _, col := range cols {
-		if querySrcs := col.Version().QuerySources(); len(querySrcs) == 0 {
+		if !col.Version().Query.HasValue() {
 			continue
 		}
 
-		views = append(views, col.Definition())
+		views = append(views, col.Version())
 	}
 
 	return views, nil
 }
 
-func (db *DB) buildViewCache(ctx context.Context, col client.CollectionDefinition) (err error) {
+func (db *DB) buildViewCache(ctx context.Context, col client.CollectionVersion) (err error) {
 	txn := datastore.CtxMustGetTxn(ctx)
 
-	p := planner.New(ctx, identity.FromContext(ctx), db.documentACP, db)
+	p := planner.New(
+		ctx,
+		identity.FromContext(ctx),
+		db.documentACP,
+		db,
+		db.p2p,
+		db.getLensStore(ctx),
+	)
 
 	// temporarily disable the cache in order to query without using it
-	col.Version.IsMaterialized = false
-	err = description.SaveCollection(ctx, col.Version)
+	col.IsMaterialized = false
+	err = description.SaveCollection(ctx, col)
 	if err != nil {
 		return err
 	}
 	defer func() {
 		var defErr error
-		col.Version.IsMaterialized = true
-		defErr = description.SaveCollection(ctx, col.Version)
+		col.IsMaterialized = true
+		defErr = description.SaveCollection(ctx, col)
 		if err == nil {
 			// Do not overwrite the original error if there is one, defErr is probably an artifact of the original
 			// failue and can be discarded.
@@ -212,7 +217,7 @@ func (db *DB) buildViewCache(ctx context.Context, col client.CollectionDefinitio
 			return err
 		}
 
-		shortID, err := id.GetShortCollectionID(ctx, col.Version.CollectionID)
+		shortID, err := id.GetShortCollectionID(ctx, col.CollectionID)
 		if err != nil {
 			return err
 		}
@@ -232,10 +237,10 @@ func (db *DB) buildViewCache(ctx context.Context, col client.CollectionDefinitio
 	return nil
 }
 
-func (db *DB) clearViewCache(ctx context.Context, col client.CollectionDefinition) error {
+func (db *DB) clearViewCache(ctx context.Context, col client.CollectionVersion) error {
 	txn := datastore.CtxMustGetTxn(ctx)
 
-	shortID, err := id.GetShortCollectionID(ctx, col.Version.CollectionID)
+	shortID, err := id.GetShortCollectionID(ctx, col.CollectionID)
 	if err != nil {
 		return err
 	}
@@ -268,13 +273,13 @@ func (db *DB) clearViewCache(ctx context.Context, col client.CollectionDefinitio
 
 func (db *DB) generateMaximalSelectFromCollection(
 	ctx context.Context,
-	col client.CollectionDefinition,
+	col client.CollectionVersion,
 	fieldName immutable.Option[string],
 	typesHit map[string]struct{},
 ) (*request.Select, error) {
 	// `__-` is an impossible field name prefix, so we can safely concat using it as a separator without risk
 	// of collision.
-	identifier := col.GetName() + "__-" + fieldName.Value()
+	identifier := col.Name + "__-" + fieldName.Value()
 	if _, ok := typesHit[identifier]; ok {
 		// If this identifier is already in the set, the schema must be circular and we should return
 		return nil, nil
@@ -282,9 +287,9 @@ func (db *DB) generateMaximalSelectFromCollection(
 	typesHit[identifier] = struct{}{}
 
 	childRequests := []request.Selection{}
-	for _, field := range col.GetFields() {
-		if field.IsRelation() && field.Kind.IsObject() {
-			relatedCol, _, err := client.GetDefinitionFromStore(ctx, db, col, field.Kind)
+	for _, field := range col.Fields {
+		if field.RelationName.HasValue() && field.Kind.IsObject() {
+			relatedCol, _, err := description.GetRelatedCollection(ctx, col, field.Kind)
 			if err != nil {
 				return nil, err
 			}
@@ -311,7 +316,7 @@ func (db *DB) generateMaximalSelectFromCollection(
 	if fieldName.HasValue() {
 		name = fieldName.Value()
 	} else {
-		name = col.GetName()
+		name = col.Name
 	}
 
 	return &request.Select{

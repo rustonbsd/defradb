@@ -22,8 +22,6 @@ import (
 func TestDefaultExplainRequestWithAOneToOneJoin(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Explain (default) request with a 1-to-1 join.",
-
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
@@ -70,7 +68,7 @@ func TestDefaultExplainRequestWithAOneToOneJoin(t *testing.T) {
 						ExpectedAttributes: dataMap{
 							"scanNode": dataMap{
 								"filter":         nil,
-								"collectionID":   "bafkreig3ohatunyfbhmfgkvs5u7tn36dhaqfufajt5h47s6hi56cw2xm4a",
+								"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
 								"collectionName": "Author",
 								"prefixes": []string{
 									"/3",
@@ -90,7 +88,7 @@ func TestDefaultExplainRequestWithAOneToOneJoin(t *testing.T) {
 									"filter": nil,
 									"scanNode": dataMap{
 										"filter":         nil,
-										"collectionID":   "bafkreid5ciigzzwckygf4jskcvr2mkam45p6xpaszii3nycqwsz2fxmqn4",
+										"collectionID":   "bafyreih7hbb4bi6nlnamq3aqqcqffwqkyawh6slhy7hilwnagorygkmpi4",
 										"collectionName": "AuthorContact",
 										"prefixes": []string{
 											"/4",
@@ -110,8 +108,6 @@ func TestDefaultExplainRequestWithAOneToOneJoin(t *testing.T) {
 
 func TestDefaultExplainRequestWithTwoLevelDeepNestedJoins(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Explain (default) request with two level deep nested joins.",
 
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
@@ -174,7 +170,7 @@ func TestDefaultExplainRequestWithTwoLevelDeepNestedJoins(t *testing.T) {
 						ExpectedAttributes: dataMap{
 							"scanNode": dataMap{
 								"filter":         nil,
-								"collectionID":   "bafkreig3ohatunyfbhmfgkvs5u7tn36dhaqfufajt5h47s6hi56cw2xm4a",
+								"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
 								"collectionName": "Author",
 								"prefixes": []string{
 									"/3",
@@ -204,7 +200,7 @@ func TestDefaultExplainRequestWithTwoLevelDeepNestedJoins(t *testing.T) {
 						ExpectedAttributes: dataMap{
 							"scanNode": dataMap{
 								"filter":         nil,
-								"collectionID":   "bafkreid5ciigzzwckygf4jskcvr2mkam45p6xpaszii3nycqwsz2fxmqn4",
+								"collectionID":   "bafyreih7hbb4bi6nlnamq3aqqcqffwqkyawh6slhy7hilwnagorygkmpi4",
 								"collectionName": "AuthorContact",
 								"prefixes": []string{
 									"/4",
@@ -223,7 +219,7 @@ func TestDefaultExplainRequestWithTwoLevelDeepNestedJoins(t *testing.T) {
 									"filter": nil,
 									"scanNode": dataMap{
 										"filter":         nil,
-										"collectionID":   "bafkreienr7idffhd72pfj2oxdob7bpdyzgxwfjalbkpallc42nszjyctqi",
+										"collectionID":   "bafyreiatnwrljteqnieatpmki2m2d5jjr33np4cumtbzzl2ywfs34yeg3i",
 										"collectionName": "ContactAddress",
 										"prefixes": []string{
 											"/5",

@@ -22,8 +22,6 @@ import (
 func TestACP_OwnerGivesReadAccessToAnotherActorTwice_ShowThatTheRelationshipAlreadyExists(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Test acp, owner gives read access to another actor twice, no-op",
-
 		Actions: []any{
 			testUtils.AddDACPolicy{
 
@@ -160,8 +158,6 @@ func TestACP_OwnerGivesReadAccessToAnotherActorTwice_ShowThatTheRelationshipAlre
 func TestACP_OwnerGivesReadAccessToAnotherActor_OtherActorCanRead(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Test acp, owner gives read access to another actor",
-
 		Actions: []any{
 			testUtils.AddDACPolicy{
 
@@ -292,7 +288,7 @@ func TestACP_OwnerGivesReadAccessToAnotherActor_OtherActorCanRead(t *testing.T) 
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},
@@ -309,8 +305,6 @@ func TestACP_OwnerGivesReadAccessToAnotherActor_OtherActorCanRead(t *testing.T) 
 // that no transfer of ownership has taken place.
 func TestACP_OwnerGivesReadAccessToAnotherActor_OtherActorCanReadSoCanTheOwner(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, owner gives read access to another actor, both can read",
 
 		Actions: []any{
 			testUtils.AddDACPolicy{
@@ -424,7 +418,7 @@ func TestACP_OwnerGivesReadAccessToAnotherActor_OtherActorCanReadSoCanTheOwner(t
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},
@@ -448,7 +442,7 @@ func TestACP_OwnerGivesReadAccessToAnotherActor_OtherActorCanReadSoCanTheOwner(t
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},
@@ -463,8 +457,6 @@ func TestACP_OwnerGivesReadAccessToAnotherActor_OtherActorCanReadSoCanTheOwner(t
 
 func TestACP_OwnerGivesOnlyReadAccessToAnotherActor_OtherActorCanReadButNotUpdate(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, owner gives read access to another actor, but the other actor can't update",
 
 		SupportedMutationTypes: immutable.Some(
 			[]testUtils.MutationType{
@@ -618,7 +610,7 @@ func TestACP_OwnerGivesOnlyReadAccessToAnotherActor_OtherActorCanReadButNotUpdat
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},
@@ -649,8 +641,6 @@ func TestACP_OwnerGivesOnlyReadAccessToAnotherActor_OtherActorCanReadButNotUpdat
 
 func TestACP_OwnerGivesOnlyReadAccessToAnotherActor_OtherActorCanReadButNotDelete(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, owner gives read access to another actor, but the other actor can't delete",
 
 		Actions: []any{
 			testUtils.AddDACPolicy{
@@ -792,7 +782,7 @@ func TestACP_OwnerGivesOnlyReadAccessToAnotherActor_OtherActorCanReadButNotDelet
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},

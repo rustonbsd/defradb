@@ -19,7 +19,6 @@ import (
 
 func TestView_OneToMany(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One to many view",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -93,9 +92,8 @@ func TestView_OneToMany(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestView_OneToManyWithMixedSDL_Errors(t *testing.T) {
+func TestView_OneToManyWithMixedSDL(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One to many view with mixed sdl errors",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -124,7 +122,41 @@ func TestView_OneToManyWithMixedSDL_Errors(t *testing.T) {
 						books: [Book]
 					}
 				`,
-				ExpectedError: "relation missing field. Object: Book, RelationName: authorview_book",
+			},
+			testUtils.CreateDoc{
+				CollectionID: 0,
+				Doc: `{
+					"name":	"Harper Lee"
+				}`,
+			},
+			testUtils.CreateDoc{
+				CollectionID: 1,
+				DocMap: map[string]any{
+					"name":      "To Kill a Mockingbird",
+					"author_id": testUtils.NewDocIndex(0, 0),
+				},
+			},
+			testUtils.Request{
+				Request: `query {
+							AuthorView {
+								name
+								books {
+									name
+								}
+							}
+						}`,
+				Results: map[string]any{
+					"AuthorView": []map[string]any{
+						{
+							"name": "Harper Lee",
+							"books": []map[string]any{
+								{
+									"name": "To Kill a Mockingbird",
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -134,7 +166,6 @@ func TestView_OneToManyWithMixedSDL_Errors(t *testing.T) {
 
 func TestView_OneToManyFromInnerSide_Errors(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One to many view from inner side",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -186,7 +217,6 @@ func TestView_OneToManyFromInnerSide_Errors(t *testing.T) {
 
 func TestView_OneToManyOuterToInnerToOuter_Errors(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One to many view from outer to inner to outer",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -244,7 +274,6 @@ func TestView_OneToManyOuterToInnerToOuter_Errors(t *testing.T) {
 
 func TestView_OneToManyWithRelationInQueryButNotInSDL(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One to many view with relation in query but not SDL",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -310,7 +339,6 @@ func TestView_OneToManyWithRelationInQueryButNotInSDL(t *testing.T) {
 
 func TestView_OneToManyMultipleViewsWithEmbeddedSchema(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Multiple one to many views with embedded schemas",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -370,7 +398,6 @@ func TestView_OneToManyMultipleViewsWithEmbeddedSchema(t *testing.T) {
 
 func TestView_OneToManyWithDoubleSidedRelation_Errors(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One to many view",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `

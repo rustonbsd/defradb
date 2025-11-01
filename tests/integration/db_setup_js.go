@@ -26,12 +26,11 @@ func setupNode(
 	s *state.State,
 	identity immutable.Option[acpIdentity.Identity],
 	testCase TestCase,
-	enableNAC bool,
 	opts ...node.Option,
 ) (*state.NodeState, error) {
 	opts = append(defaultNodeOpts(), opts...)
 	opts = append(opts, db.WithEnabledSigning(testCase.EnableSigning))
-	opts = append(opts, node.WithLensRuntime(node.JSLensRuntime))
+	opts = append(opts, db.WithLensRuntime(db.JSLensRuntime))
 	// Note: Since we are hard-coding to run with badger in-mem only, we have a function that
 	// handles some edge-cases by skipping js client testing when a db type is something else.
 	// If this hard-coding is changed in future, don't forget to tweak the following func:
@@ -39,10 +38,10 @@ func setupNode(
 	opts = append(opts, node.WithBadgerInMemory(true))
 
 	switch documentACPType {
-	case LocalDocumentACPType:
+	case state.LocalDocumentACPType:
 		opts = append(opts, node.WithDocumentACPType(node.LocalDocumentACPType))
 
-	case SourceHubDocumentACPType:
+	case state.SourceHubDocumentACPType:
 		if len(s.DocumentACPOptions) == 0 {
 			var err error
 			s.DocumentACPOptions, err = setupSourceHub(s)
@@ -68,7 +67,7 @@ func setupNode(
 	if err != nil {
 		return nil, err
 	}
-	c, err := setupClient(s, nodeObj, true)
+	c, err := setupClient(s, nodeObj)
 	if err != nil {
 		return nil, err
 	}

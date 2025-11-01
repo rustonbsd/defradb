@@ -18,6 +18,7 @@ import (
 	"github.com/fxamacker/cbor/v2"
 
 	"github.com/sourcenetwork/immutable"
+	"github.com/sourcenetwork/lens/host-go/store"
 
 	"github.com/sourcenetwork/defradb/acp/dac"
 	acpIdentity "github.com/sourcenetwork/defradb/acp/identity"
@@ -35,16 +36,16 @@ import (
 // https://github.com/sourcenetwork/defradb/issues/1589
 
 type lensedFetcher struct {
-	source   fetcher.Fetcher
-	registry client.LensRegistry
-	lens     Lens
+	source fetcher.Fetcher
+	store  store.Store
+	lens   Lens
 
 	txn datastore.Txn
 
 	col client.Collection
 
 	// Cache the fieldDescriptions mapped by name to allow for cheaper access within the fetcher loop
-	fieldDescriptionsByName map[string]client.FieldDefinition
+	fieldDescriptionsByName map[string]client.CollectionFieldDescription
 
 	targetVersionID string
 
@@ -56,10 +57,10 @@ var _ fetcher.Fetcher = (*lensedFetcher)(nil)
 
 // NewFetcher returns a new fetcher that will migrate any documents from the given
 // source Fetcher as they are are yielded.
-func NewFetcher(source fetcher.Fetcher, registry client.LensRegistry) fetcher.Fetcher {
+func NewFetcher(source fetcher.Fetcher, store store.Store) fetcher.Fetcher {
 	return &lensedFetcher{
-		source:   source,
-		registry: registry,
+		source: source,
+		store:  store,
 	}
 }
 
@@ -70,7 +71,7 @@ func (f *lensedFetcher) Init(
 	documentACP immutable.Option[dac.DocumentACP],
 	index immutable.Option[client.IndexDescription],
 	col client.Collection,
-	fields []client.FieldDefinition,
+	fields []client.CollectionFieldDescription,
 	filter *mapper.Filter,
 	ordering []mapper.OrderCondition,
 	docmapper *core.DocumentMapping,
@@ -80,36 +81,33 @@ func (f *lensedFetcher) Init(
 
 	f.col = col
 
-	f.fieldDescriptionsByName = make(map[string]client.FieldDefinition, len(col.Schema().Fields))
+	f.fieldDescriptionsByName = make(map[string]client.CollectionFieldDescription, len(col.Version().Fields))
 	// Add cache the field descriptions in reverse, allowing smaller-index fields to overwrite any later
 	// ones.  This should never really happen here, but it ensures the result is consistent with col.GetField
 	// which returns the first one it finds with a matching name.
-	defFields := col.Definition().GetFields()
+	defFields := col.Version().Fields
 	for i := len(defFields) - 1; i >= 0; i-- {
 		f.fieldDescriptionsByName[defFields[i].Name] = defFields[i]
 	}
 
-	history, err := getTargetedCollectionHistory(ctx, f.col.Schema().Root, f.col.Schema().VersionID)
+	history, err := getTargetedCollectionHistory(ctx, f.col.Version().CollectionID, f.col.Version().VersionID)
 	if err != nil {
 		return err
 	}
-	f.lens = new(ctx, f.registry, f.col.Schema().VersionID, history)
+	f.lens = new(ctx, f.store, f.col.Version().VersionID, history)
 	f.txn = txn
 
-historyLoop:
 	for _, historyItem := range history {
-		sources := historyItem.collection.CollectionSources()
-		for _, source := range sources {
-			if source.Transform.HasValue() {
-				f.hasMigrations = true
-				break historyLoop
-			}
+		if historyItem.collection.PreviousVersion.HasValue() &&
+			historyItem.collection.PreviousVersion.Value().Transform.HasValue() {
+			f.hasMigrations = true
+			break
 		}
 	}
 
-	f.targetVersionID = col.Schema().VersionID
+	f.targetVersionID = col.Version().VersionID
 
-	var innerFetcherFields []client.FieldDefinition
+	var innerFetcherFields []client.CollectionFieldDescription
 	if f.hasMigrations {
 		// If there are migrations present, they may require fields that are not otherwise
 		// requested.  At the moment this means we need to pass in nil so that the underlying
@@ -223,7 +221,7 @@ func encodedDocToLensDoc(doc fetcher.EncodedDocument) (LensDoc, error) {
 func (f *lensedFetcher) lensDocToEncodedDoc(docAsMap LensDoc) (fetcher.EncodedDocument, error) {
 	var key string
 	status := client.Active
-	properties := map[client.FieldDefinition]any{}
+	properties := map[client.CollectionFieldDescription]any{}
 
 	for fieldName, fieldByteValue := range docAsMap {
 		if fieldName == request.DocIDFieldName {
@@ -257,7 +255,7 @@ func (f *lensedFetcher) lensDocToEncodedDoc(docAsMap LensDoc) (fetcher.EncodedDo
 
 	return &lensEncodedDocument{
 		key:             []byte(key),
-		schemaVersionID: f.col.Schema().VersionID,
+		schemaVersionID: f.col.Version().VersionID,
 		status:          status,
 		properties:      properties,
 	}, nil
@@ -322,7 +320,7 @@ func (f *lensedFetcher) updateDataStore(ctx context.Context, original map[string
 			continue
 		}
 
-		fieldShortID, err := id.GetShortFieldID(ctx, shortID, fieldDesc.Name)
+		fieldShortID, err := id.GetShortFieldID(ctx, shortID, fieldDesc.FieldID)
 		if err != nil {
 			return err
 		}
@@ -353,7 +351,7 @@ type lensEncodedDocument struct {
 	key             []byte
 	schemaVersionID string
 	status          client.DocumentStatus
-	properties      map[client.FieldDefinition]any
+	properties      map[client.CollectionFieldDescription]any
 }
 
 var _ fetcher.EncodedDocument = (*lensEncodedDocument)(nil)
@@ -370,7 +368,7 @@ func (encdoc *lensEncodedDocument) Status() client.DocumentStatus {
 	return encdoc.status
 }
 
-func (encdoc *lensEncodedDocument) Properties(onlyFilterProps bool) (map[client.FieldDefinition]any, error) {
+func (encdoc *lensEncodedDocument) Properties(onlyFilterProps bool) (map[client.CollectionFieldDescription]any, error) {
 	return encdoc.properties, nil
 }
 
@@ -378,5 +376,5 @@ func (encdoc *lensEncodedDocument) Reset() {
 	encdoc.key = nil
 	encdoc.schemaVersionID = ""
 	encdoc.status = 0
-	encdoc.properties = map[client.FieldDefinition]any{}
+	encdoc.properties = map[client.CollectionFieldDescription]any{}
 }

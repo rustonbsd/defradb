@@ -20,8 +20,6 @@ import (
 func TestExecuteExplainMutationRequestWithDeleteUsingID(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Explain (execute) mutation request with deletion using document id.",
-
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
@@ -30,7 +28,7 @@ func TestExecuteExplainMutationRequestWithDeleteUsingID(t *testing.T) {
 
 			testUtils.ExplainRequest{
 				Request: `mutation @explain(type: execute) {
-					delete_ContactAddress(docID: ["bae-49f715e7-7f01-5509-a213-ed98cb81583f"]) {
+					delete_ContactAddress(docID: ["bae-78bc4454-19a6-58ed-9e18-f0ca175dd12c"]) {
 						city
 					}
 				}`,
@@ -70,8 +68,6 @@ func TestExecuteExplainMutationRequestWithDeleteUsingID(t *testing.T) {
 
 func TestExecuteExplainMutationRequestWithDeleteUsingFilter(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Explain (execute) mutation request with deletion using filter.",
 
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,

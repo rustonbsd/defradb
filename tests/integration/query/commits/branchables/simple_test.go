@@ -40,12 +40,12 @@ func TestQueryCommitsBranchables(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `query {
-						commits {
+						_commits {
 							cid
 						}
 					}`,
 				Results: map[string]any{
-					"commits": []map[string]any{
+					"_commits": []map[string]any{
 						{
 							"cid": uniqueCid,
 						},
@@ -93,7 +93,7 @@ func TestQueryCommitsBranchables_WithAllFields(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `query {
-						commits {
+						_commits {
 							cid
 							schemaVersionId
 							delta
@@ -107,10 +107,10 @@ func TestQueryCommitsBranchables_WithAllFields(t *testing.T) {
 						}
 					}`,
 				Results: map[string]any{
-					"commits": []map[string]any{
+					"_commits": []map[string]any{
 						{
 							"cid":             gomega.And(collectionCid, uniqueCid),
-							"schemaVersionId": "bafkreihhd6bqrjhl5zidwztgxzeseveplv3cj3fwtn3unjkdx7j2vr2vrq",
+							"schemaVersionId": "bafyreihsneodeja4lfer5puptim3lkwvketyckrmkhfpgxm67ch5wenjwq",
 							"delta":           nil,
 							"docID":           nil,
 							"fieldName":       nil,
@@ -124,27 +124,27 @@ func TestQueryCommitsBranchables_WithAllFields(t *testing.T) {
 						},
 						{
 							"cid":             gomega.And(ageCid, uniqueCid),
-							"schemaVersionId": "bafkreihhd6bqrjhl5zidwztgxzeseveplv3cj3fwtn3unjkdx7j2vr2vrq",
+							"schemaVersionId": "bafyreihsneodeja4lfer5puptim3lkwvketyckrmkhfpgxm67ch5wenjwq",
 							"delta":           testUtils.CBORValue(21),
-							"docID":           "bae-0b2f15e5-bfe7-5cb7-8045-471318d7dbc3",
+							"docID":           "bae-c65ccba7-7d6c-55c8-9d46-e865305f7790",
 							"fieldName":       "age",
 							"height":          int64(1),
 							"links":           []map[string]any{},
 						},
 						{
 							"cid":             gomega.And(nameCid, uniqueCid),
-							"schemaVersionId": "bafkreihhd6bqrjhl5zidwztgxzeseveplv3cj3fwtn3unjkdx7j2vr2vrq",
+							"schemaVersionId": "bafyreihsneodeja4lfer5puptim3lkwvketyckrmkhfpgxm67ch5wenjwq",
 							"delta":           testUtils.CBORValue("John"),
-							"docID":           "bae-0b2f15e5-bfe7-5cb7-8045-471318d7dbc3",
+							"docID":           "bae-c65ccba7-7d6c-55c8-9d46-e865305f7790",
 							"fieldName":       "name",
 							"height":          int64(1),
 							"links":           []map[string]any{},
 						},
 						{
 							"cid":             gomega.And(compositeCid, uniqueCid),
-							"schemaVersionId": "bafkreihhd6bqrjhl5zidwztgxzeseveplv3cj3fwtn3unjkdx7j2vr2vrq",
+							"schemaVersionId": "bafyreihsneodeja4lfer5puptim3lkwvketyckrmkhfpgxm67ch5wenjwq",
 							"delta":           nil,
-							"docID":           "bae-0b2f15e5-bfe7-5cb7-8045-471318d7dbc3",
+							"docID":           "bae-c65ccba7-7d6c-55c8-9d46-e865305f7790",
 							"fieldName":       "_C",
 							"height":          int64(1),
 							"links": []map[string]any{

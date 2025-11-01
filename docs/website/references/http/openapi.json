@@ -171,16 +171,42 @@
                     "CollectionID": {
                         "type": "string"
                     },
+                    "CollectionSet": {},
+                    "EncryptedIndexes": {
+                        "items": {
+                            "properties": {
+                                "FieldName": {
+                                    "type": "string"
+                                },
+                                "Type": {
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "type": "array"
+                    },
                     "Fields": {
                         "items": {
                             "properties": {
                                 "DefaultValue": {},
+                                "FieldID": {
+                                    "type": "string"
+                                },
+                                "IsPrimary": {
+                                    "type": "boolean"
+                                },
                                 "Kind": {},
                                 "Name": {
                                     "type": "string"
                                 },
                                 "RelationName": {},
                                 "Size": {
+                                    "type": "integer"
+                                },
+                                "Typ": {
+                                    "maximum": 255,
+                                    "minimum": 0,
                                     "type": "integer"
                                 }
                             },
@@ -233,14 +259,15 @@
                     "IsMaterialized": {
                         "type": "boolean"
                     },
+                    "IsPlaceholder": {
+                        "type": "boolean"
+                    },
                     "Name": {
                         "type": "string"
                     },
                     "Policy": {},
-                    "Sources": {
-                        "items": {},
-                        "type": "array"
-                    },
+                    "PreviousVersion": {},
+                    "Query": {},
                     "VectorEmbeddings": {
                         "items": {
                             "properties": {
@@ -276,152 +303,6 @@
                 },
                 "type": "object"
             },
-            "collection_definition": {
-                "properties": {
-                    "schema": {
-                        "properties": {
-                            "Fields": {
-                                "items": {
-                                    "properties": {
-                                        "Kind": {},
-                                        "Name": {
-                                            "type": "string"
-                                        },
-                                        "Typ": {
-                                            "maximum": 255,
-                                            "minimum": 0,
-                                            "type": "integer"
-                                        }
-                                    },
-                                    "type": "object"
-                                },
-                                "type": "array"
-                            },
-                            "Name": {
-                                "type": "string"
-                            },
-                            "Root": {
-                                "type": "string"
-                            },
-                            "VersionID": {
-                                "type": "string"
-                            }
-                        },
-                        "type": "object"
-                    },
-                    "version": {
-                        "properties": {
-                            "CollectionID": {
-                                "type": "string"
-                            },
-                            "Fields": {
-                                "items": {
-                                    "properties": {
-                                        "DefaultValue": {},
-                                        "Kind": {},
-                                        "Name": {
-                                            "type": "string"
-                                        },
-                                        "RelationName": {},
-                                        "Size": {
-                                            "type": "integer"
-                                        }
-                                    },
-                                    "type": "object"
-                                },
-                                "type": "array"
-                            },
-                            "Indexes": {
-                                "items": {
-                                    "properties": {
-                                        "Fields": {
-                                            "items": {
-                                                "properties": {
-                                                    "Descending": {
-                                                        "type": "boolean"
-                                                    },
-                                                    "Name": {
-                                                        "type": "string"
-                                                    }
-                                                },
-                                                "type": "object"
-                                            },
-                                            "type": "array"
-                                        },
-                                        "ID": {
-                                            "maximum": 4294967295,
-                                            "minimum": 0,
-                                            "type": "integer"
-                                        },
-                                        "Name": {
-                                            "type": "string"
-                                        },
-                                        "Unique": {
-                                            "type": "boolean"
-                                        }
-                                    },
-                                    "type": "object"
-                                },
-                                "type": "array"
-                            },
-                            "IsActive": {
-                                "type": "boolean"
-                            },
-                            "IsBranchable": {
-                                "type": "boolean"
-                            },
-                            "IsEmbeddedOnly": {
-                                "type": "boolean"
-                            },
-                            "IsMaterialized": {
-                                "type": "boolean"
-                            },
-                            "Name": {
-                                "type": "string"
-                            },
-                            "Policy": {},
-                            "Sources": {
-                                "items": {},
-                                "type": "array"
-                            },
-                            "VectorEmbeddings": {
-                                "items": {
-                                    "properties": {
-                                        "FieldName": {
-                                            "type": "string"
-                                        },
-                                        "Fields": {
-                                            "items": {
-                                                "type": "string"
-                                            },
-                                            "type": "array"
-                                        },
-                                        "Model": {
-                                            "type": "string"
-                                        },
-                                        "Provider": {
-                                            "type": "string"
-                                        },
-                                        "Template": {
-                                            "type": "string"
-                                        },
-                                        "URL": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                },
-                                "type": "array"
-                            },
-                            "VersionID": {
-                                "type": "string"
-                            }
-                        },
-                        "type": "object"
-                    }
-                },
-                "type": "object"
-            },
             "collection_delete": {
                 "properties": {
                     "filter": {}
@@ -447,6 +328,20 @@
                 },
                 "type": "object"
             },
+            "delete_replicator_params": {
+                "properties": {
+                    "Collections": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "ID": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
             "delete_result": {
                 "properties": {
                     "Count": {
@@ -464,6 +359,28 @@
             },
             "document": {
                 "additionalProperties": true,
+                "type": "object"
+            },
+            "encrypted_index": {
+                "properties": {
+                    "FieldName": {
+                        "type": "string"
+                    },
+                    "Type": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "encrypted_index_create": {
+                "properties": {
+                    "FieldName": {
+                        "type": "string"
+                    },
+                    "Type": {
+                        "type": "string"
+                    }
+                },
                 "type": "object"
             },
             "error": {
@@ -528,7 +445,7 @@
                 },
                 "type": "object"
             },
-            "index_create_request": {
+            "index_create": {
                 "properties": {
                     "Fields": {
                         "items": {
@@ -582,39 +499,20 @@
                 },
                 "type": "object"
             },
-            "migrate_request": {
-                "properties": {
-                    "CollectionID": {
-                        "type": "string"
-                    },
-                    "Data": {
-                        "items": {
-                            "additionalProperties": {},
-                            "type": "object"
-                        },
-                        "type": "array"
-                    }
-                },
-                "type": "object"
-            },
-            "patch_schema_request": {
+            "patch_collection_request": {
                 "properties": {
                     "Migration": {},
                     "Patch": {
                         "type": "string"
-                    },
-                    "SetAsDefaultVersion": {
-                        "type": "boolean"
                     }
                 },
                 "type": "object"
             },
             "peer_info": {
                 "properties": {
-                    "Addrs": {
+                    "Addresses": {
                         "items": {
-                            "items": {},
-                            "type": "array"
+                            "type": "string"
                         },
                         "type": "array"
                     },
@@ -626,26 +524,20 @@
             },
             "replicator": {
                 "properties": {
+                    "Addresses": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
                     "CollectionIDs": {
                         "items": {
                             "type": "string"
                         },
                         "type": "array"
                     },
-                    "Info": {
-                        "properties": {
-                            "Addrs": {
-                                "items": {
-                                    "items": {},
-                                    "type": "array"
-                                },
-                                "type": "array"
-                            },
-                            "ID": {
-                                "type": "string"
-                            }
-                        },
-                        "type": "object"
+                    "ID": {
+                        "type": "string"
                     },
                     "LastStatusChange": {
                         "format": "date-time",
@@ -659,90 +551,27 @@
                 },
                 "type": "object"
             },
-            "replicator_params": {
+            "set_migration": {
                 "properties": {
-                    "Collections": {
+                    "lensId": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "set_replicator_params": {
+                "properties": {
+                    "Addresses": {
                         "items": {
                             "type": "string"
                         },
                         "type": "array"
                     },
-                    "Info": {
-                        "properties": {
-                            "Addrs": {
-                                "items": {
-                                    "items": {},
-                                    "type": "array"
-                                },
-                                "type": "array"
-                            },
-                            "ID": {
-                                "type": "string"
-                            }
-                        },
-                        "type": "object"
-                    }
-                },
-                "type": "object"
-            },
-            "schema": {
-                "properties": {
-                    "Fields": {
+                    "Collections": {
                         "items": {
-                            "properties": {
-                                "Kind": {},
-                                "Name": {
-                                    "type": "string"
-                                },
-                                "Typ": {
-                                    "maximum": 255,
-                                    "minimum": 0,
-                                    "type": "integer"
-                                }
-                            },
-                            "type": "object"
+                            "type": "string"
                         },
                         "type": "array"
-                    },
-                    "Name": {
-                        "type": "string"
-                    },
-                    "Root": {
-                        "type": "string"
-                    },
-                    "VersionID": {
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
-            "set_migration_request": {
-                "properties": {
-                    "CollectionID": {
-                        "type": "string"
-                    },
-                    "Config": {
-                        "properties": {
-                            "Lenses": {
-                                "items": {
-                                    "properties": {
-                                        "Arguments": {
-                                            "additionalProperties": {},
-                                            "type": "object"
-                                        },
-                                        "Inverse": {
-                                            "type": "boolean"
-                                        },
-                                        "Path": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                },
-                                "type": "array"
-                            }
-                        },
-                        "type": "object"
                     }
                 },
                 "type": "object"
@@ -1236,7 +1065,7 @@
                     {
                         "description": "Collection schema root",
                         "in": "query",
-                        "name": "schema_root",
+                        "name": "collection_id",
                         "schema": {
                             "type": "string"
                         }
@@ -1296,6 +1125,35 @@
                 "requestBody": {
                     "content": {
                         "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/patch_collection_request"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/success"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/error"
+                    },
+                    "default": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "collection"
+                ]
+            }
+        },
+        "/collections/default": {
+            "post": {
+                "description": "Set the default version for a collection",
+                "operationId": "set_default_collection_version",
+                "requestBody": {
+                    "content": {
+                        "text/plain": {
                             "schema": {
                                 "type": "string"
                             }
@@ -1523,6 +1381,133 @@
                 ]
             }
         },
+        "/collections/{name}/encrypted-indexes": {
+            "get": {
+                "description": "List encrypted indexes",
+                "operationId": "encrypted_index_list",
+                "parameters": [
+                    {
+                        "description": "Collection name",
+                        "in": "path",
+                        "name": "name",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/encrypted_index"
+                                    },
+                                    "type": "array"
+                                }
+                            }
+                        },
+                        "description": "List of encrypted indexes"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/error"
+                    },
+                    "default": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "encrypted_index"
+                ]
+            },
+            "post": {
+                "description": "Create an encrypted index",
+                "operationId": "encrypted_index_create",
+                "parameters": [
+                    {
+                        "description": "Collection name",
+                        "in": "path",
+                        "name": "name",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/encrypted_index_create"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/encrypted_index"
+                                }
+                            }
+                        },
+                        "description": "Encrypted index description"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/error"
+                    },
+                    "default": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "encrypted_index"
+                ]
+            }
+        },
+        "/collections/{name}/encrypted-indexes/{field}": {
+            "delete": {
+                "description": "Delete an encrypted index",
+                "operationId": "encrypted_index_delete",
+                "parameters": [
+                    {
+                        "description": "Collection name",
+                        "in": "path",
+                        "name": "name",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Field name of the encrypted index",
+                        "in": "path",
+                        "name": "field",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/success"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/error"
+                    },
+                    "default": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "encrypted_index"
+                ]
+            }
+        },
         "/collections/{name}/indexes": {
             "get": {
                 "description": "List secondary indexes",
@@ -1581,7 +1566,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/index_create_request"
+                                "$ref": "#/components/schemas/index_create"
                             }
                         }
                     },
@@ -1789,6 +1774,39 @@
                 ]
             }
         },
+        "/encrypted-indexes": {
+            "get": {
+                "description": "List all encrypted indexes for all collections",
+                "operationId": "encrypted_indexes_list_all",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {
+                                        "items": {
+                                            "$ref": "#/components/schemas/encrypted_index"
+                                        },
+                                        "type": "array"
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "Map of collection names to their encrypted indexes"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/error"
+                    },
+                    "default": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "encrypted_index"
+                ]
+            }
+        },
         "/graphql": {
             "get": {
                 "description": "GraphQL GET endpoint",
@@ -1909,137 +1927,14 @@
                 },
                 "responses": {
                     "200": {
-                        "$ref": "#/components/responses/success"
-                    },
-                    "400": {
-                        "$ref": "#/components/responses/error"
-                    },
-                    "default": {
-                        "description": ""
-                    }
-                },
-                "tags": [
-                    "lens"
-                ]
-            }
-        },
-        "/lens/registry": {
-            "post": {
-                "description": "Add a new lens migration to registry",
-                "operationId": "lens_registry_set_migration",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/set_migration_request"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/set_migration"
+                                }
                             }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/success"
-                    },
-                    "400": {
-                        "$ref": "#/components/responses/error"
-                    },
-                    "default": {
-                        "description": ""
-                    }
-                },
-                "tags": [
-                    "lens"
-                ]
-            }
-        },
-        "/lens/registry/reload": {
-            "post": {
-                "description": "Reload lens migrations",
-                "operationId": "lens_registry_reload",
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/success"
-                    },
-                    "400": {
-                        "$ref": "#/components/responses/error"
-                    },
-                    "default": {
-                        "description": ""
-                    }
-                },
-                "tags": [
-                    "lens"
-                ]
-            }
-        },
-        "/lens/registry/{version}/down": {
-            "post": {
-                "description": "Migrate documents from a collection",
-                "operationId": "lens_registry_migrate_down",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "version",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/migrate_request"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/success"
-                    },
-                    "400": {
-                        "$ref": "#/components/responses/error"
-                    },
-                    "default": {
-                        "description": ""
-                    }
-                },
-                "tags": [
-                    "lens"
-                ]
-            }
-        },
-        "/lens/registry/{version}/up": {
-            "post": {
-                "description": "Migrate documents to a collection",
-                "operationId": "lens_registry_migrate_up",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "version",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/migrate_request"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/success"
+                        },
+                        "description": "Lens info"
                     },
                     "400": {
                         "$ref": "#/components/responses/error"
@@ -2157,6 +2052,69 @@
                     },
                     "required": true
                 },
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/success"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/error"
+                    },
+                    "default": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "p2p"
+                ]
+            }
+        },
+        "/p2p/collections/sync": {
+            "post": {
+                "description": "Synchronize collection versions from the network",
+                "operationId": "peer_sync_collections",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "timeout": {
+                                        "type": "string"
+                                    },
+                                    "versionIDs": {
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "type": "array"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Document sync completed successfully"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/error"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/error"
+                    },
+                    "default": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "p2p"
+                ]
+            }
+        },
+        "/p2p/connect": {
+            "post": {
+                "operationId": "connect",
                 "responses": {
                     "200": {
                         "$ref": "#/components/responses/success"
@@ -2346,7 +2304,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/replicator_params"
+                                "$ref": "#/components/schemas/delete_replicator_params"
                             }
                         }
                     },
@@ -2402,7 +2360,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/replicator_params"
+                                "$ref": "#/components/schemas/set_replicator_params"
                             }
                         }
                     },
@@ -2442,94 +2400,6 @@
             }
         },
         "/schema": {
-            "get": {
-                "description": "Introspect schema(s) by name, schema root, or version id.",
-                "operationId": "schema_describe",
-                "parameters": [
-                    {
-                        "description": "Schema name",
-                        "in": "query",
-                        "name": "name",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Schema root",
-                        "in": "query",
-                        "name": "root",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Schema version id",
-                        "in": "query",
-                        "name": "version_id",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "oneOf": [
-                                        {
-                                            "$ref": "#/components/schemas/schema"
-                                        },
-                                        {
-                                            "items": {
-                                                "$ref": "#/components/schemas/schema"
-                                            },
-                                            "type": "array"
-                                        }
-                                    ]
-                                }
-                            }
-                        },
-                        "description": "Schema(s) with matching name, schema id, or version id."
-                    },
-                    "400": {
-                        "$ref": "#/components/responses/error"
-                    },
-                    "default": {
-                        "description": ""
-                    }
-                },
-                "tags": [
-                    "schema"
-                ]
-            },
-            "patch": {
-                "description": "Update a schema definition",
-                "operationId": "patch_schema",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/patch_schema_request"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/success"
-                    },
-                    "400": {
-                        "$ref": "#/components/responses/error"
-                    },
-                    "default": {
-                        "description": ""
-                    }
-                },
-                "tags": [
-                    "schema"
-                ]
-            },
             "post": {
                 "description": "Add a new schema definition",
                 "operationId": "add_schema",
@@ -2555,35 +2425,6 @@
                             }
                         },
                         "description": "Collection(s)"
-                    },
-                    "400": {
-                        "$ref": "#/components/responses/error"
-                    },
-                    "default": {
-                        "description": ""
-                    }
-                },
-                "tags": [
-                    "schema"
-                ]
-            }
-        },
-        "/schema/default": {
-            "post": {
-                "description": "Set the default schema version for a collection",
-                "operationId": "set_default_schema_version",
-                "requestBody": {
-                    "content": {
-                        "text/plain": {
-                            "schema": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/success"
                     },
                     "400": {
                         "$ref": "#/components/responses/error"
@@ -2754,11 +2595,11 @@
                                 "schema": {
                                     "oneOf": [
                                         {
-                                            "$ref": "#/components/schemas/collection_definition"
+                                            "$ref": "#/components/schemas/collection"
                                         },
                                         {
                                             "items": {
-                                                "$ref": "#/components/schemas/collection_definition"
+                                                "$ref": "#/components/schemas/collection"
                                             },
                                             "type": "array"
                                         }
@@ -2796,7 +2637,7 @@
                     {
                         "description": "Collection schema root",
                         "in": "query",
-                        "name": "schema_root",
+                        "name": "collection_id",
                         "schema": {
                             "type": "string"
                         }
@@ -2843,7 +2684,7 @@
     ],
     "tags": [
         {
-            "description": "Add or update schema definitions",
+            "description": "Upload GQL schemas to create collections",
             "name": "schema"
         },
         {
@@ -2859,7 +2700,7 @@
             "name": "index"
         },
         {
-            "description": "Migrate documents to and from schema versions",
+            "description": "Migrate documents to and from collection versions",
             "name": "lens"
         },
         {

@@ -30,12 +30,12 @@ func TestColVersionUpdateReplaceFields_Errors(t *testing.T) {
 					[
 						{
 							"op": "replace",
-							"path": "/bafkreia2jn5ecrhtvy4fravk6pm3wqiny46m7mqymvjkgat7xiqupgqoai/Fields",
+							"path": "/bafyreihuyovjl5ezgpud5xyqnouzsgx25x3ssrx3ncdv5p3guocc3laqna/Fields",
 							"value": [{}]
 						}
 					]
 				`,
-				ExpectedError: "collection fields cannot be mutated.",
+				ExpectedError: "no type found for given name. Type: 0",
 			},
 		},
 	}
@@ -57,12 +57,12 @@ func TestColVersionUpdateReplaceDefaultValue_Errors(t *testing.T) {
 					[
 						{
 							"op": "replace",
-							"path": "/bafkreia3o3cetvcnnxyu5spucimoos77ifungfmacxdkva4zah2is3aooe/Fields/1/DefaultValue",
+							"path": "/bafyreiciz2hrrmt7ritk5gf5fyruw46v2tfhq5dc7qto4wgpzluben2smu/Fields/1/DefaultValue",
 							"value": "Alice"
 						}
 					]
 				`,
-				ExpectedError: "collection fields cannot be mutated.",
+				ExpectedError: "mutating an existing field is not supported",
 			},
 		},
 	}

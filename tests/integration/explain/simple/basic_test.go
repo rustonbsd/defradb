@@ -21,7 +21,6 @@ type dataMap = map[string]any
 
 func TestSimpleExplainRequest(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Explain (simple) a basic request, assert full graph.",
 
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
@@ -45,7 +44,7 @@ func TestSimpleExplainRequest(t *testing.T) {
 										"filter": nil,
 										"scanNode": dataMap{
 											"filter":         nil,
-											"collectionID":   "bafkreig3ohatunyfbhmfgkvs5u7tn36dhaqfufajt5h47s6hi56cw2xm4a",
+											"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
 											"collectionName": "Author",
 											"prefixes": []string{
 												"/3",

@@ -21,7 +21,6 @@ import (
 
 func TestDocSync_WithDocsAvailableOnSingleNode_ShouldSync(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Test basic documents synchronization between two nodes",
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
@@ -69,12 +68,12 @@ func TestDocSync_WithDocsAvailableOnSingleNode_ShouldSync(t *testing.T) {
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"Name": "Andy",
-							"Age":  int64(25),
-						},
-						{
 							"Name": "John",
 							"Age":  int64(21),
+						},
+						{
+							"Name": "Andy",
+							"Age":  int64(25),
 						},
 					},
 				},
@@ -87,7 +86,6 @@ func TestDocSync_WithDocsAvailableOnSingleNode_ShouldSync(t *testing.T) {
 
 func TestDocSync_WithDocsAvailableOnMultipleNode_ShouldSync(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Test documents synchronization between multiple nodes",
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
@@ -139,12 +137,12 @@ func TestDocSync_WithDocsAvailableOnMultipleNode_ShouldSync(t *testing.T) {
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"Name": "Andy",
-							"Age":  int64(25),
-						},
-						{
 							"Name": "John",
 							"Age":  int64(21),
+						},
+						{
+							"Name": "Andy",
+							"Age":  int64(25),
 						},
 					},
 				},
@@ -167,7 +165,6 @@ func TestDocSync_WithSingleDocAvailableOnMultipleNode_ShouldSync(t *testing.T) {
 	}
 
 	test := testUtils.TestCase{
-		Description: "Test synchronization of a single document that is available on multiple nodes",
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),

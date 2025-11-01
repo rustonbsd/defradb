@@ -19,7 +19,6 @@ import (
 
 func TestQueryOneToManyMultipleWithSumOnMultipleJoins(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-many relation query from many side with sum",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -126,15 +125,16 @@ func TestQueryOneToManyMultipleWithSumOnMultipleJoins(t *testing.T) {
 				Results: map[string]any{
 					"Author": []map[string]any{
 						{
-							"name": "Cornelia Funke",
-							"_sum": int64(7),
-						},
-						{
 							"name": "John Grisham",
 							"_sum": int64(9),
 						},
+						{
+							"name": "Cornelia Funke",
+							"_sum": int64(7),
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}

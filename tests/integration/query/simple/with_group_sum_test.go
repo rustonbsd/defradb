@@ -18,7 +18,6 @@ import (
 
 func TestQuerySimpleWithGroupByStringWithoutRenderedGroupAndSumOfUndefined(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with sum on unspecified field",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -43,7 +42,6 @@ func TestQuerySimpleWithGroupByStringWithoutRenderedGroupAndSumOfUndefined(t *te
 
 func TestQuerySimpleWithGroupByStringWithoutRenderedGroupAndChildIntegerSumOnEmptyCollection(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by number, no children, sum on non-rendered group, empty collection",
 		Actions: []any{
 			testUtils.Request{
 				Request: `query {
@@ -64,7 +62,6 @@ func TestQuerySimpleWithGroupByStringWithoutRenderedGroupAndChildIntegerSumOnEmp
 
 func TestQuerySimpleWithGroupByStringWithoutRenderedGroupAndChildIntegerSum(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, sum on non-rendered group integer value",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -113,7 +110,6 @@ func TestQuerySimpleWithGroupByStringWithoutRenderedGroupAndChildIntegerSum(t *t
 
 func TestQuerySimpleWithGroupByStringWithoutRenderedGroupAndChildNilSum(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, sum on non-rendered group nil and integer values",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -161,7 +157,6 @@ func TestQuerySimpleWithGroupByStringWithoutRenderedGroupAndChildNilSum(t *testi
 
 func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanAndSumOfSumOfInt(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, with child group by boolean, and sum of sum on int",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -226,16 +221,6 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanAndSumOfSumOfInt(t *te
 							},
 						},
 						{
-							"Name": "Carlo",
-							"_sum": int64(55),
-							"_group": []map[string]any{
-								{
-									"Verified": true,
-									"_sum":     int64(55),
-								},
-							},
-						},
-						{
 							"Name": "Alice",
 							"_sum": int64(19),
 							"_group": []map[string]any{
@@ -245,8 +230,19 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanAndSumOfSumOfInt(t *te
 								},
 							},
 						},
+						{
+							"Name": "Carlo",
+							"_sum": int64(55),
+							"_group": []map[string]any{
+								{
+									"Verified": true,
+									"_sum":     int64(55),
+								},
+							},
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -256,7 +252,6 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanAndSumOfSumOfInt(t *te
 
 func TestQuerySimpleWithGroupByStringWithoutRenderedGroupAndChildEmptyFloatSum(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, sum on non-rendered group float (default) value",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -303,7 +298,6 @@ func TestQuerySimpleWithGroupByStringWithoutRenderedGroupAndChildEmptyFloatSum(t
 
 func TestQuerySimpleWithGroupByStringWithoutRenderedGroupAndChildFloatSum(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, sum on non-rendered group float value",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -351,7 +345,6 @@ func TestQuerySimpleWithGroupByStringWithoutRenderedGroupAndChildFloatSum(t *tes
 
 func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanAndSumOfSumOfFloat(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, with child group by boolean, and sum of sum on float",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -402,12 +395,12 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanAndSumOfSumOfFloat(t *
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"Name": "Alice",
-							"_sum": float64(2.04),
+							"Name": "Carlo",
+							"_sum": float64(1.74),
 							"_group": []map[string]any{
 								{
-									"Verified": false,
-									"_sum":     float64(2.04),
+									"Verified": true,
+									"_sum":     float64(1.74),
 								},
 							},
 						},
@@ -426,17 +419,18 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanAndSumOfSumOfFloat(t *
 							},
 						},
 						{
-							"Name": "Carlo",
-							"_sum": float64(1.74),
+							"Name": "Alice",
+							"_sum": float64(2.04),
 							"_group": []map[string]any{
 								{
-									"Verified": true,
-									"_sum":     float64(1.74),
+									"Verified": false,
+									"_sum":     float64(2.04),
 								},
 							},
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -446,7 +440,6 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanAndSumOfSumOfFloat(t *
 
 func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanAndSumOfSumOfSumOfFloat(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, with child group by boolean, and sum of sum of sum of float",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -506,22 +499,6 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanAndSumOfSumOfSumOfFloa
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"Name": "Carlo",
-							"_sum": float64(1.74),
-							"_group": []map[string]any{
-								{
-									"Verified": true,
-									"_sum":     float64(1.74),
-									"_group": []map[string]any{
-										{
-											"Age":  int64(55),
-											"_sum": float64(1.74),
-										},
-									},
-								},
-							},
-						},
-						{
 							"Name": "Alice",
 							"_sum": float64(2.04),
 							"_group": []map[string]any{
@@ -567,8 +544,25 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanAndSumOfSumOfSumOfFloa
 								},
 							},
 						},
+						{
+							"Name": "Carlo",
+							"_sum": float64(1.74),
+							"_group": []map[string]any{
+								{
+									"Verified": true,
+									"_sum":     float64(1.74),
+									"_group": []map[string]any{
+										{
+											"Age":  int64(55),
+											"_sum": float64(1.74),
+										},
+									},
+								},
+							},
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}

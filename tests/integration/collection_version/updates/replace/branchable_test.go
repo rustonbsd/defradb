@@ -32,7 +32,7 @@ func TestColVersionUpdateReplaceIsBranchable_UpdatingFromTrueToFalse_Errors(t *t
 					[
 						{
 							"op": "replace",
-							"path": "/bafkreifbk3dtij7vgjhm7xow5i2hnhw5ppieityb2eklzwdst3yph7h4p4/IsBranchable",
+							"path": "/bafyreibhpgygzsmki22sql5ejzcojrrxbc5iuhpydhdzxul5w2znc7zrgu/IsBranchable",
 							"value": false
 						}
 					]
@@ -60,7 +60,7 @@ func TestColVersionUpdateReplaceIsBranchable_UpdatingFromFalseToTrue_Errors(t *t
 					[
 						{
 							"op": "replace",
-							"path": "/bafkreifbk3dtij7vgjhm7xow5i2hnhw5ppieityb2eklzwdst3yph7h4p4/IsBranchable",
+							"path": "/bafyreibhpgygzsmki22sql5ejzcojrrxbc5iuhpydhdzxul5w2znc7zrgu/IsBranchable",
 							"value": true
 						}
 					]

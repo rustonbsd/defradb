@@ -21,16 +21,21 @@ import (
 	"time"
 
 	"github.com/sourcenetwork/corekv"
+	_ "github.com/sourcenetwork/corekv/chunk"
 	"github.com/sourcenetwork/corelog"
 	"github.com/sourcenetwork/immutable"
+	lensNode "github.com/sourcenetwork/lens/host-go/node"
+	lensStore "github.com/sourcenetwork/lens/host-go/store"
 
 	"github.com/sourcenetwork/defradb/acp/dac"
 	"github.com/sourcenetwork/defradb/acp/identity"
+	acpTypes "github.com/sourcenetwork/defradb/acp/types"
 	"github.com/sourcenetwork/defradb/client"
 	"github.com/sourcenetwork/defradb/errors"
 	"github.com/sourcenetwork/defradb/event"
 	"github.com/sourcenetwork/defradb/internal/core"
 	"github.com/sourcenetwork/defradb/internal/datastore"
+	"github.com/sourcenetwork/defradb/internal/db/p2p"
 	"github.com/sourcenetwork/defradb/internal/db/permission"
 	"github.com/sourcenetwork/defradb/internal/request/graphql"
 	"github.com/sourcenetwork/defradb/internal/telemetry"
@@ -63,7 +68,11 @@ type DB struct {
 
 	parser core.Parser
 
-	lensRegistry client.LensRegistry
+	// WARNING - This property should never be accessed directly, use `db.GetLensStore`
+	// in order to ensure any transactions are respected.
+	lensNode *lensNode.Node
+
+	blockStoreChunkSize immutable.Option[int]
 
 	// The maximum number of retries per transaction.
 	maxTxnRetries immutable.Option[int]
@@ -90,6 +99,18 @@ type DB struct {
 
 	// If true, block signing is disabled. By default, block signing is enabled.
 	signingDisabled bool
+
+	// The cryptographic key used to generate search tags for searchable encryption.
+	searchableEncryptionKey []byte
+
+	docMergeQueue *mergeQueue
+	colMergeQueue *mergeQueue
+
+	p2p *p2p.P2P
+	// Retry intervals when a replicator failure occurs.
+	retryIntervals []time.Duration
+	// timeout duration for syncing block links.
+	p2pBlockSyncTimeout time.Duration
 }
 
 var _ client.TxnStore = (*DB)(nil)
@@ -100,10 +121,9 @@ func NewDB(
 	rootstore corekv.TxnStore,
 	nodeACP NACInfo,
 	documentACP immutable.Option[dac.DocumentACP],
-	lens client.LensRegistry,
 	options ...Option,
 ) (*DB, error) {
-	return newDB(ctx, rootstore, nodeACP, documentACP, lens, options...)
+	return newDB(ctx, rootstore, nodeACP, documentACP, options...)
 }
 
 func newDB(
@@ -111,30 +131,33 @@ func newDB(
 	rootstore corekv.TxnStore,
 	nodeACP NACInfo,
 	documentACP immutable.Option[dac.DocumentACP],
-	lens client.LensRegistry,
 	options ...Option,
 ) (*DB, error) {
-	parser, err := graphql.NewParser()
-	if err != nil {
-		return nil, err
-	}
-
-	opts := &dbOptions{}
+	opts := defaultDBOptions()
 	for _, opt := range options {
 		opt(opts)
+	}
+
+	parser, err := graphql.NewParser(len(opts.searchableEncryptionKey) > 0)
+	if err != nil {
+		return nil, err
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
 
 	db := &DB{
-		rootstore:    rootstore,
-		nodeACP:      nodeACP,
-		documentACP:  documentACP,
-		lensRegistry: lens,
-		parser:       parser,
-		options:      options,
-		events:       event.NewChannelBus(commandBufferSize, eventBufferSize),
-		ctxCancel:    cancel,
+		rootstore:           rootstore,
+		blockStoreChunkSize: opts.ChunkSize,
+		nodeACP:             nodeACP,
+		documentACP:         documentACP,
+		parser:              parser,
+		options:             options,
+		events:              event.NewChannelBus(commandBufferSize, eventBufferSize),
+		ctxCancel:           cancel,
+		docMergeQueue:       newMergeQueue(),
+		colMergeQueue:       newMergeQueue(),
+		retryIntervals:      opts.retryIntervals,
+		p2pBlockSyncTimeout: opts.p2pBlockSyncTimeout,
 	}
 
 	if opts.maxTxnRetries.HasValue() {
@@ -143,9 +166,38 @@ func newDB(
 
 	db.nodeIdentity = opts.identity
 	db.signingDisabled = opts.disableSigning
+	db.searchableEncryptionKey = opts.searchableEncryptionKey
 
-	if lens != nil {
-		lens.Init(db)
+	lensRuntime, err := newLensRuntime(opts.LensRuntimeType)
+	if err != nil {
+		return nil, err
+	}
+
+	// Overwrite a few key Lens options for now, by appending them to the end of the option
+	// slice.
+	opts.LensOptions = append(opts.LensOptions, lensNode.WithRootstore(rootstore))
+	opts.LensOptions = append(opts.LensOptions, lensNode.WithTxnSource(wrapSource(db)))
+	opts.LensOptions = append(opts.LensOptions, lensNode.WithRuntime(lensRuntime))
+
+	if opts.p2p.HasValue() {
+		opts.LensOptions = appendLensP2POpt(opts.LensOptions, opts)
+	} else {
+		// If defra has no P2P enabled, it doesn't make sense to enable it for Lens
+		opts.LensOptions = append(opts.LensOptions, lensNode.WithP2PDisabled(true))
+	}
+
+	node, err := lensNode.New(ctx, opts.LensOptions...)
+	if err != nil {
+		return nil, err
+	}
+	db.lensNode = node
+
+	if opts.p2p.HasValue() {
+		p, err := p2p.New(ctx, db, node, opts.p2p.Value(), db.nodeIdentity)
+		if err != nil {
+			return nil, err
+		}
+		db.p2p = p
 	}
 
 	err = db.initialize(ctx)
@@ -153,31 +205,21 @@ func newDB(
 		return nil, err
 	}
 
-	sub, err := db.events.Subscribe(event.MergeName, event.PeerInfoName)
-	if err != nil {
-		return nil, err
-	}
-	go db.handleMessages(ctx, sub)
-
 	return db, nil
 }
 
 // NewTxn creates a new transaction.
-func (db *DB) NewTxn(ctx context.Context, readonly bool) (client.Txn, error) {
+func (db *DB) NewTxn(readonly bool) (client.Txn, error) {
 	txnId := db.previousTxnID.Add(1)
-	txn := datastore.NewTxnFrom(ctx, db.rootstore, txnId, readonly)
+	txn := datastore.NewTxnFrom(db.rootstore, txnId, readonly, db.blockStoreChunkSize)
 	return wrapDatastoreTxn(txn, db), nil
 }
 
 // NewConcurrentTxn creates a new transaction that supports concurrent API calls.
-func (db *DB) NewConcurrentTxn(ctx context.Context, readonly bool) (client.Txn, error) {
+func (db *DB) NewConcurrentTxn(readonly bool) (client.Txn, error) {
 	txnId := db.previousTxnID.Add(1)
-	txn := datastore.NewConcurrentTxnFrom(ctx, db.rootstore, txnId, readonly)
+	txn := datastore.NewConcurrentTxnFrom(db.rootstore, txnId, readonly, db.blockStoreChunkSize)
 	return wrapDatastoreTxn(txn, db), nil
-}
-
-func (db *DB) LensRegistry() client.LensRegistry {
-	return db.lensRegistry
 }
 
 func (db *DB) DocumentACP() immutable.Option[dac.DocumentACP] {
@@ -190,6 +232,10 @@ func (db *DB) AddDACPolicy(
 ) (client.AddPolicyResult, error) {
 	ctx, span := tracer.Start(ctx)
 	defer span.End()
+
+	if err := db.checkNodeAccess(ctx, acpTypes.NodeDACPolicyAddPerm); err != nil {
+		return client.AddPolicyResult{}, err
+	}
 
 	if !db.documentACP.HasValue() {
 		return client.AddPolicyResult{}, client.ErrACPOperationButACPNotAvailable
@@ -237,7 +283,7 @@ func (db *DB) publishDocUpdateEvent(ctx context.Context, docID string, collectio
 	headsIterator, err := NewHeadBlocksIterator(
 		ctx,
 		datastore.HeadstoreFrom(db.rootstore),
-		datastore.BlockstoreFrom(db.rootstore),
+		datastore.BlockstoreFrom(db.rootstore, db.blockStoreChunkSize),
 		docID,
 	)
 	if err != nil {
@@ -259,7 +305,7 @@ func (db *DB) publishDocUpdateEvent(ctx context.Context, docID string, collectio
 			CollectionID: collection.Version().CollectionID,
 			Block:        headsIterator.CurrentRawBlock(),
 		}
-		db.events.Publish(event.NewMessage(event.UpdateName, updateEvent))
+		db.sendUpdate(updateEvent)
 	}
 	return nil
 }
@@ -273,6 +319,10 @@ func (db *DB) AddDACActorRelationship(
 ) (client.AddActorRelationshipResult, error) {
 	ctx, span := tracer.Start(ctx)
 	defer span.End()
+
+	if err := db.checkNodeAccess(ctx, acpTypes.NodeDACRelationAddPerm); err != nil {
+		return client.AddActorRelationshipResult{}, err
+	}
 
 	if !db.documentACP.HasValue() {
 		return client.AddActorRelationshipResult{}, client.ErrACPOperationButACPNotAvailable
@@ -321,6 +371,10 @@ func (db *DB) DeleteDACActorRelationship(
 ) (client.DeleteActorRelationshipResult, error) {
 	ctx, span := tracer.Start(ctx)
 	defer span.End()
+
+	if err := db.checkNodeAccess(ctx, acpTypes.NodeDACRelationDeletePerm); err != nil {
+		return client.DeleteActorRelationshipResult{}, err
+	}
 
 	if !db.documentACP.HasValue() {
 		return client.DeleteActorRelationshipResult{}, client.ErrACPOperationButACPNotAvailable
@@ -384,7 +438,7 @@ func (db *DB) initialize(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer txn.Discard(ctx)
+	defer txn.Discard()
 
 	if err := db.initializeNodeACP(ctx, txn); err != nil {
 		return err
@@ -410,7 +464,7 @@ func (db *DB) initialize(ctx context.Context) error {
 			return err
 		}
 
-		err = db.lensRegistry.ReloadLenses(ctx)
+		err = db.getLensStore(ctx).Reload(ctx)
 		if err != nil {
 			return err
 		}
@@ -418,7 +472,7 @@ func (db *DB) initialize(ctx context.Context) error {
 		// The query language types are only updated on successful commit
 		// so we must not forget to do so on success regardless of whether
 		// we have written to the datastores.
-		return txn.Commit(ctx)
+		return txn.Commit()
 	}
 
 	err = txn.Systemstore().Set(ctx, []byte("/init"), []byte{1})
@@ -426,7 +480,7 @@ func (db *DB) initialize(ctx context.Context) error {
 		return err
 	}
 
-	return txn.Commit(ctx)
+	return txn.Commit()
 }
 
 func (db *DB) Rootstore() corekv.TxnStore {
@@ -445,6 +499,21 @@ func (db *DB) MaxTxnRetries() int {
 		return db.maxTxnRetries.Value()
 	}
 	return defaultMaxTxnRetries
+}
+
+// SearchableEncryptionKey returns the searchable encryption key if configured.
+func (db *DB) SearchableEncryptionKey() []byte {
+	return db.searchableEncryptionKey
+}
+
+// RetryIntervals returns the replicator retry configuration.
+func (db *DB) RetryIntervals() []time.Duration {
+	return db.retryIntervals
+}
+
+// P2PBlockSyncTimeout is the timeout duration for syncing block links.
+func (db *DB) P2PBlockSyncTimeout() time.Duration {
+	return db.p2pBlockSyncTimeout
 }
 
 // PrintDump prints the entire database to console.
@@ -478,6 +547,10 @@ func (db *DB) Close() {
 		}
 	}
 
+	if db.p2p != nil && db.p2p.SECoordinator() != nil {
+		db.p2p.SECoordinator().Close()
+	}
+
 	log.Info("Successfully closed running process")
 }
 
@@ -502,8 +575,44 @@ func printStore(ctx context.Context, store corekv.ReaderWriter) error {
 			return errors.Join(err, iter.Close())
 		}
 
-		log.InfoContext(ctx, "", corelog.Any(string(iter.Key()), value))
+		key, err := datastore.HumanReadableKey(iter.Key())
+		if err != nil {
+			return errors.Join(err, iter.Close())
+		}
+
+		log.InfoContext(ctx, "", corelog.Any(key, value))
 	}
 
 	return iter.Close()
+}
+
+type txnSource struct {
+	txnSource client.TxnSource
+}
+
+var _ lensStore.TxnSource = (*txnSource)(nil)
+
+func wrapSource(s client.TxnSource) *txnSource {
+	return &txnSource{
+		txnSource: s,
+	}
+}
+
+func (s *txnSource) NewTxn(readOnly bool) (lensStore.Txn, error) {
+	txn, err := s.txnSource.NewTxn(readOnly)
+	if err != nil {
+		return nil, err
+	}
+
+	dsTxn := datastore.MustGetFromClientTxn(txn)
+
+	return &wrappedTxn{
+		Txn:          dsTxn,
+		ReaderWriter: dsTxn.Rootstore(),
+	}, nil
+}
+
+type wrappedTxn struct {
+	datastore.Txn
+	corekv.ReaderWriter
 }

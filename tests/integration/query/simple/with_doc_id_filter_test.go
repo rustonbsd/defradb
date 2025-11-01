@@ -18,7 +18,6 @@ import (
 
 func TestQuerySimpleWithDocIDFilterBlock(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with basic filter (docID by filter block)",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -34,7 +33,7 @@ func TestQuerySimpleWithDocIDFilterBlock(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `query {
-					Users(filter: {_docID: {_eq: "bae-d4303725-7db9-53d2-b324-f3ee44020e52"}}) {
+					Users(filter: {_docID: {_eq: "bae-619ea0d2-35ba-5e8c-ac4d-2b769937213b"}}) {
 						Name
 						Age
 					}

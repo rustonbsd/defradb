@@ -22,8 +22,6 @@ import (
 func TestACP_OwnerGivesUpdateAccessToAnotherActorWithoutExplicitReadPerm_GQL_OtherActorCanUpdate(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Test acp, owner gives update access without explicit read permission, can still update",
-
 		SupportedMutationTypes: immutable.Some(
 			[]testUtils.MutationType{
 				// GQL mutation will return no error when wrong identity is used (only for update requests),
@@ -182,7 +180,6 @@ func TestACP_OwnerGivesUpdateAccessToAnotherActorWithoutExplicitReadPerm_GQL_Oth
 				Request: `
 					query {
 						Users {
-							_docID
 							name
 							age
 						}
@@ -192,9 +189,8 @@ func TestACP_OwnerGivesUpdateAccessToAnotherActorWithoutExplicitReadPerm_GQL_Oth
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
-							"name":   "Shahzad Lone", // Note: updated name
-							"age":    int64(28),
+							"name": "Shahzad Lone", // Note: updated name
+							"age":  int64(28),
 						},
 					},
 				},

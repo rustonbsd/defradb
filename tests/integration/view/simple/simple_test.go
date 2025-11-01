@@ -19,7 +19,6 @@ import (
 
 func TestView_Simple(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple view",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -67,7 +66,6 @@ func TestView_Simple(t *testing.T) {
 
 func TestView_SimpleMultipleDocs(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple view, multiple docs",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -114,6 +112,7 @@ func TestView_SimpleMultipleDocs(t *testing.T) {
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -123,7 +122,6 @@ func TestView_SimpleMultipleDocs(t *testing.T) {
 
 func TestView_SimpleWithFieldSubset_ErrorsSelectingExcludedField(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple view with field subset errors selecting excluded field",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -168,7 +166,6 @@ func TestView_SimpleWithFieldSubset_ErrorsSelectingExcludedField(t *testing.T) {
 
 func TestView_SimpleWithExtraFieldInViewSDL(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple view with extra field in SDL",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -219,7 +216,6 @@ func TestView_SimpleWithExtraFieldInViewSDL(t *testing.T) {
 
 func TestView_SimpleWithExtraFieldInViewQuery(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple view with extra field in view query",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -272,7 +268,6 @@ func TestView_SimpleWithExtraFieldInViewQuery(t *testing.T) {
 
 func TestView_SimpleViewOfView(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple view of view",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `

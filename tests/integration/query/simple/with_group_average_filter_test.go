@@ -18,7 +18,6 @@ import (
 
 func TestQuerySimpleWithGroupByStringWithoutRenderedGroupAndChildAverageWithFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, no children, average on non-rendered, unfiltered group",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -66,7 +65,6 @@ func TestQuerySimpleWithGroupByStringWithoutRenderedGroupAndChildAverageWithFilt
 
 func TestQuerySimpleWithGroupByStringWithRenderedGroupAndChildAverageWithFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, no children, average on rendered, unfiltered group",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -103,10 +101,10 @@ func TestQuerySimpleWithGroupByStringWithRenderedGroupAndChildAverageWithFilter(
 							"_avg": float64(33),
 							"_group": []map[string]any{
 								{
-									"Age": int64(34),
+									"Age": int64(32),
 								},
 								{
-									"Age": int64(32),
+									"Age": int64(34),
 								},
 							},
 						},
@@ -130,7 +128,6 @@ func TestQuerySimpleWithGroupByStringWithRenderedGroupAndChildAverageWithFilter(
 
 func TestQuerySimpleWithGroupByStringWithRenderedGroupAndChildAverageWithDateTimeFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, no children, average on rendered, unfiltered group",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -170,10 +167,10 @@ func TestQuerySimpleWithGroupByStringWithRenderedGroupAndChildAverageWithDateTim
 							"_avg": float64(33),
 							"_group": []map[string]any{
 								{
-									"Age": int64(32),
+									"Age": int64(34),
 								},
 								{
-									"Age": int64(34),
+									"Age": int64(32),
 								},
 							},
 						},
@@ -188,6 +185,7 @@ func TestQuerySimpleWithGroupByStringWithRenderedGroupAndChildAverageWithDateTim
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -197,7 +195,6 @@ func TestQuerySimpleWithGroupByStringWithRenderedGroupAndChildAverageWithDateTim
 
 func TestQuerySimpleWithGroupByStringWithRenderedGroupWithFilterAndChildAverageWithMatchingFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, no children, average on rendered, matching filtered group",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -254,7 +251,6 @@ func TestQuerySimpleWithGroupByStringWithRenderedGroupWithFilterAndChildAverageW
 
 func TestQuerySimpleWithGroupByStringWithRenderedGroupWithFilterAndChildAverageWithMatchingDateTimeFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, no children, average on rendered, matching datetime filtered group",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -290,11 +286,6 @@ func TestQuerySimpleWithGroupByStringWithRenderedGroupWithFilterAndChildAverageW
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"Name":   "Alice",
-							"_avg":   float64(0),
-							"_group": []map[string]any{},
-						},
-						{
 							"Name": "John",
 							"_avg": float64(34),
 							"_group": []map[string]any{
@@ -303,8 +294,14 @@ func TestQuerySimpleWithGroupByStringWithRenderedGroupWithFilterAndChildAverageW
 								},
 							},
 						},
+						{
+							"Name":   "Alice",
+							"_avg":   float64(0),
+							"_group": []map[string]any{},
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -314,7 +311,6 @@ func TestQuerySimpleWithGroupByStringWithRenderedGroupWithFilterAndChildAverageW
 
 func TestQuerySimpleWithGroupByStringWithRenderedGroupWithFilterAndChildAverageWithDifferentFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, no children, average on non-rendered, different filtered group",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -375,7 +371,6 @@ func TestQuerySimpleWithGroupByStringWithRenderedGroupWithFilterAndChildAverageW
 
 func TestQuerySimpleWithGroupByStringWithoutRenderedGroupAndChildAveragesWithDifferentFilters(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, no children, average on non-rendered, unfiltered group",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -427,7 +422,6 @@ func TestQuerySimpleWithGroupByStringWithoutRenderedGroupAndChildAveragesWithDif
 func TestQuerySimpleWithGroupByStringWithoutRenderedGroupAndChildAverageWithFilterAndNilItem(t *testing.T) {
 	// This test checks that the appended/internal nil filter does not clash with the consumer-defined filter
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, no children, average with filter on non-rendered, unfiltered group",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{

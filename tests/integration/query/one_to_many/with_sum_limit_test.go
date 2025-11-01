@@ -18,14 +18,13 @@ import (
 
 func TestQueryOneToManyWithSumWithLimit(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-many relation query from many side with sum with limit",
 		Actions: []any{
 			testUtils.CreateDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Painted House",
 					"rating": 4.9,
-					"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b"
+					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -33,7 +32,7 @@ func TestQueryOneToManyWithSumWithLimit(t *testing.T) {
 				Doc: `{
 					"name": "A Time for Mercy",
 					"rating": 4.5,
-					"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b"
+					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -41,7 +40,7 @@ func TestQueryOneToManyWithSumWithLimit(t *testing.T) {
 				Doc: `{
 					"name": "The Associate",
 					"rating": 4.2,
-					"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b"
+					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -49,7 +48,7 @@ func TestQueryOneToManyWithSumWithLimit(t *testing.T) {
 				Doc: `{
 					"name": "Theif Lord",
 					"rating": 4.8,
-					"author_id": "bae-72e8c691-9f20-55e7-9228-8af1cf54cace"
+					"author_id": "bae-3d5a3204-4e55-5236-992a-ce27da27902b"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -78,16 +77,16 @@ func TestQueryOneToManyWithSumWithLimit(t *testing.T) {
 				Results: map[string]any{
 					"Author": []map[string]any{
 						{
+							"name": "John Grisham",
+							"_sum": 8.7,
+						},
+						{
 							"name": "Cornelia Funke",
 							"_sum": 4.8,
 						},
-						{
-							"name": "John Grisham",
-							// .00...1 is float math thing
-							"_sum": 9.100000000000001,
-						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}

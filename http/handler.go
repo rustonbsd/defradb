@@ -21,7 +21,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// Global variable for the development mode flag
+// IsDevMode is a global variable for the development mode flag
 // This is checked by the http/handler_extras.go/Purge function to determine which response to send
 var IsDevMode bool = false
 
@@ -37,7 +37,6 @@ func NewApiRouter() (*Router, error) {
 	acp_handler := &acpHandler{}
 	collection_handler := &collectionHandler{}
 	p2p_handler := &p2pHandler{}
-	lens_handler := &lensHandler{}
 	ccip_handler := &ccipHandler{}
 	extras_handler := &extrasHandler{}
 	block_handler := &blockHandler{}
@@ -60,10 +59,6 @@ func NewApiRouter() (*Router, error) {
 		collection_handler.bindRoutes(r)
 	})
 
-	router.AddRouteGroup(func(r *Router) {
-		lens_handler.bindRoutes(r)
-	})
-
 	if err := router.Validate(context.Background()); err != nil {
 		return nil, err
 	}
@@ -72,6 +67,7 @@ func NewApiRouter() (*Router, error) {
 
 type DB interface {
 	client.TxnStore
+	client.P2P
 	// Events returns the database event queue.
 	//
 	// It may be used to monitor database events - a new event will be yielded for each mutation.
@@ -84,7 +80,7 @@ type Handler struct {
 	txs *sync.Map
 }
 
-func NewHandler(db DB, p2p client.P2P) (*Handler, error) {
+func NewHandler(db DB) (*Handler, error) {
 	router, err := NewApiRouter()
 	if err != nil {
 		return nil, err
@@ -93,7 +89,7 @@ func NewHandler(db DB, p2p client.P2P) (*Handler, error) {
 	mux := chi.NewMux()
 	mux.Route("/api/"+Version, func(r chi.Router) {
 		r.Use(
-			ApiMiddleware(db, p2p, txs),
+			ApiMiddleware(db, txs),
 			TransactionMiddleware,
 			AuthMiddleware,
 		)

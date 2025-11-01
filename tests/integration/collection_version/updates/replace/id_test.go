@@ -30,12 +30,12 @@ func TestColVersionUpdateReplaceID_WithEmpty_Errors(t *testing.T) {
 					[
 						{
 							"op": "replace",
-							"path": "/bafkreia2jn5ecrhtvy4fravk6pm3wqiny46m7mqymvjkgat7xiqupgqoai/VersionID",
+							"path": "/bafyreihuyovjl5ezgpud5xyqnouzsgx25x3ssrx3ncdv5p3guocc3laqna/VersionID",
 							"value": ""
 						}
 					]
 				`,
-				ExpectedError: "collections cannot be deleted.",
+				ExpectedError: "collection ID cannot be empty",
 			},
 		},
 	}
@@ -51,22 +51,17 @@ func TestColVersionUpdateReplaceID_WithExisting_Errors(t *testing.T) {
 					type Users {}
 				`,
 			},
-			&action.AddSchema{
-				Schema: `
-					type Books {}
-				`,
-			},
 			testUtils.PatchCollection{
 				Patch: `
 					[
 						{
 							"op": "replace",
-							"path": "/bafkreia2jn5ecrhtvy4fravk6pm3wqiny46m7mqymvjkgat7xiqupgqoai/VersionID",
-							"value": "fdsahasgsag"
+							"path": "/Users/VersionID",
+							"value": "invalid cid"
 						}
 					]
 				`,
-				ExpectedError: "adding collections via patch is not supported",
+				ExpectedError: "invalid cid: selected encoding not supported. VersionID: invalid cid",
 			},
 		},
 	}
@@ -82,7 +77,7 @@ func TestColVersionUpdateReplaceID_WithExistingSameRoot_Errors(t *testing.T) {
 					type Users {}
 				`,
 			},
-			testUtils.SchemaPatch{
+			testUtils.PatchCollection{
 				Patch: `
 					[
 						{ "op": "add", "path": "/Users/Fields/-", "value": {"Name": "name", "Kind": "String"} }
@@ -94,13 +89,13 @@ func TestColVersionUpdateReplaceID_WithExistingSameRoot_Errors(t *testing.T) {
 					[
 						{
 							"op": "replace",
-							"path": "/bafkreia2jn5ecrhtvy4fravk6pm3wqiny46m7mqymvjkgat7xiqupgqoai/VersionID",
-							"value": "bafkreialnju2rez4t3quvpobf3463eai3lo64vdrdhdmunz7yy7sv3f5ce"
+							"path": "/bafyreihuyovjl5ezgpud5xyqnouzsgx25x3ssrx3ncdv5p3guocc3laqna/VersionID",
+							"value": "bafyreieqhzanpek5ssb7ofi3qelbvl2nwh6s7x3w2mlzbcnqaqol3elltq"
 						},
 						{
 							"op": "replace",
-							"path": "/bafkreialnju2rez4t3quvpobf3463eai3lo64vdrdhdmunz7yy7sv3f5ce/VersionID",
-							"value": "bafkreia2jn5ecrhtvy4fravk6pm3wqiny46m7mqymvjkgat7xiqupgqoai"
+							"path": "/bafyreieqhzanpek5ssb7ofi3qelbvl2nwh6s7x3w2mlzbcnqaqol3elltq/VersionID",
+							"value": "bafyreihuyovjl5ezgpud5xyqnouzsgx25x3ssrx3ncdv5p3guocc3laqna"
 						}
 					]
 				`,
@@ -130,17 +125,17 @@ func TestColVersionUpdateReplaceID_WithExistingDifferentRoot_Errors(t *testing.T
 					[
 						{
 							"op": "replace",
-							"path": "/bafkreia2jn5ecrhtvy4fravk6pm3wqiny46m7mqymvjkgat7xiqupgqoai/VersionID",
-							"value": "bafkreibifvyfr6qvb6wx4v4cogvcdksb3v7vniaon7hdzzqb62cotpmlc4"
+							"path": "/bafyreihuyovjl5ezgpud5xyqnouzsgx25x3ssrx3ncdv5p3guocc3laqna/VersionID",
+							"value": "bafyreiguy7x6zs57dgbpuduiacckubvkbgi6bo2oaytu5dlthr2hsmawxu"
 						},
 						{
 							"op": "replace",
-							"path": "/bafkreibifvyfr6qvb6wx4v4cogvcdksb3v7vniaon7hdzzqb62cotpmlc4/VersionID",
-							"value": "bafkreia2jn5ecrhtvy4fravk6pm3wqiny46m7mqymvjkgat7xiqupgqoai"
+							"path": "/bafyreiguy7x6zs57dgbpuduiacckubvkbgi6bo2oaytu5dlthr2hsmawxu/VersionID",
+							"value": "bafyreihuyovjl5ezgpud5xyqnouzsgx25x3ssrx3ncdv5p3guocc3laqna"
 						}
 					]
 				`,
-				ExpectedError: "collection ID cannot be mutated.",
+				ExpectedError: "collection source must belong to host collection.",
 			},
 		},
 	}
@@ -161,12 +156,12 @@ func TestColVersionUpdateReplaceID_WithNew_Errors(t *testing.T) {
 					[
 						{
 							"op": "replace",
-							"path": "/bafkreia2jn5ecrhtvy4fravk6pm3wqiny46m7mqymvjkgat7xiqupgqoai/VersionID",
+							"path": "/Users/VersionID",
 							"value": "bafkreibifvyfr6qvb6wx4v4cogvcdksb3v7vniaon7hdzzqb62cotpmlc4"
 						}
 					]
 				`,
-				ExpectedError: "adding collections via patch is not supported.",
+				ExpectedError: "unknown CID, collection ids cannot be manually defined",
 			},
 		},
 	}

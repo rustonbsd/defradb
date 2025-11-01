@@ -19,14 +19,13 @@ import (
 
 func TestQueryOneToManyWithCountWithFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-many relation query from many side with count with filter",
 		Actions: []any{
 			testUtils.CreateDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Painted House",
 					"rating": 4.9,
-					"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b"
+					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -34,7 +33,7 @@ func TestQueryOneToManyWithCountWithFilter(t *testing.T) {
 				Doc: `{
 					"name": "A Time for Mercy",
 					"rating": 4.5,
-					"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b"
+					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -42,7 +41,7 @@ func TestQueryOneToManyWithCountWithFilter(t *testing.T) {
 				Doc: `{
 					"name": "Theif Lord",
 					"rating": 4.8,
-					"author_id": "bae-72e8c691-9f20-55e7-9228-8af1cf54cace"
+					"author_id": "bae-3d5a3204-4e55-5236-992a-ce27da27902b"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -71,15 +70,16 @@ func TestQueryOneToManyWithCountWithFilter(t *testing.T) {
 				Results: map[string]any{
 					"Author": []map[string]any{
 						{
-							"name":   "Cornelia Funke",
-							"_count": 0,
-						},
-						{
 							"name":   "John Grisham",
 							"_count": 1,
 						},
+						{
+							"name":   "Cornelia Funke",
+							"_count": 0,
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -89,14 +89,13 @@ func TestQueryOneToManyWithCountWithFilter(t *testing.T) {
 
 func TestQueryOneToManyWithCountWithFilterAndChildFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-many relation query from many side with count with filter",
 		Actions: []any{
 			testUtils.CreateDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Painted House",
 					"rating": 4.9,
-					"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b"
+					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -104,14 +103,14 @@ func TestQueryOneToManyWithCountWithFilterAndChildFilter(t *testing.T) {
 				Doc: `{
 					"name": "A Time for Mercy",
 					"rating": 4.5,
-					"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b"
+					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
 			testUtils.CreateDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "The Associate",
-					"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b"
+					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -119,7 +118,7 @@ func TestQueryOneToManyWithCountWithFilterAndChildFilter(t *testing.T) {
 				Doc: `{
 					"name": "Theif Lord",
 					"rating": 4.8,
-					"author_id": "bae-72e8c691-9f20-55e7-9228-8af1cf54cace"
+					"author_id": "bae-3d5a3204-4e55-5236-992a-ce27da27902b"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -151,15 +150,6 @@ func TestQueryOneToManyWithCountWithFilterAndChildFilter(t *testing.T) {
 				Results: map[string]any{
 					"Author": []map[string]any{
 						{
-							"name":   "Cornelia Funke",
-							"_count": 1,
-							"published": []map[string]any{
-								{
-									"name": "Theif Lord",
-								},
-							},
-						},
-						{
 							"name":   "John Grisham",
 							"_count": 2,
 							"published": []map[string]any{
@@ -171,8 +161,18 @@ func TestQueryOneToManyWithCountWithFilterAndChildFilter(t *testing.T) {
 								},
 							},
 						},
+						{
+							"name":   "Cornelia Funke",
+							"_count": 1,
+							"published": []map[string]any{
+								{
+									"name": "Theif Lord",
+								},
+							},
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -182,7 +182,6 @@ func TestQueryOneToManyWithCountWithFilterAndChildFilter(t *testing.T) {
 
 func TestQueryOneToMany_WithCountWithJSONFilterAndChildFilter_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-many relation query from many side with count with JSON filter",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `

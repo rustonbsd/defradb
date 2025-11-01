@@ -35,7 +35,6 @@ func TestQueryWithIndexOnOneToManyRelation_IfFilterOnIndexedRelation_ShouldFilte
 		}
 	}`
 	test := testUtils.TestCase{
-		Description: "Filter on indexed relation field in 1-N relation",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -58,10 +57,11 @@ func TestQueryWithIndexOnOneToManyRelation_IfFilterOnIndexedRelation_ShouldFilte
 				Results: map[string]any{
 					"User": []map[string]any{
 						{"name": "Shahzad"},
-						{"name": "Islam"},
 						{"name": "Keenan"},
+						{"name": "Islam"},
 					},
 				},
+				NonOrderedResults: true,
 			},
 			testUtils.Request{
 				Request:  makeExplainQuery(req1),
@@ -103,7 +103,6 @@ func TestQueryWithIndexOnOneToOnesSecondaryRelation_IfFilterOnIndexedRelation_Sh
 		}
 	}`
 	test := testUtils.TestCase{
-		Description: "Filter on indexed secondary relation field in 1-1 relation",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -137,11 +136,12 @@ func TestQueryWithIndexOnOneToOnesSecondaryRelation_IfFilterOnIndexedRelation_Sh
 				Request: req2,
 				Results: map[string]any{
 					"User": []map[string]any{
-						{"name": "John"},
 						{"name": "Shahzad"},
+						{"name": "John"},
 						{"name": "Fred"},
 					},
 				},
+				NonOrderedResults: true,
 			},
 			testUtils.Request{
 				Request:  makeExplainQuery(req2),
@@ -171,7 +171,6 @@ func TestQueryWithIndexOnOneToOnePrimaryRelation_IfFilterOnIndexedFieldOfRelatio
 		}
 	}`
 	test := testUtils.TestCase{
-		Description: "Filter on indexed field of primary relation in 1-1 relation",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -244,7 +243,6 @@ func TestQueryWithIndexOnOneToOnePrimaryRelation_IfFilterOnIndexedFieldOfRelatio
 		}
 	}`
 	test := testUtils.TestCase{
-		Description: "Filter on indexed field of primary relation in 1-1 relation",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -312,7 +310,6 @@ func TestQueryWithIndexOnOneToOnePrimaryRelation_IfFilterOnIndexedRelationWhileI
 		}
 	}`
 	test := testUtils.TestCase{
-		Description: "Filter on indexed field of primary relation while having indexed foreign field in 1-1 relation",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -351,7 +348,6 @@ func TestQueryWithIndexOnOneToOnePrimaryRelation_IfFilterOnIndexedRelationWhileI
 
 func TestQueryWithIndexOnOneToMany_IfFilterOnIndexedPrimaryDoc_ShouldFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Filter on indexed relation field in 1-N relations",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -420,23 +416,24 @@ func TestQueryWithIndexOnOneToMany_IfFilterOnIndexedPrimaryDoc_ShouldFilter(t *t
 						{
 							"name": "Chris",
 							"devices": []map[string]any{
-								{
-									"model":        "Walkman",
-									"manufacturer": "Sony",
-								},
-								{
-									"model":        "Walkman",
-									"manufacturer": "The Proclaimers",
-								},
 								// The filter is on User, so all devices belonging to it will be returned
 								{
 									"model":        "Running Man",
 									"manufacturer": "Braveworld Productions",
 								},
+								{
+									"model":        "Walkman",
+									"manufacturer": "The Proclaimers",
+								},
+								{
+									"model":        "Walkman",
+									"manufacturer": "Sony",
+								},
 							},
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -446,7 +443,6 @@ func TestQueryWithIndexOnOneToMany_IfFilterOnIndexedPrimaryDoc_ShouldFilter(t *t
 
 func TestQueryWithIndexOnOneToMany_IfFilterOnIndexedPrimaryDocAndSubFilter_ShouldFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Filter on indexed relation field in 1-N relations",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -516,12 +512,12 @@ func TestQueryWithIndexOnOneToMany_IfFilterOnIndexedPrimaryDocAndSubFilter_Shoul
 							"name": "Chris",
 							"devices": []map[string]any{
 								{
-									"model":        "Walkman",
-									"manufacturer": "The Proclaimers",
-								},
-								{
 									"model":        "Running Man",
 									"manufacturer": "Braveworld Productions",
+								},
+								{
+									"model":        "Walkman",
+									"manufacturer": "The Proclaimers",
 								},
 							},
 						},
@@ -547,7 +543,6 @@ func TestQueryWithIndexOnOneToMany_IfFilterOnIndexedRelation_ShouldFilterWithExp
 		}
 	}`
 	test := testUtils.TestCase{
-		Description: "Filter on indexed relation field in 1-N relations",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -601,21 +596,22 @@ func TestQueryWithIndexOnOneToMany_IfFilterOnIndexedRelation_ShouldFilterWithExp
 							"name": "Chris",
 							"devices": []map[string]any{
 								{
-									"model":        "Walkman",
-									"manufacturer": "Sony",
+									"model":        "Running Man",
+									"manufacturer": "Braveworld Productions",
 								},
 								{
 									"model":        "Walkman",
 									"manufacturer": "The Proclaimers",
 								},
 								{
-									"model":        "Running Man",
-									"manufacturer": "Braveworld Productions",
+									"model":        "Walkman",
+									"manufacturer": "Sony",
 								},
 							},
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 			testUtils.Request{
 				Request:  makeExplainQuery(req),
@@ -640,7 +636,6 @@ func TestQueryWithIndexOnOneToOne_IfFilterOnIndexedRelation_ShouldFilter(t *test
 		}
 	}`
 	test := testUtils.TestCase{
-		Description: "Filter on indexed relation field in 1-1 relation",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -695,7 +690,6 @@ func TestQueryWithIndexOnManyToOne_IfFilterOnIndexedField_ShouldFilterWithExplai
 		}
 	}`
 	test := testUtils.TestCase{
-		Description: "With filter on indexed field of secondary relation (N-1) should fetch secondary and primary objects",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -719,12 +713,6 @@ func TestQueryWithIndexOnManyToOne_IfFilterOnIndexedField_ShouldFilterWithExplai
 				Results: map[string]any{
 					"Device": []map[string]any{
 						{
-							"model": "Playstation 5",
-							"owner": map[string]any{
-								"name": "Addo",
-							},
-						},
-						{
 							"model": "iPhone 10",
 							"owner": map[string]any{
 								"name": "Addo",
@@ -736,8 +724,15 @@ func TestQueryWithIndexOnManyToOne_IfFilterOnIndexedField_ShouldFilterWithExplai
 								"name": "Islam",
 							},
 						},
+						{
+							"model": "Playstation 5",
+							"owner": map[string]any{
+								"name": "Addo",
+							},
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 			testUtils.Request{
 				Request: makeExplainQuery(req),
@@ -762,7 +757,6 @@ func TestQueryWithIndexOnManyToOne_IfFilterOnIndexedRelation_ShouldFilterWithExp
 		}
 	}`
 	test := testUtils.TestCase{
-		Description: "Upon querying secondary object with filter on indexed field of primary relation (in 1-N) should fetch all secondary objects of the same primary one",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -789,6 +783,7 @@ func TestQueryWithIndexOnManyToOne_IfFilterOnIndexedRelation_ShouldFilterWithExp
 						{"model": "iPhone 13"},
 					},
 				},
+				NonOrderedResults: true,
 			},
 			testUtils.Request{
 				Request: makeExplainQuery(req),
@@ -811,7 +806,6 @@ func TestQueryWithIndexOnOneToMany_IfIndexedRelationIsNil_NeNilFilterShouldUseIn
 		}
 	}`
 	test := testUtils.TestCase{
-		Description: "Filter on indexed relation field in 1-N relations",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -871,6 +865,7 @@ func TestQueryWithIndexOnOneToMany_IfIndexedRelationIsNil_NeNilFilterShouldUseIn
 						{"model": "iPhone"},
 					},
 				},
+				NonOrderedResults: true,
 			},
 			testUtils.Request{
 				Request: makeExplainQuery(req),
@@ -892,7 +887,6 @@ func TestQueryWithIndexOnOneToMany_IfIndexedRelationIsNil_EqNilFilterShouldUseIn
 		}
 	}`
 	test := testUtils.TestCase{
-		Description: "Filter on indexed relation field in 1-N relations",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `

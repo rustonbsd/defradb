@@ -73,13 +73,14 @@ func TestP2PDocument_AddSingle_ShouldSync(t *testing.T) {
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"name": "Fred",
+							"name": "Andy",
 						},
 						{
-							"name": "Andy",
+							"name": "Fred",
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 			testUtils.Request{
 				NodeID: immutable.Some(1),

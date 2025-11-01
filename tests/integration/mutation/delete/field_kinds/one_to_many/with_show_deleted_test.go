@@ -32,7 +32,6 @@ type Author {
 
 func TestDeletionOfADocumentUsingSingleDocIDWithShowDeletedDocumentQuery(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One to many delete document using single document id, show deleted.",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: schemas,
@@ -62,14 +61,14 @@ func TestDeletionOfADocumentUsingSingleDocIDWithShowDeletedDocumentQuery(t *test
 			},
 			testUtils.Request{
 				Request: `mutation {
-					delete_Book(docID: "bae-39db1d4b-72c0-5b7b-b6f2-c20870982128") {
+					delete_Book(docID: "bae-87bfb5a3-2e27-577d-9012-602b1b8a2cf9") {
 							_docID
 						}
 					}`,
 				Results: map[string]any{
 					"delete_Book": []map[string]any{
 						{
-							"_docID": "bae-39db1d4b-72c0-5b7b-b6f2-c20870982128",
+							"_docID": "bae-87bfb5a3-2e27-577d-9012-602b1b8a2cf9",
 						},
 					},
 				},
@@ -108,6 +107,7 @@ func TestDeletionOfADocumentUsingSingleDocIDWithShowDeletedDocumentQuery(t *test
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}

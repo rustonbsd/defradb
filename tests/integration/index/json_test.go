@@ -72,10 +72,11 @@ func TestJSONIndex_WithFilterOnNumberField_ShouldUseIndex(t *testing.T) {
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
-						{"name": "John"},
 						{"name": "Islam"},
+						{"name": "John"},
 					},
 				},
+				NonOrderedResults: true,
 			},
 			testUtils.Request{
 				Request:  makeExplainQuery(req),
@@ -492,8 +493,8 @@ func TestJSONIndex_WithEqFilterOnStringField_ShouldUseIndex(t *testing.T) {
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
-						{"name": "John"},
 						{"name": "Islam"},
+						{"name": "John"},
 					},
 				},
 			},
@@ -736,10 +737,11 @@ func TestJSONIndex_WithEqFilterOnBoolField_ShouldUseIndex(t *testing.T) {
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
-						{"name": "Islam"},
 						{"name": "John"},
+						{"name": "Islam"},
 					},
 				},
+				NonOrderedResults: true,
 			},
 			testUtils.Request{
 				Request:  makeExplainQuery(req),
@@ -808,10 +810,11 @@ func TestJSONIndex_WithNeFilterOnBoolField_ShouldUseIndex(t *testing.T) {
 					"User": []map[string]any{
 						{"name": "Bruno"},
 						{"name": "Keenan"},
-						{"name": "Islam"},
 						{"name": "John"},
+						{"name": "Islam"},
 					},
 				},
+				NonOrderedResults: true,
 			},
 			testUtils.Request{
 				Request:  makeExplainQuery(req),
@@ -878,8 +881,8 @@ func TestJSONIndex_WithEqFilterOnNullField_ShouldUseIndex(t *testing.T) {
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
-						{"name": "John"},
 						{"name": "Islam"},
+						{"name": "John"},
 					},
 				},
 			},
@@ -1069,8 +1072,8 @@ func TestJSONIndex_WithInFilter_ShouldUseIndex(t *testing.T) {
 				Results: map[string]any{
 					"User": []map[string]any{
 						{"name": "John"},
-						{"name": "Islam"},
 						{"name": "Fred"},
+						{"name": "Islam"},
 					},
 				},
 			},
@@ -1243,8 +1246,8 @@ func TestJSONIndex_WithNotAndInFilter_ShouldNotUseIndex(t *testing.T) {
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
-						{"name": "Shahzad"},
 						{"name": "Keenan"},
+						{"name": "Shahzad"},
 					},
 				},
 			},

@@ -19,7 +19,6 @@ import (
 
 func TestMutationUpdate_WithId(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple update mutation with document id",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -30,7 +29,7 @@ func TestMutationUpdate_WithId(t *testing.T) {
 				`,
 			},
 			testUtils.CreateDoc{
-				// bae-0289c22a-aec7-5b59-adfc-60968698fcdf
+				// bae-9466cfe3-c011-5d44-b1cd-f0c5a46d9202
 				Doc: `{
 					"name": "John",
 					"points": 42.1
@@ -44,7 +43,7 @@ func TestMutationUpdate_WithId(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `mutation {
-					update_Users(docID: "bae-0289c22a-aec7-5b59-adfc-60968698fcdf", input: {points: 59}) {
+					update_Users(docID: "bae-9466cfe3-c011-5d44-b1cd-f0c5a46d9202", input: {points: 59}) {
 						name
 						points
 					}
@@ -66,7 +65,6 @@ func TestMutationUpdate_WithId(t *testing.T) {
 
 func TestMutationUpdate_WithNonExistantId(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple update mutation with non existant document id",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -77,7 +75,7 @@ func TestMutationUpdate_WithNonExistantId(t *testing.T) {
 				`,
 			},
 			testUtils.CreateDoc{
-				// bae-0289c22a-aec7-5b59-adfc-60968698fcdf
+				// bae-9466cfe3-c011-5d44-b1cd-f0c5a46d9202
 				Doc: `{
 					"name": "John",
 					"points": 42.1

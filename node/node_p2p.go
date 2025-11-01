@@ -17,50 +17,29 @@ package node
 import (
 	"context"
 
+	"github.com/sourcenetwork/corekv"
+	"github.com/sourcenetwork/go-p2p"
+	"github.com/sourcenetwork/immutable"
+
 	"github.com/sourcenetwork/defradb/internal/datastore"
 	"github.com/sourcenetwork/defradb/internal/db"
-	"github.com/sourcenetwork/defradb/internal/kms"
-	"github.com/sourcenetwork/defradb/net"
-	netConfig "github.com/sourcenetwork/defradb/net/config"
 )
 
-func (n *Node) startP2P(ctx context.Context) error {
+func (n *Node) startP2P(ctx context.Context, store corekv.ReaderWriter, chunkSize immutable.Option[int]) error {
 	if n.config.disableP2P {
 		return nil
 	}
-	peer, err := net.NewPeer(
+
+	n.options = append(n.options, p2p.WithBlockstore(datastore.P2PBlockstoreFrom(store, chunkSize)))
+
+	peer, err := p2p.NewPeer(
 		ctx,
-		n.DB.Events(),
-		n.DB.DocumentACP(),
-		n.DB,
-		filterOptions[netConfig.NodeOpt](n.options)...,
+		filterOptions[p2p.NodeOpt](n.options)...,
 	)
 	if err != nil {
 		return err
 	}
-	n.Peer = peer
-
-	ident, err := n.DB.GetNodeIdentity(ctx)
-	if err != nil {
-		return err
-	}
-	if n.config.kmsType.HasValue() {
-		switch n.config.kmsType.Value() {
-		case kms.PubSubServiceType:
-			n.kmsService, err = kms.NewPubSubService(
-				ctx,
-				peer.PeerID(),
-				peer.Server(),
-				n.DB.Events(),
-				datastore.EncstoreFrom(n.DB.Rootstore()),
-				n.DB.DocumentACP(),
-				db.NewCollectionRetriever(n.DB),
-				ident.Value().DID,
-			)
-		}
-		if err != nil {
-			return err
-		}
-	}
+	n.options = append(n.options, db.WithP2P(peer))
+	n.peer = peer
 	return nil
 }

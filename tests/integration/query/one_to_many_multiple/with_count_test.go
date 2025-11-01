@@ -19,7 +19,6 @@ import (
 
 func TestQueryOneToManyMultipleWithCount(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-many relation query from many side with count",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -119,17 +118,18 @@ func TestQueryOneToManyMultipleWithCount(t *testing.T) {
 				Results: map[string]any{
 					"Author": []map[string]any{
 						{
-							"name":             "Cornelia Funke",
-							"numberOfBooks":    1,
-							"numberOfArticles": 2,
-						},
-						{
 							"name":             "John Grisham",
 							"numberOfBooks":    2,
 							"numberOfArticles": 1,
 						},
+						{
+							"name":             "Cornelia Funke",
+							"numberOfBooks":    1,
+							"numberOfArticles": 2,
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -139,7 +139,6 @@ func TestQueryOneToManyMultipleWithCount(t *testing.T) {
 
 func TestQueryOneToManyMultipleWithCountOnMultipleJoins(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-many relation query from many side with count",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -246,15 +245,16 @@ func TestQueryOneToManyMultipleWithCountOnMultipleJoins(t *testing.T) {
 				Results: map[string]any{
 					"Author": []map[string]any{
 						{
-							"name":   "Cornelia Funke",
-							"_count": 3,
-						},
-						{
 							"name":   "John Grisham",
 							"_count": 4,
 						},
+						{
+							"name":   "Cornelia Funke",
+							"_count": 3,
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}

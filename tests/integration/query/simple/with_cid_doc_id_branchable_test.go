@@ -47,8 +47,8 @@ func TestQuerySimpleWithCidOfBranchableCollectionAndDocID(t *testing.T) {
 				// Without the docID param both John and Fred should be returned.
 				Request: `query {
 					Users (
-							cid: "bafyreiboen2mw2unu4fty2pyyd5nicqi57vcdahrrag6bjm54md5myj54u",
-							docID: "bae-3a7df128-bfa9-559a-a9c5-96f2bf6d1038"
+							cid: "bafyreicbmj4ph5cjdn65ugobaqzwrwdcqkf2qqsdfimxdhvc2ceemfkdkq",
+							docID: "bae-235c64e3-abf7-549c-9aff-971c8afdfa3f"
 						) {
 						name
 					}

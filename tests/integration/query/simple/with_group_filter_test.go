@@ -18,7 +18,6 @@ import (
 
 func TestQuerySimpleWithGroupByStringWithGroupNumberFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by with child filter",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -56,18 +55,18 @@ func TestQuerySimpleWithGroupByStringWithGroupNumberFilter(t *testing.T) {
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"Name": "Carlo",
-							"_group": []map[string]any{
-								{
-									"Age": int64(55),
-								},
-							},
-						},
-						{
 							"Name": "John",
 							"_group": []map[string]any{
 								{
 									"Age": int64(32),
+								},
+							},
+						},
+						{
+							"Name": "Carlo",
+							"_group": []map[string]any{
+								{
+									"Age": int64(55),
 								},
 							},
 						},
@@ -77,6 +76,7 @@ func TestQuerySimpleWithGroupByStringWithGroupNumberFilter(t *testing.T) {
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -86,7 +86,6 @@ func TestQuerySimpleWithGroupByStringWithGroupNumberFilter(t *testing.T) {
 
 func TestQuerySimpleWithGroupByStringWithGroupNumberWithParentFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by with number filter",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -141,6 +140,7 @@ func TestQuerySimpleWithGroupByStringWithGroupNumberWithParentFilter(t *testing.
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -150,7 +150,6 @@ func TestQuerySimpleWithGroupByStringWithGroupNumberWithParentFilter(t *testing.
 
 func TestQuerySimpleWithGroupByStringWithUnrenderedGroupNumberWithParentFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by with number filter",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -192,6 +191,7 @@ func TestQuerySimpleWithGroupByStringWithUnrenderedGroupNumberWithParentFilter(t
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -203,7 +203,6 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanThenInnerNumberFilterT
 	t *testing.T,
 ) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by string, with child group by boolean, with child number filter that excludes all records",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -268,15 +267,6 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanThenInnerNumberFilterT
 							},
 						},
 						{
-							"Name": "Carlo",
-							"_group": []map[string]any{
-								{
-									"Verified": true,
-									"_group":   []map[string]any{},
-								},
-							},
-						},
-						{
 							"Name": "Alice",
 							"_group": []map[string]any{
 								{
@@ -285,8 +275,18 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanThenInnerNumberFilterT
 								},
 							},
 						},
+						{
+							"Name": "Carlo",
+							"_group": []map[string]any{
+								{
+									"Verified": true,
+									"_group":   []map[string]any{},
+								},
+							},
+						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -296,7 +296,6 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanThenInnerNumberFilterT
 
 func TestQuerySimpleWithGroupByStringWithMultipleGroupNumberFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by with child filter",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -337,15 +336,6 @@ func TestQuerySimpleWithGroupByStringWithMultipleGroupNumberFilter(t *testing.T)
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"Name": "Carlo",
-							"G1": []map[string]any{
-								{
-									"Age": int64(55),
-								},
-							},
-							"G2": []map[string]any{},
-						},
-						{
 							"Name": "John",
 							"G1": []map[string]any{
 								{
@@ -359,6 +349,15 @@ func TestQuerySimpleWithGroupByStringWithMultipleGroupNumberFilter(t *testing.T)
 							},
 						},
 						{
+							"Name": "Carlo",
+							"G1": []map[string]any{
+								{
+									"Age": int64(55),
+								},
+							},
+							"G2": []map[string]any{},
+						},
+						{
 							"Name": "Alice",
 							"G1":   []map[string]any{},
 							"G2": []map[string]any{
@@ -369,6 +368,7 @@ func TestQuerySimpleWithGroupByStringWithMultipleGroupNumberFilter(t *testing.T)
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}

@@ -8,25 +8,30 @@ Patch existing collection versions.
 
 Uses JSON Patch to modify collection versions.
 
-Example: patch from an argument string:
-  defradb client collection patch '[{ "op": "add", "path": "...", "value": {...} }]'
-
-Example: patch from file:
-  defradb client collection patch -p patch.json
-
-Example: patch from stdin:
-  cat patch.json | defradb client collection patch -
-
 To learn more about the DefraDB GraphQL Schema Language, refer to https://docs.source.network.
 
 ```
-defradb client collection patch [patch] [flags]
+defradb client collection patch [patch] [migration] [flags]
+```
+
+### Examples
+
+```
+patch from an argument string:  
+  defradb client collection patch '[{ "op": "add", "path": "...", "value": {...} }]' '{"lenses": [...'
+
+patch from file:  
+  defradb client collection patch -p patch.json
+
+patch from stdin:  
+  cat patch.json | defradb client collection patch -
 ```
 
 ### Options
 
 ```
   -h, --help                help for patch
+  -t, --lens-file string    File to load a lens config from
   -p, --patch-file string   File to load a patch from
 ```
 

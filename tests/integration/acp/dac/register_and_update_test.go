@@ -26,8 +26,6 @@ func TestACP_CreateWithoutIdentityAndUpdateWithoutIdentity_CanUpdate(t *testing.
 
 	test := testUtils.TestCase{
 
-		Description: "Test acp, create without identity, and update without identity, can update",
-
 		Actions: []any{
 			testUtils.AddDACPolicy{
 
@@ -114,7 +112,7 @@ func TestACP_CreateWithoutIdentityAndUpdateWithoutIdentity_CanUpdate(t *testing.
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad Lone",
 							"age":    int64(28),
 						},
@@ -134,8 +132,6 @@ func TestACP_CreateWithoutIdentityAndUpdateWithIdentity_CanUpdate(t *testing.T) 
 
 	test := testUtils.TestCase{
 
-		Description: "Test acp, create without identity, and update with identity, can update",
-
 		Actions: []any{
 			testUtils.AddDACPolicy{
 
@@ -223,7 +219,7 @@ func TestACP_CreateWithoutIdentityAndUpdateWithIdentity_CanUpdate(t *testing.T) 
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad Lone",
 							"age":    int64(28),
 						},
@@ -239,8 +235,6 @@ func TestACP_CreateWithoutIdentityAndUpdateWithIdentity_CanUpdate(t *testing.T) 
 func TestACP_CreateWithIdentityAndUpdateWithIdentity_CanUpdate(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Test acp, create with identity, and update with identity, can update",
-
 		Actions: []any{
 			testUtils.AddDACPolicy{
 
@@ -332,7 +326,7 @@ func TestACP_CreateWithIdentityAndUpdateWithIdentity_CanUpdate(t *testing.T) {
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad Lone",
 							"age":    int64(28),
 						},
@@ -347,8 +341,6 @@ func TestACP_CreateWithIdentityAndUpdateWithIdentity_CanUpdate(t *testing.T) {
 
 func TestACP_CreateWithIdentityAndUpdateWithoutIdentity_CanNotUpdate(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, create with identity, and update without identity, can not update",
 
 		SupportedMutationTypes: immutable.Some([]testUtils.MutationType{
 			// GQL mutation will return no error when wrong identity is used so test that separately.
@@ -447,7 +439,7 @@ func TestACP_CreateWithIdentityAndUpdateWithoutIdentity_CanNotUpdate(t *testing.
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},
@@ -462,8 +454,6 @@ func TestACP_CreateWithIdentityAndUpdateWithoutIdentity_CanNotUpdate(t *testing.
 
 func TestACP_CreateWithIdentityAndUpdateWithWrongIdentity_CanNotUpdate(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, create with identity, and update without identity, can not update",
 
 		SupportedMutationTypes: immutable.Some([]testUtils.MutationType{
 			// GQL mutation will return no error when wrong identity is used so test that separately.
@@ -564,7 +554,7 @@ func TestACP_CreateWithIdentityAndUpdateWithWrongIdentity_CanNotUpdate(t *testin
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},
@@ -582,8 +572,6 @@ func TestACP_CreateWithIdentityAndUpdateWithWrongIdentity_CanNotUpdate(t *testin
 func TestACP_CreateWithIdentityAndUpdateWithoutIdentityGQL_CanNotUpdate(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Test acp, create with identity, and update without identity (gql), can not update",
-
 		SupportedMutationTypes: immutable.Some([]testUtils.MutationType{
 			// GQL mutation will return no error when wrong identity is used so test that separately.
 			testUtils.GQLRequestMutationType,
@@ -680,7 +668,7 @@ func TestACP_CreateWithIdentityAndUpdateWithoutIdentityGQL_CanNotUpdate(t *testi
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},
@@ -697,8 +685,6 @@ func TestACP_CreateWithIdentityAndUpdateWithoutIdentityGQL_CanNotUpdate(t *testi
 // to behave the same in: https://github.com/sourcenetwork/defradb/issues/2410
 func TestACP_CreateWithIdentityAndUpdateWithWrongIdentityGQL_CanNotUpdate(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, create with identity, and update without identity (gql), can not update",
 
 		SupportedMutationTypes: immutable.Some([]testUtils.MutationType{
 			// GQL mutation will return no error when wrong identity is used so test that separately.
@@ -798,7 +784,7 @@ func TestACP_CreateWithIdentityAndUpdateWithWrongIdentityGQL_CanNotUpdate(t *tes
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},

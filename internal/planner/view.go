@@ -28,21 +28,15 @@ type viewNode struct {
 	p      *Planner
 	desc   client.CollectionVersion
 	source planNode
-
-	// This is cached as a boolean to save rediscovering this in the main Next/Value iteration loop
-	hasTransform bool
 }
 
 func (p *Planner) View(query *mapper.Select, col client.Collection) (planNode, error) {
-	// For now, we assume a single source.  This will need to change if/when we support multiple sources
-	querySource := (col.Version().Sources[0].(*client.QuerySource))
-	hasTransform := querySource.Transform.HasValue()
-
 	var source planNode
 	if col.Version().IsMaterialized {
-		source = p.newCachedViewFetcher(col.Definition(), query.DocumentMapping)
+		source = p.newCachedViewFetcher(col.Version(), query.DocumentMapping)
 	} else {
-		m, err := mapper.ToSelect(p.ctx, p.db, mapper.ObjectSelection, &querySource.Query)
+		viewQuery := col.Version().Query.Value().Query
+		m, err := mapper.ToSelect(p.ctx, p.db, mapper.ObjectSelection, &viewQuery)
 		if err != nil {
 			return nil, err
 		}
@@ -52,17 +46,16 @@ func (p *Planner) View(query *mapper.Select, col client.Collection) (planNode, e
 			return nil, err
 		}
 
-		if hasTransform {
+		if col.Version().Query.Value().Transform.HasValue() {
 			source = p.Lens(source, query.DocumentMapping, col)
 		}
 	}
 
 	viewNode := &viewNode{
-		p:            p,
-		desc:         col.Version(),
-		source:       source,
-		docMapper:    docMapper{query.DocumentMapping},
-		hasTransform: hasTransform,
+		p:         p,
+		desc:      col.Version(),
+		source:    source,
+		docMapper: docMapper{query.DocumentMapping},
 	}
 
 	return viewNode, nil
@@ -86,7 +79,7 @@ func (n *viewNode) Next() (bool, error) {
 
 func (n *viewNode) Value() core.Doc {
 	// The source mapping will differ from this node's (request) mapping if either a Lens transform is
-	// involved, if the the view is materialized, or if any kind of operation is performed on the result
+	// involved, if the view is materialized, or if any kind of operation is performed on the result
 	// of the query (such as a filter or aggregate in the user-request), so we must convert the returned
 	// documents to the request mapping
 	return convertBetweenMaps(n.source.DocumentMap(), n.documentMapping, n.source.Value())
@@ -174,7 +167,7 @@ type cachedViewFetcher struct {
 	docMapper
 	documentIterator
 
-	def client.CollectionDefinition
+	def client.CollectionVersion
 	p   *Planner
 
 	queryResults corekv.Iterator
@@ -183,7 +176,7 @@ type cachedViewFetcher struct {
 var _ planNode = (*cachedViewFetcher)(nil)
 
 func (p *Planner) newCachedViewFetcher(
-	def client.CollectionDefinition,
+	def client.CollectionVersion,
 	mapping *core.DocumentMapping,
 ) *cachedViewFetcher {
 	return &cachedViewFetcher{
@@ -202,7 +195,7 @@ func (n *cachedViewFetcher) Init() error {
 		n.queryResults = nil
 	}
 
-	shortID, err := id.GetShortCollectionID(n.p.ctx, n.def.Version.CollectionID)
+	shortID, err := id.GetShortCollectionID(n.p.ctx, n.def.CollectionID)
 	if err != nil {
 		return err
 	}

@@ -20,7 +20,6 @@ import (
 // func by targeting a specific docID in the parent select.
 func TestQueryInlineNillableFloatArray_WithDocIDAndMin_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple inline array with doc id, min of nillable float array",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -30,7 +29,7 @@ func TestQueryInlineNillableFloatArray_WithDocIDAndMin_Succeeds(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `query {
-					Users(docID: "bae-3f7e0f22-e253-53dd-b31b-df8b081292d9") {
+					Users(docID: "bae-234d84a8-37f9-57ea-9c53-34c247f3b272") {
 						name
 						_min(pageRatings: {})
 					}

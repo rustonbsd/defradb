@@ -15,13 +15,11 @@ import (
 
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
-	schemaUtils "github.com/sourcenetwork/defradb/tests/integration/schema"
+	schemaUtils "github.com/sourcenetwork/defradb/tests/integration/collection_version"
 )
 
 func TestACP_LinkSchema_WithMultipleResources_AcceptSchema(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, link schema, with multiple resources, schema accepted",
 
 		Actions: []any{
 
@@ -128,8 +126,6 @@ func TestACP_LinkSchema_WithMultipleResources_AcceptSchema(t *testing.T) {
 
 func TestACP_LinkSchema_WithMultipleResourcesBothBeingUsed_AcceptSchema(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, link schema, with multiple resources both being used, schemas accepted",
 
 		Actions: []any{
 

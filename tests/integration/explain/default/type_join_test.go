@@ -35,8 +35,6 @@ var normalTypeJoinPattern = dataMap{
 func TestDefaultExplainRequestWith2SingleJoinsAnd1ManyJoin(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Explain (default) request with 2 single joins and 1 many join.",
-
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
@@ -103,7 +101,7 @@ func TestDefaultExplainRequestWith2SingleJoinsAnd1ManyJoin(t *testing.T) {
 						ExpectedAttributes: dataMap{
 							"scanNode": dataMap{
 								"filter":         nil,
-								"collectionID":   "bafkreig3ohatunyfbhmfgkvs5u7tn36dhaqfufajt5h47s6hi56cw2xm4a",
+								"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
 								"collectionName": "Author",
 								"prefixes": []string{
 									"/3",
@@ -124,7 +122,7 @@ func TestDefaultExplainRequestWith2SingleJoinsAnd1ManyJoin(t *testing.T) {
 									"filter": nil,
 									"scanNode": dataMap{
 										"filter":         nil,
-										"collectionID":   "bafkreid5ciigzzwckygf4jskcvr2mkam45p6xpaszii3nycqwsz2fxmqn4",
+										"collectionID":   "bafyreih7hbb4bi6nlnamq3aqqcqffwqkyawh6slhy7hilwnagorygkmpi4",
 										"collectionName": "AuthorContact",
 										"prefixes": []string{
 											"/4",
@@ -155,7 +153,7 @@ func TestDefaultExplainRequestWith2SingleJoinsAnd1ManyJoin(t *testing.T) {
 						ExpectedAttributes: dataMap{
 							"scanNode": dataMap{
 								"filter":         nil,
-								"collectionID":   "bafkreig3ohatunyfbhmfgkvs5u7tn36dhaqfufajt5h47s6hi56cw2xm4a",
+								"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
 								"collectionName": "Author",
 								"prefixes": []string{
 									"/3",
@@ -176,7 +174,7 @@ func TestDefaultExplainRequestWith2SingleJoinsAnd1ManyJoin(t *testing.T) {
 									"filter": nil,
 									"scanNode": dataMap{
 										"filter":         nil,
-										"collectionID":   "bafkreihlfvtpy72o354ig4qqvyfeh2gelyijemw2brtfyq6cwuglaro5ba",
+										"collectionID":   "bafyreiboye46wpmcj5zscmsgysiguun5goojvqpo2gtp7q6xzedg5osveu",
 										"collectionName": "Article",
 										"prefixes": []string{
 											"/1",
@@ -208,7 +206,7 @@ func TestDefaultExplainRequestWith2SingleJoinsAnd1ManyJoin(t *testing.T) {
 						IncludeChildNodes: true, // Shouldn't have any.
 						ExpectedAttributes: dataMap{
 							"filter":         nil,
-							"collectionID":   "bafkreig3ohatunyfbhmfgkvs5u7tn36dhaqfufajt5h47s6hi56cw2xm4a",
+							"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
 							"collectionName": "Author",
 							"prefixes": []string{
 								"/3",
@@ -223,7 +221,7 @@ func TestDefaultExplainRequestWith2SingleJoinsAnd1ManyJoin(t *testing.T) {
 						IncludeChildNodes: true, // Shouldn't have any.
 						ExpectedAttributes: dataMap{
 							"filter":         nil,
-							"collectionID":   "bafkreid5ciigzzwckygf4jskcvr2mkam45p6xpaszii3nycqwsz2fxmqn4",
+							"collectionID":   "bafyreih7hbb4bi6nlnamq3aqqcqffwqkyawh6slhy7hilwnagorygkmpi4",
 							"collectionName": "AuthorContact",
 							"prefixes": []string{
 								"/4",

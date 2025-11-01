@@ -45,7 +45,7 @@ func TestQuerySimpleWithCidOfBranchableCollection_FirstCid(t *testing.T) {
 			testUtils.Request{
 				Request: `query {
 					Users (
-							cid: "bafyreiewwsnu2ld5qlntamdm77ayb7xtmxz3p5difvaaakaome7zbtpo4u"
+							cid: "bafyreicbmj4ph5cjdn65ugobaqzwrwdcqkf2qqsdfimxdhvc2ceemfkdkq"
 						) {
 						name
 					}
@@ -92,7 +92,7 @@ func TestQuerySimpleWithCidOfBranchableCollection_MiddleCid(t *testing.T) {
 			testUtils.Request{
 				Request: `query {
 					Users (
-							cid: "bafyreifpamlyhcbriztgbhds5ctgi5rm6w5wcar2py7246lo6j5v7iusxm"
+							cid: "bafyreidnibv7dlr3flwicfjybi6vguzhotendq73lws5xkeqro6jbhdyq4"
 						) {
 						name
 					}
@@ -139,7 +139,7 @@ func TestQuerySimpleWithCidOfBranchableCollection_LastCid(t *testing.T) {
 			testUtils.Request{
 				Request: `query {
 					Users (
-							cid: "bafyreigmt6ytph32jjxts2bij7fkne5ntionldsnklp35vcamvvl2x3a5i"
+							cid: "bafyreiaxocl4etnz52ojlt4vcfq3wyfsqr35atf5zilp2n324xxsiuobyu"
 						) {
 						name
 					}
@@ -147,13 +147,14 @@ func TestQuerySimpleWithCidOfBranchableCollection_LastCid(t *testing.T) {
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"name": "Freddddd",
+							"name": "John",
 						},
 						{
-							"name": "John",
+							"name": "Freddddd",
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}

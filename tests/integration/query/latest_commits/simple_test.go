@@ -20,7 +20,6 @@ import (
 // desired behaviour (should return all latest commits).
 func TestQueryLatestCommits(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple latest commits query",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -30,7 +29,7 @@ func TestQueryLatestCommits(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `query {
-					latestCommits {
+					_latestCommits {
 						cid
 						links {
 							cid
@@ -38,7 +37,7 @@ func TestQueryLatestCommits(t *testing.T) {
 						}
 					}
 				}`,
-				ExpectedError: "Field \"latestCommits\" argument \"docID\" of type \"ID!\" is required but not provided.",
+				ExpectedError: "Field \"_latestCommits\" argument \"docID\" of type \"ID!\" is required but not provided.",
 			},
 		},
 	}

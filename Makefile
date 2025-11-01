@@ -68,13 +68,12 @@ endif
 TEST_FLAGS=-race -shuffle=on -timeout 10m
 
 JS_TEST_DIRS=./tests/integration/... ./event/... ./node/...
-JS_TEST_FLAGS=-exec="$$(go env GOROOT)/misc/wasm/go_js_wasm_exec" -shuffle=on -timeout 10m
+JS_TEST_FLAGS=-exec="$$(go env GOROOT)/lib/wasm/go_js_wasm_exec" -shuffle=on -timeout 10m
 
 COVERAGE_DIRECTORY=$(PWD)/coverage
 COVERAGE_FILE=coverage.txt
 COVERAGE_FLAGS=-covermode=atomic -coverpkg=./... -args -test.gocoverdir=$(COVERAGE_DIRECTORY)
 
-PLAYGROUND_DIRECTORY=playground
 CHANGE_DETECTOR_TEST_DIRECTORY=tests/change_detector
 DEFAULT_TEST_DIRECTORIES=./...
 
@@ -127,7 +126,7 @@ client\:add-schema:
 
 .PHONY: deps\:lint-go
 deps\:lint-go:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.3
 
 .PHONY: deps\:lint-yaml
 deps\:lint-yaml:
@@ -167,11 +166,11 @@ deps\:modules:
 
 .PHONY: deps\:mocks
 deps\:mocks:
-	go install github.com/vektra/mockery/v3@v3.2
+	go install github.com/vektra/mockery/v3@v3.5.2
 
 .PHONY: deps\:playground
 deps\:playground:
-	cd $(PLAYGROUND_DIRECTORY) && npm install --legacy-peer-deps && npm run build
+	go generate -tags playground ./playground/...
 
 .PHONY: deps\:ollama
 deps\:ollama:
@@ -195,7 +194,8 @@ deps:
 
 .PHONY: mocks
 mocks:
-	@$(MAKE) deps:mocks
+	@$(MAKE) deps:mocks && \
+	find . -type d -name "mocks" -exec rm -r {} + && \
 	mockery --config="tools/configs/mockery.yaml"
 
 .PHONY: ollama
@@ -380,12 +380,13 @@ validate\:circleci:
 
 .PHONY: lint
 lint:
-	golangci-lint run --config tools/configs/golangci.yaml
+	golangci-lint config verify --config=tools/configs/golangci.yaml
+	golangci-lint run --config=tools/configs/golangci.yaml
 	yamllint -c tools/configs/yamllint.yaml .
 
 .PHONY: lint\:fix
 lint\:fix:
-	golangci-lint run --config tools/configs/golangci.yaml --fix
+	golangci-lint run --config=tools/configs/golangci.yaml --fix
 
 .PHONY: lint\:todo
 lint\:todo:
@@ -393,7 +394,7 @@ lint\:todo:
 
 .PHONY: lint\:list
 lint\:list:
-	golangci-lint linters --config tools/configs/golangci.yaml
+	golangci-lint linters --config=tools/configs/golangci.yaml
 
 .PHONY: chglog
 chglog:
@@ -427,7 +428,6 @@ docs\:godoc:
 .PHONY: toc
 toc:
 	bash tools/scripts/md-toc/gh-md-toc --insert --no-backup --hide-footer --skip-header README.md
-	bash tools/scripts/md-toc/gh-md-toc --insert --no-backup --hide-footer --skip-header playground/README.md
 
 .PHONY: fix
 fix:
@@ -436,11 +436,17 @@ fix:
 	@$(MAKE) tidy
 	@$(MAKE) mocks
 	@$(MAKE) docs
-	
+
+.PHONY build-c-shared-linux:	
 build-c-shared-linux:
-	@echo "Building c-shared library for Linux..."
-	@rm -f build/libdefradb.so build/libdefradb.h
-	@CGO_ENABLED=1 GOARCH=amd64 GOOS=linux go build -tags cshared $(BUILD_FLAGS) \
-		-buildmode=c-shared -o build/libdefradb.so ./cbindings/bridge
-	@cp ./cbindings/bridge/defra_structs.h ./build/
-	@echo "Build complete: build/libdefradb.so"
+	@tools/scripts/build-c-shared-linux.sh $(BUILD_FLAGS)
+
+# Usage: API_LEVEL will be the Android SDK.API level targeted by the build. 
+# For more information, see: https://apilevels.com/
+# The minimum supported API level is 21, which is the default.
+# 
+# ANDROID_NDK should be the path to the installed Android NDK on your system
+API_LEVEL ?= 21
+.PHONY: build-c-shared-android
+build-c-shared-android:
+	@tools/scripts/build-c-shared-android.sh $(ANDROID_NDK) $(API_LEVEL) "$(BUILD_FLAGS)"

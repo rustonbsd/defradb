@@ -22,8 +22,6 @@ import (
 func TestACP_ManagerGivesReadAccessToAnotherActor_OtherActorCanRead(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Test acp, owner gives read access to another actor",
-
 		Actions: []any{
 			testUtils.AddDACPolicy{
 
@@ -168,7 +166,7 @@ func TestACP_ManagerGivesReadAccessToAnotherActor_OtherActorCanRead(t *testing.T
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},
@@ -209,8 +207,6 @@ func TestACP_ManagerGivesReadAccessToAnotherActor_OtherActorCanRead(t *testing.T
 
 func TestACP_ManagerGivesWriteAccessToAnotherActor_OtherActorCanWrite(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, owner gives write (update and delete) access to another actor",
 
 		Actions: []any{
 			testUtils.AddDACPolicy{
@@ -371,7 +367,7 @@ func TestACP_ManagerGivesWriteAccessToAnotherActor_OtherActorCanWrite(t *testing
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad Lone", // Updated name
 							"age":    int64(28),
 						},
@@ -426,8 +422,6 @@ func TestACP_ManagerGivesWriteAccessToAnotherActor_OtherActorCanWrite(t *testing
 
 func TestACP_OwnerMakesAManagerThatGivesItSelfReadAccess_ManagerCanRead(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, owner makes a manager that gives itself read access",
 
 		Actions: []any{
 			testUtils.AddDACPolicy{
@@ -573,7 +567,7 @@ func TestACP_OwnerMakesAManagerThatGivesItSelfReadAccess_ManagerCanRead(t *testi
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},
@@ -614,8 +608,6 @@ func TestACP_OwnerMakesAManagerThatGivesItSelfReadAccess_ManagerCanRead(t *testi
 
 func TestACP_OwnerMakesAManagerThatGivesItSelfReadAndWriteAccess_ManagerCanReadAndWrite(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, owner makes a manager that gives itself read and write (update and delete) access",
 
 		SupportedMutationTypes: immutable.Some(
 			[]testUtils.MutationType{
@@ -825,7 +817,7 @@ func TestACP_OwnerMakesAManagerThatGivesItSelfReadAndWriteAccess_ManagerCanReadA
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad Lone",
 							"age":    int64(28),
 						},
@@ -890,8 +882,6 @@ func TestACP_OwnerMakesAManagerThatGivesItSelfReadAndWriteAccess_ManagerCanReadA
 
 func TestACP_ManagerAddsRelationshipWithRelationItDoesNotManageAccordingToPolicy_Error(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, manager adds relationship with relation it does not manage according to policy, error",
 
 		SupportedMutationTypes: immutable.Some(
 			[]testUtils.MutationType{
@@ -1076,8 +1066,6 @@ func TestACP_ManagerAddsRelationshipWithRelationItDoesNotManageAccordingToPolicy
 func TestACP_OwnerMakesManagerButManagerCanNotPerformOperations_ManagerCantReadOrWrite(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Test acp, owner makes a manager, manager can't read or write (update or delete)",
-
 		SupportedMutationTypes: immutable.Some(
 			[]testUtils.MutationType{
 				// GQL mutation will return no error when wrong identity is used with gql (only for update requests),
@@ -1246,8 +1234,6 @@ func TestACP_OwnerMakesManagerButManagerCanNotPerformOperations_ManagerCantReadO
 
 func TestACP_CantMakeRelationshipIfNotOwnerOrManager_Error(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, cant make relation if identity doesn't own or manage object, return error",
 
 		Actions: []any{
 			testUtils.AddDACPolicy{

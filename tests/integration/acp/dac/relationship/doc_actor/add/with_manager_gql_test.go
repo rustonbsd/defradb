@@ -22,8 +22,6 @@ import (
 func TestACP_OwnerMakesAManagerThatGivesItSelfReadAndWriteAccess_GQL_ManagerCanReadAndWrite(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Test acp, owner makes a manager that gives itself read and write (update and delete) access",
-
 		SupportedMutationTypes: immutable.Some(
 			[]testUtils.MutationType{
 				// GQL mutation will return no error when wrong identity is used (only for update requests),
@@ -223,7 +221,6 @@ func TestACP_OwnerMakesAManagerThatGivesItSelfReadAndWriteAccess_GQL_ManagerCanR
 				Request: `
 					query {
 						Users {
-							_docID
 							name
 							age
 						}
@@ -233,9 +230,8 @@ func TestACP_OwnerMakesAManagerThatGivesItSelfReadAndWriteAccess_GQL_ManagerCanR
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
-							"name":   "Shahzad Lone",
-							"age":    int64(28),
+							"name": "Shahzad Lone",
+							"age":  int64(28),
 						},
 					},
 				},
@@ -298,8 +294,6 @@ func TestACP_OwnerMakesAManagerThatGivesItSelfReadAndWriteAccess_GQL_ManagerCanR
 
 func TestACP_OwnerMakesManagerButManagerCanNotPerformOperations_GQL_ManagerCantReadOrWrite(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, owner makes a manager, manager can't read or write (update or delete)",
 
 		SupportedMutationTypes: immutable.Some(
 			[]testUtils.MutationType{
@@ -470,8 +464,6 @@ func TestACP_OwnerMakesManagerButManagerCanNotPerformOperations_GQL_ManagerCantR
 
 func TestACP_ManagerAddsRelationshipWithRelationItDoesNotManageAccordingToPolicy_GQL_Error(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, manager adds relationship with relation it does not manage according to policy, error",
 
 		SupportedMutationTypes: immutable.Some(
 			[]testUtils.MutationType{

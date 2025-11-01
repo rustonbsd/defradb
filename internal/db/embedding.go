@@ -71,7 +71,7 @@ func (c *collection) setEmbedding(ctx context.Context, doc *client.Document, isC
 		}
 		fieldsVal := make(map[string]client.NormalValue)
 		needsGeneration := false
-		missingFieldsForGeneration := []client.FieldDefinition{}
+		missingFieldsForGeneration := []client.CollectionFieldDescription{}
 
 		// Get the new values of the fields used for embedding generation. We keep track
 		// of the fields that aren't defined to lookup their previous values later.
@@ -122,7 +122,10 @@ func (c *collection) setEmbedding(ctx context.Context, doc *client.Document, isC
 		var text strings.Builder
 		for _, fieldName := range embedding.Fields {
 			if val, ok := fieldsVal[fieldName]; ok {
-				text.WriteString(fmt.Sprintf("%v\n", val.Unwrap()))
+				_, err := text.WriteString(fmt.Sprintf("%v\n", val.Unwrap()))
+				if err != nil {
+					return err
+				}
 			}
 		}
 		embeddingVec, err := embeddingFunc(ctx, text.String())

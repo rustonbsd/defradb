@@ -24,31 +24,23 @@ var _ client.Collection = (*Collection)(nil)
 
 type Collection struct {
 	cmd *cliWrapper
-	def client.CollectionDefinition
+	def client.CollectionVersion
 }
 
 func (c *Collection) Version() client.CollectionVersion {
-	return c.def.Version
+	return c.def
 }
 
 func (c *Collection) Name() string {
 	return c.Version().Name
 }
 
-func (c *Collection) Schema() client.SchemaDescription {
-	return c.def.Schema
-}
-
 func (c *Collection) VersionID() string {
 	return c.Version().VersionID
 }
 
-func (c *Collection) SchemaRoot() string {
-	return c.Schema().Root
-}
-
-func (c *Collection) Definition() client.CollectionDefinition {
-	return c.def
+func (c *Collection) CollectionID() string {
+	return c.Version().CollectionID
 }
 
 func (c *Collection) Create(
@@ -62,7 +54,7 @@ func (c *Collection) Create(
 	if err != nil {
 		return err
 	}
-	args = append(args, string(document))
+	args = append(args, document)
 
 	_, err = c.cmd.execute(ctx, args)
 	if err != nil {
@@ -251,7 +243,7 @@ func (c *Collection) Get(
 	if err != nil {
 		return nil, err
 	}
-	doc, err := client.NewDocWithID(docID, c.Definition())
+	doc, err := client.NewDocWithID(docID, c.Version())
 	if err != nil {
 		return nil, err
 	}
@@ -367,4 +359,50 @@ func (c *Collection) GetIndexes(ctx context.Context) ([]client.IndexDescription,
 		return nil, err
 	}
 	return indexes, nil
+}
+
+// CreateEncryptedIndex implements client.Collection.
+func (c *Collection) CreateEncryptedIndex(
+	ctx context.Context,
+	indexDesc client.EncryptedIndexDescription,
+) (index client.EncryptedIndexDescription, err error) {
+	args := []string{"client", "encrypted-index", "create"}
+	args = append(args, "--collection", c.Version().Name)
+
+	args = append(args, "--field", indexDesc.FieldName)
+
+	data, err := c.cmd.execute(ctx, args)
+	if err != nil {
+		return index, err
+	}
+	if err := json.Unmarshal(data, &index); err != nil {
+		return index, err
+	}
+	return index, nil
+}
+
+// ListEncryptedIndexes implements client.Collection.
+func (c *Collection) ListEncryptedIndexes(ctx context.Context) ([]client.EncryptedIndexDescription, error) {
+	args := []string{"client", "encrypted-index", "list"}
+	args = append(args, "--collection", c.Version().Name)
+
+	data, err := c.cmd.execute(ctx, args)
+	if err != nil {
+		return nil, err
+	}
+	var indexes []client.EncryptedIndexDescription
+	if err := json.Unmarshal(data, &indexes); err != nil {
+		return nil, err
+	}
+	return indexes, nil
+}
+
+// DeleteEncryptedIndex implements client.Collection.
+func (c *Collection) DeleteEncryptedIndex(ctx context.Context, fieldName string) error {
+	args := []string{"client", "encrypted-index", "delete"}
+	args = append(args, "--collection", c.Version().Name)
+	args = append(args, "--field", fieldName)
+
+	_, err := c.cmd.execute(ctx, args)
+	return err
 }

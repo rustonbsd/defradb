@@ -20,8 +20,6 @@ import (
 func TestACP_CreateWithoutIdentityAndReadWithoutIdentity_CanRead(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Test acp, create without identity, and read without identity, can read",
-
 		Actions: []any{
 			testUtils.AddDACPolicy{
 
@@ -95,7 +93,7 @@ func TestACP_CreateWithoutIdentityAndReadWithoutIdentity_CanRead(t *testing.T) {
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},
@@ -111,8 +109,6 @@ func TestACP_CreateWithoutIdentityAndReadWithoutIdentity_CanRead(t *testing.T) {
 func TestACP_CreateWithoutIdentityAndReadWithIdentity_CanRead(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Test acp, create without identity, and read with identity, can read",
-
 		Actions: []any{
 			testUtils.AddDACPolicy{
 
@@ -188,7 +184,7 @@ func TestACP_CreateWithoutIdentityAndReadWithIdentity_CanRead(t *testing.T) {
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},
@@ -204,8 +200,6 @@ func TestACP_CreateWithoutIdentityAndReadWithIdentity_CanRead(t *testing.T) {
 func TestACP_CreateWithIdentityAndReadWithIdentity_CanRead(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Test acp, create with identity, and read with identity, can read",
-
 		Actions: []any{
 			testUtils.AddDACPolicy{
 
@@ -283,7 +277,7 @@ func TestACP_CreateWithIdentityAndReadWithIdentity_CanRead(t *testing.T) {
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},
@@ -298,8 +292,6 @@ func TestACP_CreateWithIdentityAndReadWithIdentity_CanRead(t *testing.T) {
 
 func TestACP_CreateWithIdentityAndReadWithoutIdentity_CanNotRead(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, create with identity, and read without identity, can not read",
 
 		Actions: []any{
 			testUtils.AddDACPolicy{
@@ -385,8 +377,6 @@ func TestACP_CreateWithIdentityAndReadWithoutIdentity_CanNotRead(t *testing.T) {
 
 func TestACP_CreateWithIdentityAndReadWithWrongIdentity_CanNotRead(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, create with identity, and read without identity, can not read",
 
 		Actions: []any{
 			testUtils.AddDACPolicy{

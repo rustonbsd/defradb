@@ -30,7 +30,7 @@ func TestColVersionUpdateReplaceCollectionID_Errors(t *testing.T) {
 					[
 						{
 							"op": "replace",
-							"path": "/bafkreia2jn5ecrhtvy4fravk6pm3wqiny46m7mqymvjkgat7xiqupgqoai/CollectionID",
+							"path": "/bafyreihuyovjl5ezgpud5xyqnouzsgx25x3ssrx3ncdv5p3guocc3laqna/CollectionID",
 							"value": "drgsagasga"
 						}
 					]

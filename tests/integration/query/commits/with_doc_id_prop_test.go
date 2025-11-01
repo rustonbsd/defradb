@@ -18,7 +18,6 @@ import (
 
 func TestQueryCommitsWithDocIDProperty(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple commits query with docID property",
 		Actions: []any{
 			updateUserCollectionSchema(),
 			testUtils.CreateDoc{
@@ -30,20 +29,20 @@ func TestQueryCommitsWithDocIDProperty(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `query {
-						commits {
+						_commits {
 							docID
 						}
 					}`,
 				Results: map[string]any{
-					"commits": []map[string]any{
+					"_commits": []map[string]any{
 						{
-							"docID": "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3",
+							"docID": "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738",
 						},
 						{
-							"docID": "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3",
+							"docID": "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738",
 						},
 						{
-							"docID": "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3",
+							"docID": "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738",
 						},
 					},
 				},

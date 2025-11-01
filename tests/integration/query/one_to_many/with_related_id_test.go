@@ -18,14 +18,13 @@ import (
 
 func TestQueryOneToManyWithRelatedTypeIDFromManySide(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-many query with related id (from many side).",
 		Actions: []any{
 			testUtils.CreateDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Painted House",
 					"rating": 4.9,
-					"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b"
+					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -33,7 +32,7 @@ func TestQueryOneToManyWithRelatedTypeIDFromManySide(t *testing.T) {
 				Doc: `{
 					"name": "A Time for Mercy",
 					"rating": 4.5,
-					"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b"
+					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -41,7 +40,7 @@ func TestQueryOneToManyWithRelatedTypeIDFromManySide(t *testing.T) {
 				Doc: `{
 					"name": "The Client",
 					"rating": 4.5,
-					"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b"
+					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -49,7 +48,7 @@ func TestQueryOneToManyWithRelatedTypeIDFromManySide(t *testing.T) {
 				Doc: `{
 					"name": "Candide",
 					"rating": 4.95,
-					"author_id": "bae-1594d2aa-d63c-51d2-8e5e-06ee0c9e2e8c"
+					"author_id": "bae-b9c6cd5a-a931-5984-994d-7c435baa9f32"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -57,7 +56,7 @@ func TestQueryOneToManyWithRelatedTypeIDFromManySide(t *testing.T) {
 				Doc: `{
 					"name": "Zadig",
 					"rating": 4.91,
-					"author_id": "bae-1594d2aa-d63c-51d2-8e5e-06ee0c9e2e8c"
+					"author_id": "bae-b9c6cd5a-a931-5984-994d-7c435baa9f32"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -65,7 +64,7 @@ func TestQueryOneToManyWithRelatedTypeIDFromManySide(t *testing.T) {
 				Doc: `{
 					"name": "Histoiare des Celtes et particulierement des Gaulois et des Germains depuis les temps fabuleux jusqua la prise de Roze par les Gaulois",
 					"rating": 2,
-					"author_id": "bae-34a9bd41-1f0d-5748-8446-48fc36ef2614"
+					"author_id": "bae-7687d0c1-91b0-519e-99e4-eb92887663dd"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -102,31 +101,32 @@ func TestQueryOneToManyWithRelatedTypeIDFromManySide(t *testing.T) {
 				Results: map[string]any{
 					"Book": []map[string]any{
 						{
-							"name":      "Painted House",
-							"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b",
-						},
-						{
-							"name":      "The Client",
-							"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b",
-						},
-						{
 							"name":      "Candide",
-							"author_id": "bae-1594d2aa-d63c-51d2-8e5e-06ee0c9e2e8c",
+							"author_id": "bae-b9c6cd5a-a931-5984-994d-7c435baa9f32",
+						},
+						{
+							"name":      "Painted House",
+							"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab",
 						},
 						{
 							"name":      "Zadig",
-							"author_id": "bae-1594d2aa-d63c-51d2-8e5e-06ee0c9e2e8c",
-						},
-						{
-							"name":      "Histoiare des Celtes et particulierement des Gaulois et des Germains depuis les temps fabuleux jusqua la prise de Roze par les Gaulois",
-							"author_id": "bae-34a9bd41-1f0d-5748-8446-48fc36ef2614",
+							"author_id": "bae-b9c6cd5a-a931-5984-994d-7c435baa9f32",
 						},
 						{
 							"name":      "A Time for Mercy",
-							"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b",
+							"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab",
+						},
+						{
+							"name":      "The Client",
+							"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab",
+						},
+						{
+							"name":      "Histoiare des Celtes et particulierement des Gaulois et des Germains depuis les temps fabuleux jusqua la prise de Roze par les Gaulois",
+							"author_id": "bae-7687d0c1-91b0-519e-99e4-eb92887663dd",
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -136,14 +136,13 @@ func TestQueryOneToManyWithRelatedTypeIDFromManySide(t *testing.T) {
 
 func TestQueryOneToManyWithRelatedTypeIDFromSingleSide(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-many query with related id (from single side).",
 		Actions: []any{
 			testUtils.CreateDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Painted House",
 					"rating": 4.9,
-					"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b"
+					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -151,7 +150,7 @@ func TestQueryOneToManyWithRelatedTypeIDFromSingleSide(t *testing.T) {
 				Doc: `{
 					"name": "A Time for Mercy",
 					"rating": 4.5,
-					"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b"
+					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -159,7 +158,7 @@ func TestQueryOneToManyWithRelatedTypeIDFromSingleSide(t *testing.T) {
 				Doc: `{
 					"name": "The Client",
 					"rating": 4.5,
-					"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b"
+					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -167,7 +166,7 @@ func TestQueryOneToManyWithRelatedTypeIDFromSingleSide(t *testing.T) {
 				Doc: `{
 					"name": "Candide",
 					"rating": 4.95,
-					"author_id": "bae-1594d2aa-d63c-51d2-8e5e-06ee0c9e2e8c"
+					"author_id": "bae-b9c6cd5a-a931-5984-994d-7c435baa9f32"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -175,7 +174,7 @@ func TestQueryOneToManyWithRelatedTypeIDFromSingleSide(t *testing.T) {
 				Doc: `{
 					"name": "Zadig",
 					"rating": 4.91,
-					"author_id": "bae-1594d2aa-d63c-51d2-8e5e-06ee0c9e2e8c"
+					"author_id": "bae-b9c6cd5a-a931-5984-994d-7c435baa9f32"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -183,7 +182,7 @@ func TestQueryOneToManyWithRelatedTypeIDFromSingleSide(t *testing.T) {
 				Doc: `{
 					"name": "Histoiare des Celtes et particulierement des Gaulois et des Germains depuis les temps fabuleux jusqua la prise de Roze par les Gaulois",
 					"rating": 2,
-					"author_id": "bae-34a9bd41-1f0d-5748-8446-48fc36ef2614"
+					"author_id": "bae-7687d0c1-91b0-519e-99e4-eb92887663dd"
 				}`,
 			},
 			testUtils.CreateDoc{

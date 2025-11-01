@@ -16,7 +16,7 @@ import (
 
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
-	schemaUtils "github.com/sourcenetwork/defradb/tests/integration/schema"
+	schemaUtils "github.com/sourcenetwork/defradb/tests/integration/collection_version"
 )
 
 func TestACP_LinkSchema_AddPolicyTwiceWithValidDRIByDifferentActorsAndUseBoth_AcceptSchema(t *testing.T) {
@@ -48,8 +48,6 @@ func TestACP_LinkSchema_AddPolicyTwiceWithValidDRIByDifferentActorsAndUseBoth_Ac
     `
 
 	test := testUtils.TestCase{
-
-		Description: "Test acp, add same policy (DRI compliant) twice by different actors, accept both schemas",
 
 		Actions: []any{
 			testUtils.AddDACPolicy{

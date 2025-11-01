@@ -19,7 +19,6 @@ import (
 
 func TestOneToManyToManyJoinsAreLinkedProperly(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "1-N-M Query to ensure joins are linked properly.",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -194,25 +193,14 @@ func TestOneToManyToManyJoinsAreLinkedProperly(t *testing.T) {
 							"name":   "Not a Writer",
 						},
 						{
-							"name":   "Cornelia Funke",
-							"_docID": testUtils.NewDocIndex(0, 1),
-							"book": []map[string]any{
-								{
-									"_docID": testUtils.NewDocIndex(1, 0),
-									"name":   "The Rooster Bar",
-									"publisher": []map[string]any{
-										{
-											"_docID": testUtils.NewDocIndex(2, 0),
-											"name":   "Only Publisher of The Rooster Bar",
-										},
-									},
-								},
-							},
-						},
-						{
 							"name":   "John Grisham",
 							"_docID": testUtils.NewDocIndex(0, 0),
 							"book": []map[string]any{
+								{
+									"_docID":    testUtils.NewDocIndex(1, 2),
+									"name":      "The Associate",
+									"publisher": []map[string]any{},
+								},
 								{
 									"_docID": testUtils.NewDocIndex(1, 3),
 									"name":   "Painted House",
@@ -222,25 +210,6 @@ func TestOneToManyToManyJoinsAreLinkedProperly(t *testing.T) {
 											"name":   "Only Publisher of Painted House",
 										},
 									},
-								},
-								{
-									"_docID": testUtils.NewDocIndex(1, 5),
-									"name":   "Sooley",
-									"publisher": []map[string]any{
-										{
-											"_docID": testUtils.NewDocIndex(2, 5),
-											"name":   "Second of Two Publishers of Sooley",
-										},
-										{
-											"_docID": testUtils.NewDocIndex(2, 4),
-											"name":   "First of Two Publishers of Sooley",
-										},
-									},
-								},
-								{
-									"_docID":    testUtils.NewDocIndex(1, 2),
-									"name":      "The Associate",
-									"publisher": []map[string]any{},
 								},
 								{
 									"_docID": testUtils.NewDocIndex(1, 1),
@@ -262,10 +231,41 @@ func TestOneToManyToManyJoinsAreLinkedProperly(t *testing.T) {
 										},
 									},
 								},
+								{
+									"_docID": testUtils.NewDocIndex(1, 5),
+									"name":   "Sooley",
+									"publisher": []map[string]any{
+										{
+											"_docID": testUtils.NewDocIndex(2, 4),
+											"name":   "First of Two Publishers of Sooley",
+										},
+										{
+											"_docID": testUtils.NewDocIndex(2, 5),
+											"name":   "Second of Two Publishers of Sooley",
+										},
+									},
+								},
+							},
+						},
+						{
+							"name":   "Cornelia Funke",
+							"_docID": testUtils.NewDocIndex(0, 1),
+							"book": []map[string]any{
+								{
+									"_docID": testUtils.NewDocIndex(1, 0),
+									"name":   "The Rooster Bar",
+									"publisher": []map[string]any{
+										{
+											"_docID": testUtils.NewDocIndex(2, 0),
+											"name":   "Only Publisher of The Rooster Bar",
+										},
+									},
+								},
 							},
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}

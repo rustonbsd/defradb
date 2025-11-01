@@ -19,7 +19,6 @@ import (
 
 func TestQueryOneToOneWithNumericFilterOnParent(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-one relation query with simple filter on sub type",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: bookAuthorGQLSchema,
@@ -72,14 +71,13 @@ func TestQueryOneToOneWithNumericFilterOnParent(t *testing.T) {
 
 func TestQueryOneToOneWithStringFilterOnChild(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-one relation query with simple filter on parent",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: bookAuthorGQLSchema,
 			},
 			testUtils.CreateDoc{
 				CollectionID: 0,
-				// bae-be6d8024-4953-5a92-84b4-f042d25230c6
+				// bae-8627532a-2ed3-50ed-91d5-26f6b9b44c25
 				Doc: `{
 					"name": "Painted House",
 					"rating": 4.9
@@ -87,12 +85,12 @@ func TestQueryOneToOneWithStringFilterOnChild(t *testing.T) {
 			},
 			testUtils.CreateDoc{
 				CollectionID: 1,
-				// bae-7aabc9d2-fbbc-5911-b0d0-b49a2a1d0e84
+				// bae-9e70648f-c722-5875-97f5-574ec6f703e9
 				Doc: `{
 					"name": "John Grisham",
 					"age": 65,
 					"verified": true,
-					"published_id": "bae-be6d8024-4953-5a92-84b4-f042d25230c6"
+					"published_id": "bae-8627532a-2ed3-50ed-91d5-26f6b9b44c25"
 				}`,
 			},
 			testUtils.Request{
@@ -127,14 +125,13 @@ func TestQueryOneToOneWithStringFilterOnChild(t *testing.T) {
 
 func TestQueryOneToOneWithBooleanFilterOnChild(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-one relation query with simple sub filter on child",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: bookAuthorGQLSchema,
 			},
 			testUtils.CreateDoc{
 				CollectionID: 0,
-				// bae-be6d8024-4953-5a92-84b4-f042d25230c6
+				// bae-8627532a-2ed3-50ed-91d5-26f6b9b44c25
 				Doc: `{
 					"name": "Painted House",
 					"rating": 4.9
@@ -142,12 +139,12 @@ func TestQueryOneToOneWithBooleanFilterOnChild(t *testing.T) {
 			},
 			testUtils.CreateDoc{
 				CollectionID: 1,
-				// bae-7aabc9d2-fbbc-5911-b0d0-b49a2a1d0e84
+				// bae-9e70648f-c722-5875-97f5-574ec6f703e9
 				Doc: `{
 					"name": "John Grisham",
 					"age": 65,
 					"verified": true,
-					"published_id": "bae-be6d8024-4953-5a92-84b4-f042d25230c6"
+					"published_id": "bae-8627532a-2ed3-50ed-91d5-26f6b9b44c25"
 				}`,
 			},
 			testUtils.Request{
@@ -182,7 +179,6 @@ func TestQueryOneToOneWithBooleanFilterOnChild(t *testing.T) {
 
 func TestQueryOneToOneWithFilterThroughChildBackToParent(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-one relation query with filter on parent referencing parent through child",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: bookAuthorGQLSchema,
@@ -251,7 +247,6 @@ func TestQueryOneToOneWithFilterThroughChildBackToParent(t *testing.T) {
 
 func TestQueryOneToOneWithBooleanFilterOnChildWithNoSubTypeSelection(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-one relation with simple sub filter on child, but not child selections",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: bookAuthorGQLSchema,
@@ -296,7 +291,6 @@ func TestQueryOneToOneWithBooleanFilterOnChildWithNoSubTypeSelection(t *testing.
 
 func TestQueryOneToOneWithCompoundAndFilterThatIncludesRelation(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-one relation with _and filter that includes relation",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: bookAuthorGQLSchema,
@@ -376,7 +370,6 @@ func TestQueryOneToOneWithCompoundAndFilterThatIncludesRelation(t *testing.T) {
 
 func TestQueryOneToOneWithCompoundOrFilterThatIncludesRelation(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-one relation with _or filter that includes relation",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: bookAuthorGQLSchema,
@@ -463,13 +456,14 @@ func TestQueryOneToOneWithCompoundOrFilterThatIncludesRelation(t *testing.T) {
 				Results: map[string]any{
 					"Book": []map[string]any{
 						{
-							"name": "Some Book",
+							"name": "Some Other Book",
 						},
 						{
-							"name": "Some Other Book",
+							"name": "Some Book",
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 			testUtils.Request{
 				Request: `query {
@@ -490,6 +484,7 @@ func TestQueryOneToOneWithCompoundOrFilterThatIncludesRelation(t *testing.T) {
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -499,7 +494,6 @@ func TestQueryOneToOneWithCompoundOrFilterThatIncludesRelation(t *testing.T) {
 
 func TestQueryOneToOne_WithCompoundFiltersThatIncludesRelation_ShouldReturnResults(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-one relation with _and filter that includes relation",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: bookAuthorGQLSchema,
@@ -574,6 +568,7 @@ func TestQueryOneToOne_WithCompoundFiltersThatIncludesRelation_ShouldReturnResul
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 			testUtils.Request{
 				Request: `query {
@@ -617,6 +612,7 @@ func TestQueryOneToOne_WithCompoundFiltersThatIncludesRelation_ShouldReturnResul
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}

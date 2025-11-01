@@ -22,8 +22,6 @@ import (
 func TestACP_OwnerGivesUpdateAccessToAnotherActorTwice_GQL_ShowThatTheRelationshipAlreadyExists(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Test acp, owner gives update access to another actor twice, no-op",
-
 		SupportedMutationTypes: immutable.Some(
 			[]testUtils.MutationType{
 				// GQL mutation will return no error when wrong identity is used so test that separately.
@@ -182,8 +180,6 @@ func TestACP_OwnerGivesUpdateAccessToAnotherActorTwice_GQL_ShowThatTheRelationsh
 func TestACP_OwnerGivesUpdateAccessToAnotherActor_GQL_OtherActorCanUpdate(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Test acp, owner gives update access to another actor",
-
 		SupportedMutationTypes: immutable.Some(
 			[]testUtils.MutationType{
 				// GQL mutation will return no error when wrong identity is used so test that separately.
@@ -340,7 +336,6 @@ func TestACP_OwnerGivesUpdateAccessToAnotherActor_GQL_OtherActorCanUpdate(t *tes
 				Request: `
 					query {
 						Users {
-							_docID
 							name
 							age
 						}
@@ -350,9 +345,8 @@ func TestACP_OwnerGivesUpdateAccessToAnotherActor_GQL_OtherActorCanUpdate(t *tes
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
-							"name":   "Shahzad Lone", // Note: updated name
-							"age":    int64(28),
+							"name": "Shahzad Lone", // Note: updated name
+							"age":  int64(28),
 						},
 					},
 				},

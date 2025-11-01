@@ -15,22 +15,34 @@ import (
 
 	"github.com/sourcenetwork/corekv"
 	"github.com/sourcenetwork/immutable"
+	"github.com/sourcenetwork/lens/host-go/store"
 
 	"github.com/sourcenetwork/defradb/client"
 	"github.com/sourcenetwork/defradb/errors"
 	"github.com/sourcenetwork/defradb/internal/datastore"
 	"github.com/sourcenetwork/defradb/internal/db/description"
-	"github.com/sourcenetwork/defradb/internal/keys"
 )
 
-func (db *DB) setMigration(ctx context.Context, cfg client.LensConfig) error {
+func (db *DB) getLensStore(ctx context.Context) store.Store {
+	txn, ok := datastore.CtxTryGetTxn(ctx)
+	if ok {
+		return db.lensNode.Store.WithTxn(wrappedTxn{
+			Txn:          txn,
+			ReaderWriter: db.rootstore,
+		})
+	}
+
+	return db.lensNode.Store
+}
+
+func (db *DB) setMigration(ctx context.Context, cfg client.LensConfig) (string, error) {
 	dstFound := true
 	dstCol, err := description.GetCollectionByID(ctx, cfg.DestinationSchemaVersionID)
 	if err != nil {
 		if errors.Is(err, corekv.ErrNotFound) {
 			dstFound = false
 		} else {
-			return err
+			return "", err
 		}
 	}
 
@@ -40,112 +52,52 @@ func (db *DB) setMigration(ctx context.Context, cfg client.LensConfig) error {
 		if errors.Is(err, corekv.ErrNotFound) {
 			srcFound = false
 		} else {
-			return err
+			return "", err
 		}
 	}
 
 	if !srcFound {
-		desc := client.CollectionVersion{
+		sourceCol = client.CollectionVersion{
 			VersionID:      cfg.SourceSchemaVersionID,
 			CollectionID:   client.OrphanCollectionID,
 			IsMaterialized: true,
+			IsPlaceholder:  true,
 		}
 
-		err = description.SaveCollection(ctx, desc)
+		err = description.SaveCollection(ctx, sourceCol)
 		if err != nil {
-			return err
-		}
-
-		sourceCol = desc
-	}
-
-	isDstCollectionFound := false
-	if dstFound {
-		if len(dstCol.Sources) == 0 {
-			// If the destingation collection has no sources at all, it must have been added as an orphaned source
-			// by another migration.  This can happen if the migrations are added in an unusual order, before
-			// their schemas have been defined locally.
-			dstCol.Sources = append(dstCol.Sources, &client.CollectionSource{
-				SourceCollectionID: sourceCol.VersionID,
-			})
-		}
-
-		for _, source := range dstCol.CollectionSources() {
-			if source.SourceCollectionID == sourceCol.VersionID {
-				isDstCollectionFound = true
-				break
-			}
+			return "", err
 		}
 	}
 
-	if !isDstCollectionFound {
+	if !dstFound {
 		dstCol = client.CollectionVersion{
 			Name:           sourceCol.Name,
 			VersionID:      cfg.DestinationSchemaVersionID,
 			IsMaterialized: true,
+			IsPlaceholder:  true,
 			CollectionID:   sourceCol.CollectionID,
-			Sources: []any{
-				&client.CollectionSource{
-					SourceCollectionID: sourceCol.VersionID,
-					// The transform will be set later, when updating all destination collections
-					// whether they are newly created or not.
-				},
-			},
-		}
-
-		err = description.SaveCollection(ctx, dstCol)
-		if err != nil {
-			return err
-		}
-
-		if dstCol.CollectionID != "" { // todo- this makes no sense
-			var schemaFound bool
-			// If the root schema id is known, we need to add it to the index, even if the schema is not known locally
-			schema, err := description.GetSchemaVersion(ctx, cfg.SourceSchemaVersionID)
-			if err != nil {
-				if !errors.Is(err, corekv.ErrNotFound) {
-					return err
-				}
-			} else {
-				schemaFound = true
-			}
-
-			if schemaFound {
-				txn := datastore.CtxMustGetTxn(ctx)
-				schemaRootKey := keys.NewSchemaRootKey(schema.Root, cfg.DestinationSchemaVersionID)
-				err = txn.Systemstore().Set(ctx, schemaRootKey.Bytes(), []byte{})
-				if err != nil {
-					return err
-				}
-
-				dstCol.CollectionID = schema.Root
-
-				err = description.SaveCollection(ctx, dstCol)
-				if err != nil {
-					return err
-				}
-			}
 		}
 	}
 
-	collectionSources := dstCol.CollectionSources()
-	for _, source := range collectionSources {
-		// WARNING: Here we assume that the collection source points at a collection of the source schema version.
-		// This works currently, as collections only have a single source.  If/when this changes we need to make
-		// sure we only update the correct source.
-
-		source.Transform = immutable.Some(cfg.Lens)
-
-		err = db.LensRegistry().SetMigration(ctx, dstCol.VersionID, cfg.Lens)
-		if err != nil {
-			return err
-		}
+	if dstCol.PreviousVersion.HasValue() && dstCol.PreviousVersion.Value().SourceCollectionID != sourceCol.VersionID {
+		return "", NewErrMigrationBetweenNonAdjacentVersions(cfg.SourceSchemaVersionID, cfg.DestinationSchemaVersionID)
 	}
+
+	id, err := db.getLensStore(ctx).Add(ctx, cfg.Lens)
+	if err != nil {
+		return "", err
+	}
+
+	dstCol.PreviousVersion = immutable.Some(client.CollectionSource{
+		SourceCollectionID: sourceCol.VersionID,
+		Transform:          immutable.Some(id.String()),
+	})
 
 	err = description.SaveCollection(ctx, dstCol)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return id.String(), nil
 }

@@ -22,8 +22,6 @@ import (
 func TestACP_OwnerGivesOnlyReadAccessToAllActors_GQL_AllActorsCanReadButNotUpdateOrDelete(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Test acp, owner gives read access to all actors (gql), but the other actor can't update or delete",
-
 		SupportedMutationTypes: immutable.Some(
 			[]testUtils.MutationType{
 				// GQL mutation will return no error when wrong identity is used (only for update requests),
@@ -178,7 +176,6 @@ func TestACP_OwnerGivesOnlyReadAccessToAllActors_GQL_AllActorsCanReadButNotUpdat
 				Request: `
 					query {
 						Users {
-							_docID
 							name
 							age
 						}
@@ -188,9 +185,8 @@ func TestACP_OwnerGivesOnlyReadAccessToAllActors_GQL_AllActorsCanReadButNotUpdat
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
-							"name":   "Shahzad",
-							"age":    int64(28),
+							"name": "Shahzad",
+							"age":  int64(28),
 						},
 					},
 				},
@@ -202,7 +198,6 @@ func TestACP_OwnerGivesOnlyReadAccessToAllActors_GQL_AllActorsCanReadButNotUpdat
 				Request: `
 					query {
 						Users {
-							_docID
 							name
 							age
 						}
@@ -212,9 +207,8 @@ func TestACP_OwnerGivesOnlyReadAccessToAllActors_GQL_AllActorsCanReadButNotUpdat
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
-							"name":   "Shahzad",
-							"age":    int64(28),
+							"name": "Shahzad",
+							"age":  int64(28),
 						},
 					},
 				},
@@ -253,8 +247,6 @@ func TestACP_OwnerGivesOnlyReadAccessToAllActors_GQL_AllActorsCanReadButNotUpdat
 
 func TestACP_OwnerGivesOnlyReadAccessToAllActors_GQL_CanReadEvenWithoutIdentityButNotUpdateOrDelete(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, owner gives read access to all actors (gql), can read without an identity but can't update or delete",
 
 		SupportedMutationTypes: immutable.Some(
 			[]testUtils.MutationType{
@@ -410,7 +402,6 @@ func TestACP_OwnerGivesOnlyReadAccessToAllActors_GQL_CanReadEvenWithoutIdentityB
 				Request: `
 					query {
 						Users {
-							_docID
 							name
 							age
 						}
@@ -420,9 +411,8 @@ func TestACP_OwnerGivesOnlyReadAccessToAllActors_GQL_CanReadEvenWithoutIdentityB
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
-							"name":   "Shahzad",
-							"age":    int64(28),
+							"name": "Shahzad",
+							"age":  int64(28),
 						},
 					},
 				},

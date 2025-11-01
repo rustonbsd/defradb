@@ -19,7 +19,6 @@ import (
 
 func TestMutationCreateMany(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple create many mutation",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -54,14 +53,14 @@ func TestMutationCreateMany(t *testing.T) {
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-48339725-ed14-55b1-8e63-3fda5f590725",
-							"name":   "Islam",
-							"age":    int64(33),
-						},
-						{
-							"_docID": "bae-8c89a573-c287-5d8c-8ba6-c47c814c594d",
+							"_docID": "bae-32e84498-d467-5f01-b93e-fc2dca59be76",
 							"name":   "John",
 							"age":    int64(27),
+						},
+						{
+							"_docID": "bae-974c991f-74fb-5841-99a7-7c85a4942fbc",
+							"name":   "Islam",
+							"age":    int64(33),
 						},
 					},
 				},

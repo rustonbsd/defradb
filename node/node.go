@@ -13,10 +13,10 @@ package node
 import (
 	"context"
 
-	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/sourcenetwork/corekv"
 	"github.com/sourcenetwork/corelog"
 	"github.com/sourcenetwork/immutable"
+	lensNode "github.com/sourcenetwork/lens/host-go/node"
 
 	"github.com/sourcenetwork/defradb/acp/dac"
 	"github.com/sourcenetwork/defradb/client"
@@ -30,8 +30,7 @@ var log = corelog.NewLogger("node")
 
 // Peer defines the minimal p2p network interface.
 type Peer interface {
-	client.P2P
-	Connect(ctx context.Context, addr peer.AddrInfo) error
+	client.Host
 	Close()
 }
 
@@ -52,7 +51,7 @@ type Node struct {
 	// DB is the database instance
 	DB DB
 	// Peer is the p2p networking subsystem instance
-	Peer Peer
+	peer Peer
 	// api http server instance
 	server *http.Server
 	// kms subsystem instance
@@ -79,11 +78,7 @@ func New(ctx context.Context, options ...Option) (*Node, error) {
 
 // Start starts the node sub-systems.
 func (n *Node) Start(ctx context.Context) error {
-	rootstore, err := NewStore(ctx, filterOptions[StoreOpt](n.options)...)
-	if err != nil {
-		return err
-	}
-	lens, err := NewLens(ctx, filterOptions[LenOpt](n.options)...)
+	rootstore, isValueSizeLimited, err := NewStore(ctx, filterOptions[StoreOpt](n.options)...)
 	if err != nil {
 		return err
 	}
@@ -91,18 +86,41 @@ func (n *Node) Start(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
 	nodeACP, err := NewNodeACP(ctx, filterOptions[NodeACPOpt](n.options)...)
 	if err != nil {
 		return err
 	}
-	n.DB, err = db.NewDB(ctx, rootstore, nodeACP, documentACP, lens, filterOptions[db.Option](n.options)...)
+
+	var chunkSize immutable.Option[int]
+	if isValueSizeLimited {
+		chunkSize = immutable.Some(defaultChunkSize)
+
+		n.options = append(n.options,
+			db.WithLensOpts(
+				lensNode.WithBlockstoreChunkSize(defaultChunkSize),
+			),
+		)
+		n.options = append(n.options,
+			db.WithBlockStoreChunkSize(defaultChunkSize),
+		)
+	}
+
+	err = n.startP2P(ctx, rootstore, chunkSize)
 	if err != nil {
 		return err
 	}
-	err = n.startP2P(ctx)
+
+	n.DB, err = db.NewDB(ctx, rootstore, nodeACP, documentACP, filterOptions[db.Option](n.options)...)
 	if err != nil {
 		return err
 	}
+
+	err = n.startKMS(ctx)
+	if err != nil {
+		return err
+	}
+
 	return n.startAPI(ctx)
 }
 
@@ -112,8 +130,8 @@ func (n *Node) Close(ctx context.Context) error {
 	if n.server != nil {
 		err = n.server.Shutdown(ctx)
 	}
-	if n.Peer != nil {
-		n.Peer.Close()
+	if n.peer != nil {
+		n.peer.Close()
 	}
 	if n.DB != nil {
 		n.DB.Close()

@@ -18,7 +18,6 @@ import (
 
 func TestQueryCommitsWithDocIDAndCidForDifferentDoc(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple all commits query with docID and cid, for different doc",
 		Actions: []any{
 			updateUserCollectionSchema(),
 			testUtils.CreateDoc{
@@ -30,7 +29,7 @@ func TestQueryCommitsWithDocIDAndCidForDifferentDoc(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: ` {
-						commits(
+						_commits(
 							docID: "bae-not-this-doc",
 							cid: "bafybeica4js2abwqjjrz7dcialbortbz32uxp7ufxu7yljbwvmhjqqxzny"
 						) {
@@ -38,9 +37,9 @@ func TestQueryCommitsWithDocIDAndCidForDifferentDoc(t *testing.T) {
 						}
 					}`,
 				Results: map[string]any{
-					"commits": []map[string]any{},
+					"_commits": []map[string]any{},
 				},
-				ExpectedError: "missing cid",
+				ExpectedError: "cid either does not exist or belong to document",
 			},
 		},
 	}
@@ -50,7 +49,6 @@ func TestQueryCommitsWithDocIDAndCidForDifferentDoc(t *testing.T) {
 
 func TestQueryCommitsWithDocIDAndCidForDifferentDocWithUpdate(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple all commits query with docID and cid, for different doc with update",
 		Actions: []any{
 			updateUserCollectionSchema(),
 			testUtils.CreateDoc{
@@ -69,17 +67,17 @@ func TestQueryCommitsWithDocIDAndCidForDifferentDocWithUpdate(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: ` {
-						commits(
+						_commits(
 							docID: "bae-not-this-doc",
-							cid: "bafyreiale6qsjc7qewod3c6h2odwamfwcf7vt4zlqtw7ldcm57xdkgxja4"
+							cid: "bafyreieira5p74wdicqhelwbjsin7jtnnvvlplngrrcqfapleq2phexqga"
 						) {
 							cid
 						}
 					}`,
 				Results: map[string]any{
-					"commits": []map[string]any{},
+					"_commits": []map[string]any{},
 				},
-				ExpectedError: "cid does not belong to document",
+				ExpectedError: "cid either does not exist or belong to document",
 			},
 		},
 	}
@@ -87,9 +85,8 @@ func TestQueryCommitsWithDocIDAndCidForDifferentDocWithUpdate(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestQueryCommitsWithDocIDAndCidWithUpdate(t *testing.T) {
+func TestQueryCommits_WithDocIDAndCidWithUpdate(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple all commits query with docID and cid, with update",
 		Actions: []any{
 			updateUserCollectionSchema(),
 			testUtils.CreateDoc{
@@ -108,17 +105,17 @@ func TestQueryCommitsWithDocIDAndCidWithUpdate(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: ` {
-						commits(
-							docID: "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3",
-							cid: "bafyreiale6qsjc7qewod3c6h2odwamfwcf7vt4zlqtw7ldcm57xdkgxja4"
+						_commits(
+							docID: "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738",
+							cid: "bafyreieira5p74wdicqhelwbjsin7jtnnvvlplngrrcqfapleq2phexqga"
 						) {
 							cid
 						}
 					}`,
 				Results: map[string]any{
-					"commits": []map[string]any{
+					"_commits": []map[string]any{
 						{
-							"cid": "bafyreiale6qsjc7qewod3c6h2odwamfwcf7vt4zlqtw7ldcm57xdkgxja4",
+							"cid": "bafyreieira5p74wdicqhelwbjsin7jtnnvvlplngrrcqfapleq2phexqga",
 						},
 					},
 				},
@@ -131,7 +128,6 @@ func TestQueryCommitsWithDocIDAndCidWithUpdate(t *testing.T) {
 
 func TestQueryCommitsWithDocIDAndCidWithUpdateAndDepth(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple all commits query with docID and cid, with update",
 		Actions: []any{
 			updateUserCollectionSchema(),
 			testUtils.CreateDoc{
@@ -152,24 +148,25 @@ func TestQueryCommitsWithDocIDAndCidWithUpdateAndDepth(t *testing.T) {
 			// from the target cid (ie >=2)
 			testUtils.Request{
 				Request: ` {
-						commits(
-							docID: "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3",
-							cid: "bafyreiale6qsjc7qewod3c6h2odwamfwcf7vt4zlqtw7ldcm57xdkgxja4",
+						_commits(
+							docID: "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738",
+							cid: "bafyreieira5p74wdicqhelwbjsin7jtnnvvlplngrrcqfapleq2phexqga",
 							depth: 5
 						) {
 							cid
 						}
 					}`,
 				Results: map[string]any{
-					"commits": []map[string]any{
+					"_commits": []map[string]any{
 						{
-							"cid": "bafyreiale6qsjc7qewod3c6h2odwamfwcf7vt4zlqtw7ldcm57xdkgxja4",
+							"cid": "bafyreieira5p74wdicqhelwbjsin7jtnnvvlplngrrcqfapleq2phexqga",
 						},
 						{
-							"cid": "bafyreia2vlbfkcbyogdjzmbqcjneabwwwtw7ti2xbd7yor5mbu2sk4pcoy",
+							"cid": "bafyreihpq4duzngkledmxkxx3jevlp2q4aimhmbjygpv5chmgbf6u2fsqm",
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}

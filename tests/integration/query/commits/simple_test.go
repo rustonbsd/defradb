@@ -26,7 +26,6 @@ func TestQueryCommits(t *testing.T) {
 	headCid := testUtils.NewSameValue()
 
 	test := testUtils.TestCase{
-		Description: "Simple all commits query",
 		Actions: []any{
 			updateUserCollectionSchema(),
 			testUtils.CreateDoc{
@@ -38,12 +37,12 @@ func TestQueryCommits(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `query {
-						commits {
+						_commits {
 							cid
 						}
 					}`,
 				Results: map[string]any{
-					"commits": []map[string]any{
+					"_commits": []map[string]any{
 						{
 							"cid": gomega.And(nameCid, uniqueCid),
 						},
@@ -64,7 +63,6 @@ func TestQueryCommits(t *testing.T) {
 
 func TestQueryCommitsMultipleDocs(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple all commits query, multiple docs",
 		Actions: []any{
 			updateUserCollectionSchema(),
 			testUtils.CreateDoc{
@@ -83,29 +81,29 @@ func TestQueryCommitsMultipleDocs(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `query {
-						commits {
+						_commits {
 							cid
 						}
 					}`,
 				Results: map[string]any{
-					"commits": []map[string]any{
+					"_commits": []map[string]any{
 						{
-							"cid": "bafyreid47btbb7bvj66qqa52wi773nst4dvd2556v34tejjiorrgcakv2a",
+							"cid": "bafyreihakk5jjukb4fw7klfejdmniwhuscnckcjo677p3mtcxrdpiahuea",
 						},
 						{
-							"cid": "bafyreie7p6vhgmdjn6q7t4lw7o5hv5lgt52jq3kmfyvi6a5vdt6spigcqm",
+							"cid": "bafyreihx4lnknvruc6vonsg3dvb3nnlsycwzbbkeulcutnzgidkzfvea64",
 						},
 						{
-							"cid": "bafyreihyy3s7xfno4fryoqexigpsj4csqzkxf6e6kch7e5h24pgz3wq3pq",
+							"cid": "bafyreihpq4duzngkledmxkxx3jevlp2q4aimhmbjygpv5chmgbf6u2fsqm",
 						},
 						{
-							"cid": "bafyreif6dqbkr7t37jcjfxxrjnxt7cspxzvs7qwlbtjca57cc663he4s7e",
+							"cid": "bafyreid5ve64mkobcop4bhx6e5pzcyfiysxbvut2hbr7r7udrrgn3tsute",
 						},
 						{
-							"cid": "bafyreigtnj6ntulcilkmin4pgukjwv3nwglqpiiyddz3dyfexdbltze7sy",
+							"cid": "bafyreihgwlmva5z7odxvnb6dxomrji7gnbomtcoqpnl7qmcl5zg5wdy3mi",
 						},
 						{
-							"cid": "bafyreia2vlbfkcbyogdjzmbqcjneabwwwtw7ti2xbd7yor5mbu2sk4pcoy",
+							"cid": "bafyreicefeu4dm3hk5qw2oqwu4x3dpogw7ffxy7fbpy5ggsr7l7ozopvhm",
 						},
 					},
 				},
@@ -118,7 +116,6 @@ func TestQueryCommitsMultipleDocs(t *testing.T) {
 
 func TestQueryCommitsWithSchemaVersionIDField(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple commits query yielding schemaVersionId",
 		Actions: []any{
 			updateUserCollectionSchema(),
 			testUtils.CreateDoc{
@@ -130,24 +127,24 @@ func TestQueryCommitsWithSchemaVersionIDField(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `query {
-						commits {
+						_commits {
 							cid
 							schemaVersionId
 						}
 					}`,
 				Results: map[string]any{
-					"commits": []map[string]any{
+					"_commits": []map[string]any{
 						{
-							"cid":             "bafyreif6dqbkr7t37jcjfxxrjnxt7cspxzvs7qwlbtjca57cc663he4s7e",
-							"schemaVersionId": "bafkreicprhqxzlw3akyssz2v6pifwfueavp7jq2yj3dghapi3qcq6achs4",
+							"cid":             "bafyreihakk5jjukb4fw7klfejdmniwhuscnckcjo677p3mtcxrdpiahuea",
+							"schemaVersionId": "bafyreicrgjxxcviov5jawe2haq5fbtd4jxt63vsdhqpcyaaahiothj72tu",
 						},
 						{
-							"cid":             "bafyreigtnj6ntulcilkmin4pgukjwv3nwglqpiiyddz3dyfexdbltze7sy",
-							"schemaVersionId": "bafkreicprhqxzlw3akyssz2v6pifwfueavp7jq2yj3dghapi3qcq6achs4",
+							"cid":             "bafyreihx4lnknvruc6vonsg3dvb3nnlsycwzbbkeulcutnzgidkzfvea64",
+							"schemaVersionId": "bafyreicrgjxxcviov5jawe2haq5fbtd4jxt63vsdhqpcyaaahiothj72tu",
 						},
 						{
-							"cid":             "bafyreia2vlbfkcbyogdjzmbqcjneabwwwtw7ti2xbd7yor5mbu2sk4pcoy",
-							"schemaVersionId": "bafkreicprhqxzlw3akyssz2v6pifwfueavp7jq2yj3dghapi3qcq6achs4",
+							"cid":             "bafyreihpq4duzngkledmxkxx3jevlp2q4aimhmbjygpv5chmgbf6u2fsqm",
+							"schemaVersionId": "bafyreicrgjxxcviov5jawe2haq5fbtd4jxt63vsdhqpcyaaahiothj72tu",
 						},
 					},
 				},
@@ -160,7 +157,6 @@ func TestQueryCommitsWithSchemaVersionIDField(t *testing.T) {
 
 func TestQueryCommitsWithFieldNameField(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple commits query yielding fieldName",
 		Actions: []any{
 			updateUserCollectionSchema(),
 			testUtils.CreateDoc{
@@ -172,13 +168,13 @@ func TestQueryCommitsWithFieldNameField(t *testing.T) {
 			testUtils.Request{
 				Request: `
 					query {
-						commits {
+						_commits {
 							fieldName
 						}
 					}
 				`,
 				Results: map[string]any{
-					"commits": []map[string]any{
+					"_commits": []map[string]any{
 						{
 							"fieldName": "age",
 						},
@@ -199,7 +195,6 @@ func TestQueryCommitsWithFieldNameField(t *testing.T) {
 
 func TestQueryCommitsWithFieldNameFieldAndUpdate(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple commits query yielding fieldName",
 		Actions: []any{
 			updateUserCollectionSchema(),
 			testUtils.CreateDoc{
@@ -216,13 +211,13 @@ func TestQueryCommitsWithFieldNameFieldAndUpdate(t *testing.T) {
 			testUtils.Request{
 				Request: `
 					query {
-						commits {
+						_commits {
 							fieldName
 						}
 					}
 				`,
 				Results: map[string]any{
-					"commits": []map[string]any{
+					"_commits": []map[string]any{
 						{
 							"fieldName": "age",
 						},
@@ -273,7 +268,7 @@ func TestQuery_CommitsWithAllFieldsWithUpdate_NoError(t *testing.T) {
 			testUtils.Request{
 				Request: `
 					query {
-						commits {
+						_commits {
 							cid
 							delta
 							docID
@@ -285,16 +280,16 @@ func TestQuery_CommitsWithAllFieldsWithUpdate_NoError(t *testing.T) {
 							}
 							signature {
 								type
-						}
+							}
 						}
 					}
 				`,
 				Results: map[string]any{
-					"commits": []map[string]any{
+					"_commits": []map[string]any{
 						{
 							"cid":       gomega.And(ageUpdateCid, uniqueCid),
 							"delta":     testUtils.CBORValue(22),
-							"docID":     "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3",
+							"docID":     "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738",
 							"fieldName": "age",
 							"height":    int64(2),
 							"links": []map[string]any{
@@ -308,7 +303,7 @@ func TestQuery_CommitsWithAllFieldsWithUpdate_NoError(t *testing.T) {
 						{
 							"cid":       gomega.And(ageCreateCid, uniqueCid),
 							"delta":     testUtils.CBORValue(21),
-							"docID":     "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3",
+							"docID":     "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738",
 							"fieldName": "age",
 							"height":    int64(1),
 							"links":     []map[string]any{},
@@ -317,7 +312,7 @@ func TestQuery_CommitsWithAllFieldsWithUpdate_NoError(t *testing.T) {
 						{
 							"cid":       gomega.And(nameCreateCid, uniqueCid),
 							"delta":     testUtils.CBORValue("John"),
-							"docID":     "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3",
+							"docID":     "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738",
 							"fieldName": "name",
 							"height":    int64(1),
 							"links":     []map[string]any{},
@@ -326,7 +321,7 @@ func TestQuery_CommitsWithAllFieldsWithUpdate_NoError(t *testing.T) {
 						{
 							"cid":       gomega.And(updateCompositeCid, uniqueCid),
 							"delta":     nil,
-							"docID":     "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3",
+							"docID":     "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738",
 							"fieldName": "_C",
 							"height":    int64(2),
 							"links": []map[string]any{
@@ -344,7 +339,7 @@ func TestQuery_CommitsWithAllFieldsWithUpdate_NoError(t *testing.T) {
 						{
 							"cid":       gomega.And(createCompositeCid, uniqueCid),
 							"delta":     nil,
-							"docID":     "bae-c9fb0fa4-1195-589c-aa54-e68333fb90b3",
+							"docID":     "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738",
 							"fieldName": "_C",
 							"height":    int64(1),
 							"links": []map[string]any{
@@ -357,7 +352,7 @@ func TestQuery_CommitsWithAllFieldsWithUpdate_NoError(t *testing.T) {
 									"name": "name",
 								},
 							},
-							"signature": nil,
+							"_signature": nil,
 						},
 					},
 				},
@@ -370,7 +365,6 @@ func TestQuery_CommitsWithAllFieldsWithUpdate_NoError(t *testing.T) {
 
 func TestQueryCommits_WithAlias_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple all commits with alias query",
 		Actions: []any{
 			updateUserCollectionSchema(),
 			testUtils.CreateDoc{
@@ -382,20 +376,20 @@ func TestQueryCommits_WithAlias_Succeeds(t *testing.T) {
 			},
 			testUtils.Request{
 				Request: `query {
-					history: commits {
+					history: _commits {
 						cid
 					}
 				}`,
 				Results: map[string]any{
 					"history": []map[string]any{
 						{
-							"cid": "bafyreif6dqbkr7t37jcjfxxrjnxt7cspxzvs7qwlbtjca57cc663he4s7e",
+							"cid": "bafyreihakk5jjukb4fw7klfejdmniwhuscnckcjo677p3mtcxrdpiahuea",
 						},
 						{
-							"cid": "bafyreigtnj6ntulcilkmin4pgukjwv3nwglqpiiyddz3dyfexdbltze7sy",
+							"cid": "bafyreihx4lnknvruc6vonsg3dvb3nnlsycwzbbkeulcutnzgidkzfvea64",
 						},
 						{
-							"cid": "bafyreia2vlbfkcbyogdjzmbqcjneabwwwtw7ti2xbd7yor5mbu2sk4pcoy",
+							"cid": "bafyreihpq4duzngkledmxkxx3jevlp2q4aimhmbjygpv5chmgbf6u2fsqm",
 						},
 					},
 				},

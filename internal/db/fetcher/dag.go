@@ -14,6 +14,7 @@ import (
 	"context"
 
 	"github.com/ipfs/go-cid"
+
 	"github.com/sourcenetwork/corekv"
 	"github.com/sourcenetwork/immutable"
 
@@ -69,6 +70,13 @@ func (hf *HeadFetcher) FetchNext() (*cid.Cid, error) {
 	headStoreKey, err := keys.NewHeadstoreKey(string(hf.kvIter.Key()))
 	if err != nil {
 		return nil, err
+	}
+
+	// This needs to be handled more efficiently - these keys should not be scanned in the first place
+	// https://github.com/sourcenetwork/defradb/issues/3846
+	switch headStoreKey.(type) {
+	case keys.HeadstoreFieldDefinition, keys.HeadstoreCollectionDefinition, keys.HeadstoreCollectionSetDefinition:
+		return hf.FetchNext()
 	}
 
 	cid := headStoreKey.GetCid()

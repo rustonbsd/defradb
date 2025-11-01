@@ -17,60 +17,58 @@ import (
 )
 
 func TestQueryOneToManyWithInnerJoinGroupNumber(t *testing.T) {
-	tests := []testUtils.TestCase{
-		{
-			Description: "One-to-many relation query from many side with group inside of join",
-			Actions: []any{
-				testUtils.CreateDoc{
-					CollectionID: 0,
-					Doc: `{
+	test := testUtils.TestCase{
+		Actions: []any{
+			testUtils.CreateDoc{
+				CollectionID: 0,
+				Doc: `{
 						"name": "Painted House",
 						"rating": 4.9,
-						"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b"
+						"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 					}`,
-				},
-				testUtils.CreateDoc{
-					CollectionID: 0,
-					Doc: `{
+			},
+			testUtils.CreateDoc{
+				CollectionID: 0,
+				Doc: `{
 						"name": "A Time for Mercy",
 						"rating": 4.5,
-						"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b"
+						"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 					}`,
-				},
-				testUtils.CreateDoc{
-					CollectionID: 0,
-					Doc: `{
+			},
+			testUtils.CreateDoc{
+				CollectionID: 0,
+				Doc: `{
 						"name": "The Client",
 						"rating": 4.5,
-						"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b"
+						"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 					}`,
-				},
-				testUtils.CreateDoc{
-					CollectionID: 0,
-					Doc: `{
+			},
+			testUtils.CreateDoc{
+				CollectionID: 0,
+				Doc: `{
 						"name": "Theif Lord",
 						"rating": 4.8,
-						"author_id": "bae-72e8c691-9f20-55e7-9228-8af1cf54cace"
+						"author_id": "bae-3d5a3204-4e55-5236-992a-ce27da27902b"
 					}`,
-				},
-				testUtils.CreateDoc{
-					CollectionID: 1,
-					Doc: `{
+			},
+			testUtils.CreateDoc{
+				CollectionID: 1,
+				Doc: `{
 						"name": "John Grisham",
 						"age": 65,
 						"verified": true
 					}`,
-				},
-				testUtils.CreateDoc{
-					CollectionID: 1,
-					Doc: `{
+			},
+			testUtils.CreateDoc{
+				CollectionID: 1,
+				Doc: `{
 						"name": "Cornelia Funke",
 						"age": 62,
 						"verified": false
 					}`,
-				},
-				testUtils.Request{
-					Request: `query {
+			},
+			testUtils.Request{
+				Request: `query {
 						Author {
 							name
 							age
@@ -82,43 +80,42 @@ func TestQueryOneToManyWithInnerJoinGroupNumber(t *testing.T) {
 							}
 						}
 					}`,
-					Results: map[string]any{
-						"Author": []map[string]any{
-							{
-								"name": "Cornelia Funke",
-								"age":  int64(62),
-								"published": []map[string]any{
-									{
-										"rating": 4.8,
-										"_group": []map[string]any{
-											{
-												"name": "Theif Lord",
-											},
+				Results: map[string]any{
+					"Author": []map[string]any{
+						{
+							"name": "John Grisham",
+							"age":  int64(65),
+							"published": []map[string]any{
+								{
+									"rating": 4.9,
+									"_group": []map[string]any{
+										{
+											"name": "Painted House",
+										},
+									},
+								},
+								{
+									"rating": 4.5,
+									"_group": []map[string]any{
+										{
+											"name": "A Time for Mercy",
+										},
+										{
+											"name": "The Client",
 										},
 									},
 								},
 							},
-							{
-								"name": "John Grisham",
-								"age":  int64(65),
-								"published": []map[string]any{
-									{
-										"rating": 4.9,
-										"_group": []map[string]any{
-											{
-												"name": "Painted House",
-											},
-										},
-									},
-									{
-										"rating": 4.5,
-										"_group": []map[string]any{
-											{
-												"name": "The Client",
-											},
-											{
-												"name": "A Time for Mercy",
-											},
+						},
+						{
+							"name": "Cornelia Funke",
+							"age":  int64(62),
+							"published": []map[string]any{
+								{
+									"rating": 4.8,
+									"_group": []map[string]any{
+										{
+											"name": "Theif Lord",
 										},
 									},
 								},
@@ -126,25 +123,23 @@ func TestQueryOneToManyWithInnerJoinGroupNumber(t *testing.T) {
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
 
-	for _, test := range tests {
-		executeTestCase(t, test)
-	}
+	executeTestCase(t, test)
 }
 
 func TestQueryOneToManyWithParentJoinGroupNumber(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-many relation query from many side with parent level group",
 		Actions: []any{
 			testUtils.CreateDoc{
 				CollectionID: 0,
 				Doc: `{
 						"name": "Painted House",
 						"rating": 4.9,
-						"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b"
+						"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 					}`,
 			},
 			testUtils.CreateDoc{
@@ -152,7 +147,7 @@ func TestQueryOneToManyWithParentJoinGroupNumber(t *testing.T) {
 				Doc: `{
 						"name": "A Time for Mercy",
 						"rating": 4.5,
-						"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b"
+						"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 					}`,
 			},
 			testUtils.CreateDoc{
@@ -160,7 +155,7 @@ func TestQueryOneToManyWithParentJoinGroupNumber(t *testing.T) {
 				Doc: `{
 						"name": "The Client",
 						"rating": 4.5,
-						"author_id": "bae-e1ea288f-09fa-55fa-b0b5-0ac8941ea35b"
+						"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 					}`,
 			},
 			testUtils.CreateDoc{
@@ -168,7 +163,7 @@ func TestQueryOneToManyWithParentJoinGroupNumber(t *testing.T) {
 				Doc: `{
 						"name": "Candide",
 						"rating": 4.95,
-						"author_id": "bae-1594d2aa-d63c-51d2-8e5e-06ee0c9e2e8c"
+						"author_id": "bae-b9c6cd5a-a931-5984-994d-7c435baa9f32"
 					}`,
 			},
 			testUtils.CreateDoc{
@@ -176,7 +171,7 @@ func TestQueryOneToManyWithParentJoinGroupNumber(t *testing.T) {
 				Doc: `{
 						"name": "Zadig",
 						"rating": 4.91,
-						"author_id": "bae-1594d2aa-d63c-51d2-8e5e-06ee0c9e2e8c"
+						"author_id": "bae-b9c6cd5a-a931-5984-994d-7c435baa9f32"
 					}`,
 			},
 			testUtils.CreateDoc{
@@ -184,7 +179,7 @@ func TestQueryOneToManyWithParentJoinGroupNumber(t *testing.T) {
 				Doc: `{
 					"name": "Histoiare des Celtes et particulierement des Gaulois et des Germains depuis les temps fabuleux jusqua la prise de Roze par les Gaulois",
 					"rating": 2,
-					"author_id": "bae-34a9bd41-1f0d-5748-8446-48fc36ef2614"
+					"author_id": "bae-7687d0c1-91b0-519e-99e4-eb92887663dd"
 				}`,
 			},
 			testUtils.CreateDoc{
@@ -264,11 +259,11 @@ func TestQueryOneToManyWithParentJoinGroupNumber(t *testing.T) {
 											"rating": 4.9,
 										},
 										{
-											"name":   "The Client",
+											"name":   "A Time for Mercy",
 											"rating": 4.5,
 										},
 										{
-											"name":   "A Time for Mercy",
+											"name":   "The Client",
 											"rating": 4.5,
 										},
 									},
@@ -277,6 +272,7 @@ func TestQueryOneToManyWithParentJoinGroupNumber(t *testing.T) {
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -286,7 +282,6 @@ func TestQueryOneToManyWithParentJoinGroupNumber(t *testing.T) {
 
 func TestQueryOneToManyWithInnerJoinGroupNumberWithNonGroupFieldsSelected(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "One-to-many relation query from many side with group inside of join and invalid field",
 		Actions: []any{
 			testUtils.Request{
 				Request: `query {

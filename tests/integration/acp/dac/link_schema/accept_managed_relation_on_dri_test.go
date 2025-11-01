@@ -15,13 +15,11 @@ import (
 
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
-	schemaUtils "github.com/sourcenetwork/defradb/tests/integration/schema"
+	schemaUtils "github.com/sourcenetwork/defradb/tests/integration/collection_version"
 )
 
 func TestACP_LinkSchema_WithManagedRelation_AcceptSchemas(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, link schema, where one resource is specified on different schemas, schemas accepted",
 
 		Actions: []any{
 

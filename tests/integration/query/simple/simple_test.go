@@ -19,7 +19,6 @@ import (
 
 func TestQuerySimple(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with no filter",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -38,7 +37,7 @@ func TestQuerySimple(t *testing.T) {
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-d4303725-7db9-53d2-b324-f3ee44020e52",
+							"_docID": "bae-619ea0d2-35ba-5e8c-ac4d-2b769937213b",
 							"Name":   "John",
 							"Age":    int64(21),
 						},
@@ -53,7 +52,6 @@ func TestQuerySimple(t *testing.T) {
 
 func TestQuerySimpleWithAlias(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with alias, no filter",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -85,7 +83,6 @@ func TestQuerySimpleWithAlias(t *testing.T) {
 
 func TestQuerySimpleWithMultipleRows(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with no filter, multiple rows",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -109,12 +106,12 @@ func TestQuerySimpleWithMultipleRows(t *testing.T) {
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"Name": "Bob",
-							"Age":  int64(27),
-						},
-						{
 							"Name": "John",
 							"Age":  int64(21),
+						},
+						{
+							"Name": "Bob",
+							"Age":  int64(27),
 						},
 					},
 				},
@@ -127,7 +124,6 @@ func TestQuerySimpleWithMultipleRows(t *testing.T) {
 
 func TestQuerySimpleWithUndefinedField(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query for undefined field",
 		Actions: []any{
 			testUtils.Request{
 				Request: `query {
@@ -146,7 +142,6 @@ func TestQuerySimpleWithUndefinedField(t *testing.T) {
 
 func TestQuerySimpleWithSomeDefaultValues(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with some default-value fields",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -183,7 +178,6 @@ func TestQuerySimpleWithSomeDefaultValues(t *testing.T) {
 
 func TestQuerySimpleWithDefaultValue(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with default-value fields",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{ }`,
@@ -220,7 +214,6 @@ func TestQuerySimpleWithDefaultValue(t *testing.T) {
 // It documents the fixing of the bug described in #3242.
 func TestQuerySimple_WithDeletedDocsInCollection2_ShouldNotYieldDeletedDocsOnCollection1Query(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Deleted docs in collection 2 should not yield deleted docs on collection 1 query",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -266,6 +259,7 @@ func TestQuerySimple_WithDeletedDocsInCollection2_ShouldNotYieldDeletedDocsOnCol
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 			testUtils.DeleteDoc{
 				CollectionID: 1,
@@ -287,6 +281,7 @@ func TestQuerySimple_WithDeletedDocsInCollection2_ShouldNotYieldDeletedDocsOnCol
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}

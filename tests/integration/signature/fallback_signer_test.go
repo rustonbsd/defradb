@@ -26,8 +26,8 @@ func TestSignature_IfIdentityHasNoPrivateKey_ShouldUseNodeIdentity(t *testing.T)
 		// Default signer can be only tested with HTTP and CLI clients, because with Go client
 		// when providing an identity, it includes the private key.
 		SupportedClientTypes: immutable.Some([]state.ClientType{
-			testUtils.HTTPClientType,
-			testUtils.CLIClientType,
+			state.HTTPClientType,
+			state.CLIClientType,
 		}),
 		Actions: []any{
 			&action.AddSchema{
@@ -46,7 +46,7 @@ func TestSignature_IfIdentityHasNoPrivateKey_ShouldUseNodeIdentity(t *testing.T)
 			},
 			testUtils.VerifyBlockSignature{
 				SignerIdentity: testUtils.NodeIdentity(0).Value(),
-				Cid:            "bafyreicwhd5s762awsrx6eowwqkkfpq7r5nnjosiru7blgaxo32wx6enp4",
+				Cid:            "bafyreibphszakimmug77fvftqmpv4uqtn3rmc5rv4u6qafeqiuu7oyeyca",
 			},
 			testUtils.UpdateDoc{
 				Identity: testUtils.ClientIdentity(0),
@@ -56,7 +56,7 @@ func TestSignature_IfIdentityHasNoPrivateKey_ShouldUseNodeIdentity(t *testing.T)
 			},
 			testUtils.VerifyBlockSignature{
 				SignerIdentity: testUtils.NodeIdentity(0).Value(),
-				Cid:            "bafyreidenvkbjuqismfbng463tfxsjmapvnvdyh4hmdx74ec5skj63ma2a",
+				Cid:            "bafyreiemskbirmphqngy3kivou4e4phcuiffcdql4mvqp3twmiipwt3pta",
 			},
 		},
 	}

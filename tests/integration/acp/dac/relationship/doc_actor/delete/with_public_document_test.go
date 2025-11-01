@@ -20,8 +20,6 @@ import (
 func TestACP_DeleteDocActorRelationshipWithPublicDocument_CanAlreadyAccess_Error(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Test acp, delete doc actor relationship on a public document, return error",
-
 		Actions: []any{
 			testUtils.AddDACPolicy{
 
@@ -118,7 +116,7 @@ func TestACP_DeleteDocActorRelationshipWithPublicDocument_CanAlreadyAccess_Error
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-9d443d0c-52f6-568b-8f74-e8ff0825697b",
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
 							"name":   "Shahzad",
 							"age":    int64(28),
 						},

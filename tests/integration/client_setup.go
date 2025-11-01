@@ -13,11 +13,12 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 
+	cbindings "github.com/sourcenetwork/defradb/cbindings"
 	"github.com/sourcenetwork/defradb/node"
 	"github.com/sourcenetwork/defradb/tests/clients"
-	cwrap "github.com/sourcenetwork/defradb/tests/clients/c"
 	"github.com/sourcenetwork/defradb/tests/clients/cli"
 	"github.com/sourcenetwork/defradb/tests/clients/http"
 	"github.com/sourcenetwork/defradb/tests/state"
@@ -29,9 +30,7 @@ func init() {
 		goClient = true
 	}
 	if cClient {
-		// todo: Network test support for C client
-		// See: https://github.com/sourcenetwork/defradb/issues/3920
-		skipNetworkTests = true
+		skipNetworkTests = false
 		skipBackupTests = true
 	}
 }
@@ -39,19 +38,19 @@ func init() {
 // setupClient returns the client implementation for the current
 // testing state. The client type on the test state is used to
 // select the client implementation to use.
-func setupClient(s *state.State, nodeObj *node.Node, enableNAC bool) (clients.Client, error) {
+func setupClient(s *state.State, nodeObj *node.Node) (clients.Client, error) {
 	switch s.ClientType {
-	case HTTPClientType:
+	case state.HTTPClientType:
 		return http.NewWrapper(nodeObj)
 
-	case CLIClientType:
+	case state.CLIClientType:
 		return cli.NewWrapper(nodeObj, s.SourcehubAddress)
 
-	case GoClientType:
+	case state.GoClientType:
 		return newGoClientWrapper(nodeObj), nil
 
-	case CClientType:
-		return cwrap.NewCWrapper(s.Ctx, enableNAC), nil
+	case state.CClientType:
+		return cbindings.NewCWrapper(nodeObj)
 
 	default:
 		return nil, fmt.Errorf("invalid client type: %v", s.ClientType)
@@ -60,19 +59,16 @@ func setupClient(s *state.State, nodeObj *node.Node, enableNAC bool) (clients.Cl
 
 type goClientWrapper struct {
 	node.DB
-	node.Peer
+	node *node.Node
 }
 
 func newGoClientWrapper(n *node.Node) *goClientWrapper {
 	return &goClientWrapper{
 		DB:   n.DB,
-		Peer: n.Peer,
+		node: n,
 	}
 }
 
 func (w *goClientWrapper) Close() {
-	if w.Peer != nil {
-		w.Peer.Close()
-	}
-	w.DB.Close()
+	_ = w.node.Close(context.Background())
 }

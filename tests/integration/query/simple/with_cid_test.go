@@ -19,7 +19,6 @@ import (
 
 func TestQuerySimpleWithInvalidCid(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with cid",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -59,7 +58,7 @@ func TestQuerySimpleWithCid(t *testing.T) {
 			testUtils.Request{
 				Request: `query {
 					Users (
-							cid: "bafyreib7afkd5hepl45wdtwwpai433bhnbd3ps5m2rv3masctda7b6mmxe"
+							cid: "bafyreigtrukuq65u2bx6f2rw4ueyqqeccjzcnhc5w3wfl23dku5o5rkiuq"
 						) {
 						name
 					}
@@ -101,7 +100,7 @@ func TestQuerySimpleWithCid_MultipleDocs(t *testing.T) {
 			testUtils.Request{
 				Request: `query {
 					Users (
-							cid: "bafyreib7afkd5hepl45wdtwwpai433bhnbd3ps5m2rv3masctda7b6mmxe"
+							cid: "bafyreigtrukuq65u2bx6f2rw4ueyqqeccjzcnhc5w3wfl23dku5o5rkiuq"
 						) {
 						name
 					}
@@ -110,6 +109,90 @@ func TestQuerySimpleWithCid_MultipleDocs(t *testing.T) {
 					"Users": []map[string]any{
 						{
 							"name": "John",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	testUtils.ExecuteTestCase(t, test)
+}
+
+func TestQuerySimple_WithCIDAndCounterAfterUpdate_ShouldSucceed(t *testing.T) {
+	test := testUtils.TestCase{
+		Actions: []any{
+			&action.AddSchema{
+				Schema: `
+					type User {
+						counter: Int @crdt(type: pcounter)
+					}
+				`,
+			},
+			testUtils.CreateDoc{
+				CollectionID: 0,
+				DocMap: map[string]any{
+					"counter": int64(1),
+				},
+			},
+			testUtils.UpdateDoc{
+				CollectionID: 0,
+				DocID:        0,
+				Doc:          `{"counter": 1}`,
+			},
+			testUtils.Request{
+				Request: `query {
+					User(cid: "{{.CID0_0_1}}") {
+						counter
+					}
+				}`,
+				Results: map[string]any{
+					"User": []map[string]any{
+						{
+							"counter": int64(2),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	testUtils.ExecuteTestCase(t, test)
+}
+
+func TestQuerySimple_WithCidAfterDeleteOperation_ShouldReturnUser(t *testing.T) {
+	test := testUtils.TestCase{
+		Actions: []any{
+			&action.AddSchema{
+				Schema: `
+					type Users {
+						name: String
+					}
+				`,
+			},
+			testUtils.CreateDoc{
+				Doc: `{
+					"name": "John"
+				}`,
+			},
+			testUtils.DeleteDoc{
+				DocID: 0,
+			},
+			testUtils.Request{
+				Request: `query {
+					Users (
+						cid: "bafyreial6pyp3rg4ruvtc32dp6y2ivf2rsdo7kwmwfls2qw3tu2vvifqhe"
+						showDeleted: true
+					){
+						name
+						_deleted
+					}
+				}`,
+				Results: map[string]any{
+					"Users": []map[string]any{
+						{
+							"name":     "John",
+							"_deleted": true,
 						},
 					},
 				},

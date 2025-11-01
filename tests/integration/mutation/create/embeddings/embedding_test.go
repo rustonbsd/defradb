@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"github.com/onsi/gomega"
+
 	"github.com/sourcenetwork/immutable"
 
 	"github.com/sourcenetwork/defradb/tests/action"
@@ -23,14 +24,13 @@ import (
 
 func TestMutationCreate_WithMultipleEmbeddingFields_ShouldSucceed(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple create mutation with multiple embedding fields",
 		SupportedClientTypes: immutable.Some([]state.ClientType{
 			// Embedding test with mutations are currently only compatible with the Go client.
 			// The docID is updated by collection. Create after vector embedding generation and
 			// the HTTP and CLI clients don't receive that updated docID. This causes the waitForUpdateEvents
 			// to fail since it receives an update on a docID that wasn't expected. We will look for a solution
 			// and update the test accordingly.
-			testUtils.GoClientType,
+			state.GoClientType,
 		}),
 		Actions: []any{
 			&action.AddSchema{
@@ -88,7 +88,6 @@ func TestMutationCreate_WithMultipleEmbeddingFields_ShouldSucceed(t *testing.T) 
 
 func TestMutationCreate_UserDefinedVectorEmbeddingDoesNotTriggerGeneration_ShouldSucceed(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple create mutation with manually defined vector embedding",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `

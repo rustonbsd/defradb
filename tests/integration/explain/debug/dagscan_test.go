@@ -34,15 +34,13 @@ var dagScanPattern = dataMap{
 func TestDebugExplainCommitsDagScanQueryOp(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Explain (debug) commits query-op.",
-
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
 			testUtils.ExplainRequest{
 
 				Request: `query @explain(type: debug) {
-					commits (docID: "bae-7aabc9d2-fbbc-5911-b0d0-b49a2a1d0e84", fieldName: "name") {
+					_commits (docID: "bae-9e70648f-c722-5875-97f5-574ec6f703e9", fieldName: "name") {
 						links {
 							cid
 						}
@@ -60,15 +58,13 @@ func TestDebugExplainCommitsDagScanQueryOp(t *testing.T) {
 func TestDebugExplainCommitsDagScanQueryOpWithoutField(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Explain (debug) commits query-op with only docID (no field).",
-
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
 			testUtils.ExplainRequest{
 
 				Request: `query @explain(type: debug) {
-					commits (docID: "bae-7aabc9d2-fbbc-5911-b0d0-b49a2a1d0e84") {
+					_commits (docID: "bae-9e70648f-c722-5875-97f5-574ec6f703e9") {
 						links {
 							cid
 						}
@@ -86,15 +82,13 @@ func TestDebugExplainCommitsDagScanQueryOpWithoutField(t *testing.T) {
 func TestDebugExplainLatestCommitsDagScanQueryOp(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Explain (debug) latestCommits query-op.",
-
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
 			testUtils.ExplainRequest{
 
 				Request: `query @explain(type: debug) {
-					latestCommits(docID: "bae-7aabc9d2-fbbc-5911-b0d0-b49a2a1d0e84", fieldName: "name") {
+					_latestCommits(docID: "bae-9e70648f-c722-5875-97f5-574ec6f703e9", fieldName: "name") {
 						cid
 						links {
 							cid
@@ -113,15 +107,13 @@ func TestDebugExplainLatestCommitsDagScanQueryOp(t *testing.T) {
 func TestDebugExplainLatestCommitsDagScanQueryOpWithoutField(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Explain (debug) latestCommits query-op with only docID (no field).",
-
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
 			testUtils.ExplainRequest{
 
 				Request: `query @explain(type: debug) {
-					latestCommits(docID: "bae-7aabc9d2-fbbc-5911-b0d0-b49a2a1d0e84") {
+					_latestCommits(docID: "bae-9e70648f-c722-5875-97f5-574ec6f703e9") {
 						cid
 						links {
 							cid
@@ -140,15 +132,13 @@ func TestDebugExplainLatestCommitsDagScanQueryOpWithoutField(t *testing.T) {
 func TestDebugExplainLatestCommitsDagScanWithoutDocID_Failure(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Explain (debug) latestCommits query without docID.",
-
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
 			testUtils.ExplainRequest{
 
 				Request: `query @explain(type: debug) {
-					latestCommits(fieldName: "name") {
+					_latestCommits(fieldName: "name") {
 						cid
 						links {
 							cid
@@ -156,7 +146,7 @@ func TestDebugExplainLatestCommitsDagScanWithoutDocID_Failure(t *testing.T) {
 					}
 				}`,
 
-				ExpectedError: "Field \"latestCommits\" argument \"docID\" of type \"ID!\" is required but not provided.",
+				ExpectedError: "Field \"_latestCommits\" argument \"docID\" of type \"ID!\" is required but not provided.",
 			},
 		},
 	}
@@ -167,15 +157,13 @@ func TestDebugExplainLatestCommitsDagScanWithoutDocID_Failure(t *testing.T) {
 func TestDebugExplainLatestCommitsDagScanWithoutAnyArguments_Failure(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Explain (debug) latestCommits query without any arguments.",
-
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
 			testUtils.ExplainRequest{
 
 				Request: `query @explain(type: debug) {
-					latestCommits {
+					_latestCommits {
 						cid
 						links {
 							cid
@@ -183,7 +171,7 @@ func TestDebugExplainLatestCommitsDagScanWithoutAnyArguments_Failure(t *testing.
 					}
 				}`,
 
-				ExpectedError: "Field \"latestCommits\" argument \"docID\" of type \"ID!\" is required but not provided.",
+				ExpectedError: "Field \"_latestCommits\" argument \"docID\" of type \"ID!\" is required but not provided.",
 			},
 		},
 	}

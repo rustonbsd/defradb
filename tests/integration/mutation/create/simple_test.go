@@ -21,7 +21,6 @@ import (
 
 func TestMutationCreate_GivenNonExistantField_Errors(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple create mutation with non existant field",
 		SupportedMutationTypes: immutable.Some([]testUtils.MutationType{
 			// GQL mutation will return a different error
 			// when field types do not match
@@ -64,7 +63,6 @@ func TestMutationCreate_GivenNonExistantField_Errors(t *testing.T) {
 
 func TestMutationCreate(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple create mutation",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -93,7 +91,7 @@ func TestMutationCreate(t *testing.T) {
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"_docID": "bae-8c89a573-c287-5d8c-8ba6-c47c814c594d",
+							"_docID": "bae-32e84498-d467-5f01-b93e-fc2dca59be76",
 							"name":   "John",
 							"age":    int64(27),
 						},
@@ -108,7 +106,6 @@ func TestMutationCreate(t *testing.T) {
 
 func TestMutationCreate_GivenDuplicate_Errors(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple create mutation where document already exists.",
 		SupportedMutationTypes: immutable.Some([]testUtils.MutationType{
 			// Collection.Save would treat the second create as an update, and so
 			// is excluded from this test.
@@ -145,7 +142,6 @@ func TestMutationCreate_GivenDuplicate_Errors(t *testing.T) {
 
 func TestMutationCreate_GivenEmptyInput(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple create mutation with empty input param.",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -163,7 +159,7 @@ func TestMutationCreate_GivenEmptyInput(t *testing.T) {
 				Results: map[string]any{
 					"create_Users": []map[string]any{
 						{
-							"_docID": "bae-332de69b-47da-5175-863f-2480107f4884",
+							"_docID": "bae-d97a4927-9fad-53a0-bda2-8e9d8dd33551",
 						},
 					},
 				},

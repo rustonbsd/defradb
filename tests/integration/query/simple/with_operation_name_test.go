@@ -20,7 +20,6 @@ import (
 
 func TestQuerySimpleMultipleOperationsWithOperationName(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query multiple operations with operation name",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -49,13 +48,14 @@ func TestQuerySimpleMultipleOperationsWithOperationName(t *testing.T) {
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"Name": "Bob",
+							"Name": "Alice",
 						},
 						{
-							"Name": "Alice",
+							"Name": "Bob",
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 			testUtils.Request{
 				OperationName: immutable.Some("UsersByAge"),
@@ -72,13 +72,14 @@ func TestQuerySimpleMultipleOperationsWithOperationName(t *testing.T) {
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"Age": int64(21),
+							"Age": int64(40),
 						},
 						{
-							"Age": int64(40),
+							"Age": int64(21),
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -88,7 +89,6 @@ func TestQuerySimpleMultipleOperationsWithOperationName(t *testing.T) {
 
 func TestQuerySimpleMultipleOperationsWithNoOperationName_ReturnsError(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query multiple operations with no operation name",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{

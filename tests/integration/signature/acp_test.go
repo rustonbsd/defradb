@@ -58,7 +58,7 @@ func TestSignatureACP_IfHasNoAccessToDoc_ShouldError(t *testing.T) {
 		SupportedClientTypes: immutable.Some([]state.ClientType{
 			// Creating of signed documents over HTTP is not supported yet, because signing
 			// requires a private key which we do not pass over HTTP.
-			testUtils.GoClientType,
+			state.GoClientType,
 		}),
 		Actions: []any{
 			testUtils.AddDACPolicy{
@@ -86,7 +86,7 @@ func TestSignatureACP_IfHasNoAccessToDoc_ShouldError(t *testing.T) {
 			testUtils.VerifyBlockSignature{
 				Identity:       testUtils.NodeIdentity(1),
 				SignerIdentity: testUtils.ClientIdentity(1).Value(),
-				Cid:            "bafyreiaqqaqoe73ioolf6lofprgekb4lnrcteanpbjgjegkn6ug77ghmri",
+				Cid:            "bafyreidbxkvfkmr3bhfxwvjm5pagkpm3ixtuz4bfmi2pcw5m2uylniptry",
 				ExpectedError:  db.ErrMissingPermission.Error(),
 			},
 		},
@@ -101,7 +101,7 @@ func TestSignatureACP_IfHasAccessToDoc_ValidateSignature(t *testing.T) {
 		SupportedClientTypes: immutable.Some([]state.ClientType{
 			// Creating of signed documents over HTTP is not supported yet, because signing
 			// requires a private key which we do not pass over HTTP.
-			testUtils.GoClientType,
+			state.GoClientType,
 		}),
 		Actions: []any{
 			testUtils.AddDACPolicy{
@@ -129,7 +129,7 @@ func TestSignatureACP_IfHasAccessToDoc_ValidateSignature(t *testing.T) {
 			testUtils.VerifyBlockSignature{
 				Identity:       testUtils.ClientIdentity(1),
 				SignerIdentity: testUtils.ClientIdentity(1).Value(),
-				Cid:            "bafyreiaqqaqoe73ioolf6lofprgekb4lnrcteanpbjgjegkn6ug77ghmri",
+				Cid:            "bafyreidbxkvfkmr3bhfxwvjm5pagkpm3ixtuz4bfmi2pcw5m2uylniptry",
 			},
 		},
 	}

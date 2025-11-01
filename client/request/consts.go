@@ -19,18 +19,20 @@ const (
 	// that corresponds to the related object's join relation id, i.e. `Author_id`.
 	RelatedObjectID = "_id"
 
-	Cid                = "cid"
 	Input              = "input"
 	CreateInput        = "create"
 	UpdateInput        = "update"
-	FieldName          = "field"
+	FieldArgName       = "field"
+	FieldNameArgName   = "fieldName"
 	FieldIDName        = "fieldId"
 	FieldNameName      = "fieldName"
 	CompositeFieldName = "_C"
 	ShowDeleted        = "showDeleted"
 
-	EncryptDocArgName    = "encrypt"
-	EncryptFieldsArgName = "encryptFields"
+	EncryptDocArgName         = "encrypt"
+	EncryptFieldsArgName      = "encryptFields"
+	EncryptedCollectionPrefix = "encrypted_"
+	EncryptedSearchResultName = "EncryptedSearchResult"
 
 	FilterClause  = "filter"
 	GroupByClause = "groupBy"
@@ -39,7 +41,9 @@ const (
 	OrderClause   = "order"
 	DepthClause   = "depth"
 
-	DocIDArgName = "docID"
+	DocIDArgName  = "docID"
+	CidArgName    = "cid"
+	HeightArgName = "height"
 
 	AverageFieldName    = "_avg"
 	CountFieldName      = "_count"
@@ -59,17 +63,15 @@ const (
 
 	ExplainLabel = "explain"
 
-	LatestCommitsName = "latestCommits"
-	CommitsName       = "commits"
+	LatestCommitsName = "_latestCommits"
+	CommitsName       = "_commits"
 
 	CommitTypeName           = "Commit"
 	LinksFieldName           = "links"
 	SignatureFieldName       = "signature"
 	SignatureTypeName        = "Signature"
 	HeightFieldName          = "height"
-	CidFieldName             = "cid"
 	SchemaVersionIDFieldName = "schemaVersionId"
-	FieldNameFieldName       = "fieldName"
 	DeltaFieldName           = "delta"
 
 	DeltaArgFieldName       = "FieldName"
@@ -85,11 +87,13 @@ const (
 	SelfTypeName = "Self"
 
 	LinksNameFieldName = "name"
-	LinksCidFieldName  = "cid"
+	CidFieldName       = "cid"
 
 	SignatureTypeFieldName     = "type"
 	SignatureIdentityFieldName = "identity"
 	SignatureValueFieldName    = "value"
+
+	DocIDsFieldName = "docIDs"
 
 	ASC  = OrderDirection("ASC")
 	DESC = OrderDirection("DESC")
@@ -142,13 +146,13 @@ var (
 		CidFieldName,
 		DocIDArgName,
 		SchemaVersionIDFieldName,
-		FieldNameFieldName,
+		FieldNameName,
 		DeltaFieldName,
 	}
 
 	LinksFields = []string{
 		LinksNameFieldName,
-		LinksCidFieldName,
+		CidFieldName,
 	}
 
 	SignatureFields = []string{

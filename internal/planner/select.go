@@ -16,6 +16,7 @@ import (
 	"strings"
 
 	cid "github.com/ipfs/go-cid"
+
 	"github.com/sourcenetwork/immutable"
 
 	"github.com/sourcenetwork/defradb/client"
@@ -337,7 +338,7 @@ func findIndexByFilteringField(scanNode *scanNode) immutable.Option[client.Index
 		col := scanNode.col.Version()
 		conditions := scanNode.filter.ExternalConditions
 		filter.TraverseFields(conditions, func(path []string, val any) bool {
-			for _, field := range scanNode.col.Schema().Fields {
+			for _, field := range scanNode.col.Version().Fields {
 				if field.Name != path[0] {
 					continue
 				}
@@ -392,7 +393,7 @@ func findIndexByOrderingField(scanNode *scanNode) immutable.Option[client.IndexD
 }
 
 func findIndexByFieldName(col client.Collection, fieldName string) immutable.Option[client.IndexDescription] {
-	for _, field := range col.Schema().Fields {
+	for _, field := range col.Version().Fields {
 		if field.Name != fieldName {
 			continue
 		}
@@ -472,7 +473,7 @@ func (n *selectNode) initFields(selectReq *mapper.Select) ([]aggregateNode, []*s
 				n.groupSelects = append(n.groupSelects, f)
 			} else if isSpecialNoOpField(f, selectReq) {
 				// no-op
-			} else if !(n.collection != nil && len(n.collection.Version().QuerySources()) > 0) {
+			} else if !(n.collection != nil && n.collection.Version().Query.HasValue()) {
 				// Collections sourcing data from queries only contain embedded objects and don't require
 				// a traditional join here
 				err := n.addTypeIndexJoin(f)
@@ -579,8 +580,39 @@ func (p *Planner) SelectFromSource(
 	return top, nil
 }
 
+// SelectEncrypted constructs a plan for searchable encryption queries
+func (p *Planner) SelectEncrypted(selectReq *mapper.Select) (planNode, error) {
+	col, err := p.db.GetCollectionByName(p.ctx, selectReq.CollectionName)
+	if err != nil {
+		return nil, err
+	}
+
+	encryptedIndexes, err := col.ListEncryptedIndexes(p.ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(encryptedIndexes) == 0 {
+		return nil, client.NewErrUninitializeProperty("SelectEncrypted", "collection has no encrypted indexes")
+	}
+
+	seScan := &seScanNode{
+		p:                p,
+		collection:       col,
+		collectionID:     col.Version().CollectionID,
+		filter:           selectReq.Filter,
+		encryptedIndexes: encryptedIndexes,
+		docMapper:        docMapper{selectReq.DocumentMapping},
+	}
+
+	return seScan, nil
+}
+
 // Select constructs a SelectPlan
 func (p *Planner) Select(selectReq *mapper.Select) (planNode, error) {
+	if selectReq.IsEncrypted {
+		return p.SelectEncrypted(selectReq)
+	}
+
 	s := &selectNode{
 		planner:   p,
 		filter:    selectReq.Filter,

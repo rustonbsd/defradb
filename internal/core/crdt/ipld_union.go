@@ -10,18 +10,19 @@
 
 package crdt
 
-import "github.com/sourcenetwork/defradb/internal/core"
-
 // CRDT is a union type used for IPLD schemas that can hold any of the CRDT deltas.
 type CRDT struct {
-	LWWDelta          *LWWDelta
-	DocCompositeDelta *DocCompositeDelta
-	CounterDelta      *CounterDelta
-	CollectionDelta   *CollectionDelta
+	LWWDelta                  *LWWDelta
+	DocCompositeDelta         *DocCompositeDelta
+	CounterDelta              *CounterDelta
+	CollectionDelta           *CollectionDelta
+	CollectionSetDelta        *CollectionSetDelta
+	CollectionDefinitionDelta *CollectionDefinitionDelta
+	FieldDefinitionDelta      *FieldDefinitionDelta
 }
 
 // NewCRDT returns a new CRDT.
-func NewCRDT(delta core.Delta) CRDT {
+func NewCRDT(delta Delta) CRDT {
 	switch d := delta.(type) {
 	case *LWWDelta:
 		return CRDT{LWWDelta: d}
@@ -29,8 +30,14 @@ func NewCRDT(delta core.Delta) CRDT {
 		return CRDT{DocCompositeDelta: d}
 	case *CounterDelta:
 		return CRDT{CounterDelta: d}
+	case *CollectionSetDelta:
+		return CRDT{CollectionSetDelta: d}
 	case *CollectionDelta:
 		return CRDT{CollectionDelta: d}
+	case *CollectionDefinitionDelta:
+		return CRDT{CollectionDefinitionDelta: d}
+	case *FieldDefinitionDelta:
+		return CRDT{FieldDefinitionDelta: d}
 	}
 	return CRDT{}
 }
@@ -45,11 +52,14 @@ func (c CRDT) IPLDSchemaBytes() []byte {
 		| DocCompositeDelta "composite"
 		| CounterDelta "counter"
 		| CollectionDelta "collection"
+		| CollectionSetDelta "collectionSet"
+		| CollectionDefinitionDelta "collectionDefinition"
+		| FieldDefinitionDelta "fieldDefinition"
 	} representation keyed`)
 }
 
 // GetDelta returns the delta that is stored in the CRDT.
-func (c CRDT) GetDelta() core.Delta {
+func (c CRDT) GetDelta() Delta {
 	switch {
 	case c.LWWDelta != nil:
 		return c.LWWDelta
@@ -59,6 +69,12 @@ func (c CRDT) GetDelta() core.Delta {
 		return c.CounterDelta
 	case c.CollectionDelta != nil:
 		return c.CollectionDelta
+	case c.CollectionDelta != nil:
+		return c.CollectionSetDelta
+	case c.CollectionDefinitionDelta != nil:
+		return c.CollectionDefinitionDelta
+	case c.FieldDefinitionDelta != nil:
+		return c.FieldDefinitionDelta
 	}
 	return nil
 }
@@ -74,6 +90,12 @@ func (c CRDT) GetPriority() uint64 {
 		return c.CounterDelta.GetPriority()
 	case c.CollectionDelta != nil:
 		return c.CollectionDelta.GetPriority()
+	case c.CollectionSetDelta != nil:
+		return c.CollectionSetDelta.GetPriority()
+	case c.CollectionDefinitionDelta != nil:
+		return c.CollectionDefinitionDelta.GetPriority()
+	case c.FieldDefinitionDelta != nil:
+		return c.FieldDefinitionDelta.GetPriority()
 	}
 	return 0
 }
@@ -198,4 +220,9 @@ func (c CRDT) IsCollection() bool {
 // IsField returns true if the CRDT is a field CRDT.
 func (c CRDT) IsField() bool {
 	return !c.IsComposite() && !c.IsCollection()
+}
+
+// IsDefinition returns true if the CRDT is a collection, or collection field, version CRDT.
+func (c CRDT) IsDefinition() bool {
+	return c.CollectionDefinitionDelta != nil || c.FieldDefinitionDelta != nil
 }

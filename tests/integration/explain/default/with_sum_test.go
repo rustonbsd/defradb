@@ -36,8 +36,6 @@ var sumPattern = dataMap{
 func TestDefaultExplainRequestWithSumOnInlineArrayField_ChildFieldWillBeEmpty(t *testing.T) {
 	test := testUtils.TestCase{
 
-		Description: "Explain (default) request with sum on an inline array field.",
-
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
@@ -70,7 +68,7 @@ func TestDefaultExplainRequestWithSumOnInlineArrayField_ChildFieldWillBeEmpty(t 
 						TargetNodeName:    "scanNode",
 						IncludeChildNodes: true, // should be leaf of it's branch, so will have no child nodes.
 						ExpectedAttributes: dataMap{
-							"collectionID":   "bafkreictgwjdhpmwh6a7uu65oggzcgolwiq5vb53x2ehhijh2yqzgwzjwu",
+							"collectionID":   "bafyreihlwj5mr73cjwhvkctg6ywd6c2z3kldafxmju7ppcvwqpjjt74p4q",
 							"collectionName": "Book",
 							"filter":         nil,
 							"prefixes": []string{

@@ -15,8 +15,9 @@ import (
 	"testing"
 
 	badgerds "github.com/dgraph-io/badger/v4"
-	"github.com/sourcenetwork/corekv/badger"
 	"github.com/stretchr/testify/require"
+
+	"github.com/sourcenetwork/corekv/badger"
 
 	"github.com/sourcenetwork/defradb/acp/dac"
 )
@@ -31,7 +32,7 @@ func newBadgerDB(ctx context.Context) (*DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	return newDB(ctx, rootstore, adminInfo, dac.NoDocumentACP, nil)
+	return newDB(ctx, rootstore, adminInfo, dac.NoDocumentACP)
 }
 
 func TestNewDB(t *testing.T) {
@@ -42,6 +43,6 @@ func TestNewDB(t *testing.T) {
 	adminInfo, err := NewNACInfo(ctx, "", false)
 	require.NoError(t, err)
 
-	_, err = NewDB(ctx, rootstore, adminInfo, dac.NoDocumentACP, nil)
+	_, err = NewDB(ctx, rootstore, adminInfo, dac.NoDocumentACP)
 	require.NoError(t, err)
 }

@@ -19,7 +19,6 @@ import (
 
 func TestQueryWithCompositeIndex_WithDefaultOrder_ShouldFetchInDefaultOrder(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Test composite index in default order",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -97,7 +96,6 @@ func TestQueryWithCompositeIndex_WithDefaultOrder_ShouldFetchInDefaultOrder(t *t
 
 func TestQueryWithCompositeIndex_WithDefaultOrderCaseInsensitive_ShouldFetchInDefaultOrder(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Test composite index in default order and case insensitive operator",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -181,7 +179,6 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstField_ShouldFetchInReve
 		}
 	}`
 	test := testUtils.TestCase{
-		Description: "Test composite index with reverted order on first field",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -364,7 +361,6 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstFieldAndNoFilter_Should
 
 func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstFieldCaseInsensitive_ShouldFetchInRevertedOrder(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Test composite index with reverted order on first field and case insensitive operator",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -454,7 +450,6 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstFieldCaseInsensitive_Sh
 
 func TestQueryWithCompositeIndex_WithRevertedOrderOnSecondField_ShouldFetchInRevertedOrder(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Test composite index with reverted order on second field",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -534,7 +529,6 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnSecondFieldCaseInsensitive_S
 	t *testing.T,
 ) {
 	test := testUtils.TestCase{
-		Description: "Test composite index with reverted order on second field and case insensitive operator",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -612,7 +606,6 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnSecondFieldCaseInsensitive_S
 
 func TestQueryWithCompositeIndex_IfExactMatchWithRevertedOrderOnFirstField_ShouldFetch(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Test composite index with reverted order on first field and filter with exact match",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -670,7 +663,6 @@ func TestQueryWithCompositeIndex_IfExactMatchWithRevertedOrderOnFirstField_Shoul
 
 func TestQueryWithCompositeIndex_IfExactMatchWithRevertedOrderOnSecondField_ShouldFetch(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Test composite index with reverted order on second field and filter with exact match",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -728,7 +720,6 @@ func TestQueryWithCompositeIndex_IfExactMatchWithRevertedOrderOnSecondField_Shou
 
 func TestQueryWithCompositeIndex_WithInFilterOnFirstFieldWithRevertedOrder_ShouldFetch(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Test composite index with reverted order on first field and filtering with _in filter",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -761,9 +752,9 @@ func TestQueryWithCompositeIndex_WithInFilterOnFirstFieldWithRevertedOrder_Shoul
 	testUtils.ExecuteTestCase(t, test)
 }
 
+// TODO: This test documents incorrect behaviour. https://github.com/sourcenetwork/defradb/issues/3780
 func TestQueryWithCompositeIndex_WithInFilterOnSecondFieldWithRevertedOrder_ShouldFetch(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Test composite index with reverted order on second field and filtering with _in filter",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -784,6 +775,12 @@ func TestQueryWithCompositeIndex_WithInFilterOnSecondFieldWithRevertedOrder_Shou
 					}`,
 				Results: map[string]any{
 					"User": []map[string]any{
+						/* Expected results
+						{"name": "Andy"},
+						{"name": "Fred"},
+						{"name": "Shahzad"},
+						*/
+						// Actual results
 						{"name": "Shahzad"},
 						{"name": "Andy"},
 						{"name": "Fred"},
@@ -806,7 +803,6 @@ func TestQueryWithCompositeIndex_WithRangeQueryOnFirstField_ShouldUseRangeOptimi
 		}`
 
 	test := testUtils.TestCase{
-		Description: "Test composite index with range query on first field",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -889,7 +885,6 @@ func TestQueryWithCompositeIndex_WithRangeQueryOnFirstFieldWithMultipleFilters_S
 		}`
 
 	test := testUtils.TestCase{
-		Description: "Test composite index with range query and additional filter",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `
@@ -976,7 +971,6 @@ func TestQueryWithCompositeIndex_WithDescendingFirstFieldAndRangeQuery_ShouldUse
 		}`
 
 	test := testUtils.TestCase{
-		Description: "Test composite index with descending first field and range query",
 		Actions: []any{
 			&action.AddSchema{
 				Schema: `

@@ -18,7 +18,6 @@ import (
 
 func TestQuerySimpleWithGroupByNumberWithoutRenderedGroupAndChildSumWithFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by number, no children, sum on non-rendered, unfiltered group",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -66,7 +65,6 @@ func TestQuerySimpleWithGroupByNumberWithoutRenderedGroupAndChildSumWithFilter(t
 
 func TestQuerySimpleWithGroupByNumberWithRenderedGroupAndChildSumWithFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by number, no children, sum on rendered, unfiltered group",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -121,6 +119,7 @@ func TestQuerySimpleWithGroupByNumberWithRenderedGroupAndChildSumWithFilter(t *t
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -130,7 +129,6 @@ func TestQuerySimpleWithGroupByNumberWithRenderedGroupAndChildSumWithFilter(t *t
 
 func TestQuerySimpleWithGroupByNumberWithRenderedGroupWithFilterAndChildSumWithMatchingFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by number, no children, sum on rendered, matching filtered group",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -187,7 +185,6 @@ func TestQuerySimpleWithGroupByNumberWithRenderedGroupWithFilterAndChildSumWithM
 
 func TestQuerySimpleWithGroupByNumberWithRenderedGroupWithFilterAndChildSumWithDifferentFilter(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by number, no children, sum on non-rendered, different filtered group",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{
@@ -244,7 +241,6 @@ func TestQuerySimpleWithGroupByNumberWithRenderedGroupWithFilterAndChildSumWithD
 
 func TestQuerySimpleWithGroupByNumberWithoutRenderedGroupAndChildSumsWithDifferentFilters(t *testing.T) {
 	test := testUtils.TestCase{
-		Description: "Simple query with group by number, no children, sum on non-rendered, unfiltered group",
 		Actions: []any{
 			testUtils.CreateDoc{
 				Doc: `{

@@ -20,11 +20,10 @@ import (
 )
 
 func TestMutationUpdateOneToMany_RelationIDToLinkFromSingleSide_Error(t *testing.T) {
-	author1ID := "bae-a47f80ab-1c30-53b3-9dac-04a4a3fda77e"
+	author1ID := "bae-5059e989-3cae-5584-9357-f3eb81e86241"
 	bookID := "bae-22e0a1c2-d12b-5bfd-b039-0cf72f963991"
 
 	test := testUtils.TestCase{
-		Description: "One to many update mutation using relation id from single side (wrong)",
 		SupportedMutationTypes: immutable.Some([]testUtils.MutationType{
 			// GQL mutation will return a different error
 			// when field types do not match
@@ -73,11 +72,10 @@ func TestMutationUpdateOneToMany_RelationIDToLinkFromSingleSide_Error(t *testing
 }
 
 func TestMutationUpdateOneToMany_InvalidRelationIDToLinkFromManySide(t *testing.T) {
-	author1ID := "bae-a47f80ab-1c30-53b3-9dac-04a4a3fda77e"
+	author1ID := "bae-5059e989-3cae-5584-9357-f3eb81e86241"
 	invalidAuthorID := "bae-35953ca-518d-9e6b-9ce6cd00eff5"
 
 	test := testUtils.TestCase{
-		Description: "One to many update mutation using relation id from many side",
 		Actions: []any{
 			testUtils.CreateDoc{
 				CollectionID: 1,
@@ -113,11 +111,10 @@ func TestMutationUpdateOneToMany_InvalidRelationIDToLinkFromManySide(t *testing.
 }
 
 func TestMutationUpdateOneToMany_RelationIDToLinkFromManySideWithWrongField_Error(t *testing.T) {
-	author1ID := "bae-a47f80ab-1c30-53b3-9dac-04a4a3fda77e"
-	author2ID := "bae-789d10d4-e54f-531b-ae81-e15100f8e506"
+	author1ID := "bae-5059e989-3cae-5584-9357-f3eb81e86241"
+	author2ID := "bae-31e97109-6225-5be2-8c86-b16baa2782a3"
 
 	test := testUtils.TestCase{
-		Description: "One to many update mutation using relation id from many side, with a wrong field.",
 		SupportedMutationTypes: immutable.Some([]testUtils.MutationType{
 			// GQL mutation will return a different error
 			// when field types do not match
@@ -166,11 +163,10 @@ func TestMutationUpdateOneToMany_RelationIDToLinkFromManySideWithWrongField_Erro
 }
 
 func TestMutationUpdateOneToMany_RelationIDToLinkFromManySide(t *testing.T) {
-	author1ID := "bae-a47f80ab-1c30-53b3-9dac-04a4a3fda77e"
-	author2ID := "bae-789d10d4-e54f-531b-ae81-e15100f8e506"
+	author1ID := "bae-5059e989-3cae-5584-9357-f3eb81e86241"
+	author2ID := "bae-31e97109-6225-5be2-8c86-b16baa2782a3"
 
 	test := testUtils.TestCase{
-		Description: "One to many update mutation using relation id from many side",
 		Actions: []any{
 			testUtils.CreateDoc{
 				CollectionID: 1,
@@ -216,6 +212,10 @@ func TestMutationUpdateOneToMany_RelationIDToLinkFromManySide(t *testing.T) {
 				Results: map[string]any{
 					"Author": []map[string]any{
 						{
+							"name":      "John Grisham",
+							"published": []map[string]any{},
+						},
+						{
 							"name": "New Shahzad",
 							"published": []map[string]any{
 								{
@@ -223,12 +223,9 @@ func TestMutationUpdateOneToMany_RelationIDToLinkFromManySide(t *testing.T) {
 								},
 							},
 						},
-						{
-							"name":      "John Grisham",
-							"published": []map[string]any{},
-						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 			testUtils.Request{
 				Request: `query {

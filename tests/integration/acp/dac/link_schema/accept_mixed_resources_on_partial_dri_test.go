@@ -15,13 +15,11 @@ import (
 
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
-	schemaUtils "github.com/sourcenetwork/defradb/tests/integration/schema"
+	schemaUtils "github.com/sourcenetwork/defradb/tests/integration/collection_version"
 )
 
 func TestACP_LinkSchema_UseValidResource_AcceptSchema(t *testing.T) {
 	test := testUtils.TestCase{
-
-		Description: "Test acp, link schema, has both valid & invalid resources, but use only valid resource, schema accepted",
 
 		Actions: []any{
 
