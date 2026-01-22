@@ -46,7 +46,7 @@ func TestView_SimpleMaterialized_AutoUpdatesOnViewCreate(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.Request{
+			&action.Request{
 				// We are testing that the refresh occurs on view create, so we must disable
 				// the test framework's auto-refresh done within this Request's execution in
 				// order to test it.
@@ -71,6 +71,7 @@ func TestView_SimpleMaterialized_AutoUpdatesOnViewCreate(t *testing.T) {
 
 	testUtils.ExecuteTestCase(t, test)
 }
+
 func TestView_SimpleMaterialized_RefreshesAfterEarlierRefresh(t *testing.T) {
 	test := testUtils.TestCase{
 		SupportedViewTypes: immutable.Some([]testUtils.ViewType{
@@ -109,7 +110,7 @@ func TestView_SimpleMaterialized_RefreshesAfterEarlierRefresh(t *testing.T) {
 			// Refresh the view after an earlier refresh (with data).  We had a bug here
 			// where RefreshViews would fail only if there was already data in the view cache.
 			&action.RefreshViews{},
-			testUtils.Request{
+			&action.Request{
 				// It doesn't really matter if it refreshes again, but it is a bit wasteful,
 				// and it is nicer to be explicit for this test.
 				DoNotRefreshViews: true,
@@ -172,7 +173,7 @@ func TestView_SimpleMaterialized_DoesNotAutoUpdate(t *testing.T) {
 					"name":	"Fred"
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				// Disable the test framework's auto-refreshing of views for this test
 				// so that we may verify the behaviour when the views are not refreshed
 				DoNotRefreshViews: true,
