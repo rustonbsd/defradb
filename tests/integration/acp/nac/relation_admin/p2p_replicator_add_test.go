@@ -20,7 +20,7 @@ import (
 	"github.com/sourcenetwork/defradb/tests/state"
 )
 
-func TestNAC_AdminRelation_CanP2PReplicatorCreate(t *testing.T) {
+func TestNAC_AdminRelation_CanP2PReplicatorAdd(t *testing.T) {
 	test := testUtils.TestCase{
 		SupportedClientTypes: immutable.Some(
 			[]state.ClientType{
@@ -42,11 +42,11 @@ func TestNAC_AdminRelation_CanP2PReplicatorCreate(t *testing.T) {
 			},
 
 			// This user, can not perform this gated operation yet.
-			testUtils.CreateReplicator{
+			testUtils.AddReplicator{
 				Identity:      testUtils.ClientIdentity(2),
 				SourceNodeID:  1,
 				TargetNodeID:  0,
-				ExpectedError: testUtils.FormatExpectedErrorWithPermission(acpTypes.NodeP2PReplicatorCreatePerm),
+				ExpectedError: testUtils.FormatExpectedErrorWithPermission(acpTypes.NodeP2PReplicatorAddPerm),
 			},
 
 			// Grant access to user.
@@ -58,7 +58,7 @@ func TestNAC_AdminRelation_CanP2PReplicatorCreate(t *testing.T) {
 			},
 
 			// This user, can now perform this gated operation.
-			testUtils.CreateReplicator{
+			testUtils.AddReplicator{
 				Identity:     testUtils.ClientIdentity(2),
 				SourceNodeID: 1,
 				TargetNodeID: 0,

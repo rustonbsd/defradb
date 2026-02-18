@@ -123,12 +123,12 @@ func (w *Wrapper) Connect(
 	return err
 }
 
-func (w *Wrapper) CreateReplicator(
+func (w *Wrapper) AddReplicator(
 	ctx context.Context,
 	addresses []string,
-	opts ...options.Enumerable[options.CreateReplicatorOptions],
+	opts ...options.Enumerable[options.AddReplicatorOptions],
 ) error {
-	args := []string{"client", "p2p", "replicator", "create"}
+	args := []string{"client", "p2p", "replicator", "add"}
 
 	opt := utils.NewOptions(opts...)
 	if len(opt.CollectionNames) > 0 {
@@ -181,12 +181,12 @@ func (w *Wrapper) ListReplicators(
 	return reps, nil
 }
 
-func (w *Wrapper) CreateP2PCollections(
+func (w *Wrapper) AddP2PCollections(
 	ctx context.Context,
 	collectionIDs []string,
-	opts ...options.Enumerable[options.CreateP2PCollectionsOptions],
+	opts ...options.Enumerable[options.AddP2PCollectionsOptions],
 ) error {
-	args := []string{"client", "p2p", "collection", "create"}
+	args := []string{"client", "p2p", "collection", "add"}
 	args = append(args, strings.Join(collectionIDs, ","))
 
 	opt := utils.NewOptions(opts...)
@@ -231,12 +231,12 @@ func (w *Wrapper) ListP2PCollections(
 	return cols, nil
 }
 
-func (w *Wrapper) CreateP2PDocuments(
+func (w *Wrapper) AddP2PDocuments(
 	ctx context.Context,
 	docIDs []string,
-	opts ...options.Enumerable[options.CreateP2PDocumentsOptions],
+	opts ...options.Enumerable[options.AddP2PDocumentsOptions],
 ) error {
-	args := []string{"client", "p2p", "document", "create"}
+	args := []string{"client", "p2p", "document", "add"}
 	args = append(args, strings.Join(docIDs, ","))
 
 	opt := utils.NewOptions(opts...)

@@ -20,7 +20,7 @@ import (
 	"github.com/sourcenetwork/defradb/tests/state"
 )
 
-func TestNAC_GatesP2PReplicatorDelete_AuthorizedIdentity_AllowAccess(t *testing.T) {
+func TestNAC_GatesP2PReplicatorAdd_AuthorizedIdentity_AllowAccess(t *testing.T) {
 	test := testUtils.TestCase{
 		SupportedClientTypes: immutable.Some(
 			[]state.ClientType{
@@ -39,15 +39,10 @@ func TestNAC_GatesP2PReplicatorDelete_AuthorizedIdentity_AllowAccess(t *testing.
 			testUtils.Start{
 				Identity:  testUtils.ClientIdentity(1),
 				EnableNAC: true,
-			},
-			testUtils.AddReplicator{
-				Identity:     testUtils.ClientIdentity(1),
-				SourceNodeID: 1,
-				TargetNodeID: 0,
 			},
 
 			// This should work as the identity is authorized.
-			testUtils.DeleteReplicator{
+			testUtils.AddReplicator{
 				Identity:     testUtils.ClientIdentity(1),
 				SourceNodeID: 1,
 				TargetNodeID: 0,
@@ -58,16 +53,8 @@ func TestNAC_GatesP2PReplicatorDelete_AuthorizedIdentity_AllowAccess(t *testing.
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestNAC_GatesP2PReplicatorDelete_NoIdentity_NotAuthorizedError(t *testing.T) {
+func TestNAC_GatesP2PReplicatorAdd_NoIdentity_NotAuthorizedError(t *testing.T) {
 	test := testUtils.TestCase{
-		SupportedClientTypes: immutable.Some(
-			[]state.ClientType{
-				state.HTTPClientType,
-				state.CLIClientType,
-				state.GoClientType,
-				state.CClientType,
-			},
-		),
 		Actions: []any{
 			// Doing this in the beggining is important to start all nodes with NAC enabled.
 			testUtils.RandomNetworkingConfig(),
@@ -77,19 +64,14 @@ func TestNAC_GatesP2PReplicatorDelete_NoIdentity_NotAuthorizedError(t *testing.T
 			testUtils.Start{
 				Identity:  testUtils.ClientIdentity(1),
 				EnableNAC: true,
-			},
-			testUtils.AddReplicator{
-				Identity:     testUtils.ClientIdentity(1),
-				SourceNodeID: 1,
-				TargetNodeID: 0,
 			},
 
 			// We haven't authorized non-identities. So, this should error.
-			testUtils.DeleteReplicator{
+			testUtils.AddReplicator{
 				Identity:      testUtils.NoIdentity(),
 				SourceNodeID:  1,
 				TargetNodeID:  0,
-				ExpectedError: testUtils.FormatExpectedErrorWithPermission(acpTypes.NodeP2PReplicatorDeletePerm),
+				ExpectedError: testUtils.FormatExpectedErrorWithPermission(acpTypes.NodeP2PReplicatorAddPerm),
 			},
 		},
 	}
@@ -97,16 +79,8 @@ func TestNAC_GatesP2PReplicatorDelete_NoIdentity_NotAuthorizedError(t *testing.T
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestNAC_GatesP2PReplicatorDelete_WrongIdentity_NotAuthorizedError(t *testing.T) {
+func TestNAC_GatesP2PReplicatorAdd_WrongIdentity_NotAuthorizedError(t *testing.T) {
 	test := testUtils.TestCase{
-		SupportedClientTypes: immutable.Some(
-			[]state.ClientType{
-				state.HTTPClientType,
-				state.CLIClientType,
-				state.GoClientType,
-				state.CClientType,
-			},
-		),
 		Actions: []any{
 			// Doing this in the beggining is important to start all nodes with NAC enabled.
 			testUtils.RandomNetworkingConfig(),
@@ -117,18 +91,13 @@ func TestNAC_GatesP2PReplicatorDelete_WrongIdentity_NotAuthorizedError(t *testin
 				Identity:  testUtils.ClientIdentity(1),
 				EnableNAC: true,
 			},
-			testUtils.AddReplicator{
-				Identity:     testUtils.ClientIdentity(1),
-				SourceNodeID: 1,
-				TargetNodeID: 0,
-			},
 
 			// Wrong user/identity will also not be authorized.
-			testUtils.DeleteReplicator{
+			testUtils.AddReplicator{
 				Identity:      testUtils.ClientIdentity(2),
 				SourceNodeID:  1,
 				TargetNodeID:  0,
-				ExpectedError: testUtils.FormatExpectedErrorWithPermission(acpTypes.NodeP2PReplicatorDeletePerm),
+				ExpectedError: testUtils.FormatExpectedErrorWithPermission(acpTypes.NodeP2PReplicatorAddPerm),
 			},
 		},
 	}

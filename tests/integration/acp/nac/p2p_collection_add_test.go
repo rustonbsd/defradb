@@ -16,11 +16,12 @@ import (
 	"github.com/sourcenetwork/immutable"
 
 	acpTypes "github.com/sourcenetwork/defradb/acp/types"
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 	"github.com/sourcenetwork/defradb/tests/state"
 )
 
-func TestNAC_GatesP2PReplicatorCreate_AuthorizedIdentity_AllowAccess(t *testing.T) {
+func TestNAC_GatesP2PCollectionAdd_AuthorizedIdentity_AllowAccess(t *testing.T) {
 	test := testUtils.TestCase{
 		SupportedClientTypes: immutable.Some(
 			[]state.ClientType{
@@ -40,21 +41,44 @@ func TestNAC_GatesP2PReplicatorCreate_AuthorizedIdentity_AllowAccess(t *testing.
 				Identity:  testUtils.ClientIdentity(1),
 				EnableNAC: true,
 			},
-
-			// This should work as the identity is authorized.
-			testUtils.CreateReplicator{
+			// Note: Doing setup steps after starting with nac enabled, otherwise the in-memory tests
+			// will lose setup state when the restart happens (i.e. the restart that started nac).
+			&action.AddSchema{
+				Identity: testUtils.ClientIdentity(1),
+				Schema: `
+					type Users {
+						name: String
+					}
+				`,
+			},
+			testUtils.ConnectPeers{
 				Identity:     testUtils.ClientIdentity(1),
 				SourceNodeID: 1,
 				TargetNodeID: 0,
 			},
+
+			// This should work as the identity is authorized.
+			testUtils.AddCollectionSubscription{
+				Identity:      testUtils.ClientIdentity(1),
+				NodeID:        1,
+				CollectionIDs: []int{0},
+			},
 		},
 	}
 
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestNAC_GatesP2PReplicatorCreate_NoIdentity_NotAuthorizedError(t *testing.T) {
+func TestNAC_GatesP2PCollectionAdd_NoIdentity_NotAuthorizedError(t *testing.T) {
 	test := testUtils.TestCase{
+		SupportedClientTypes: immutable.Some(
+			[]state.ClientType{
+				state.HTTPClientType,
+				state.CLIClientType,
+				state.GoClientType,
+				state.CClientType,
+			},
+		),
 		Actions: []any{
 			// Doing this in the beggining is important to start all nodes with NAC enabled.
 			testUtils.RandomNetworkingConfig(),
@@ -64,14 +88,29 @@ func TestNAC_GatesP2PReplicatorCreate_NoIdentity_NotAuthorizedError(t *testing.T
 			testUtils.Start{
 				Identity:  testUtils.ClientIdentity(1),
 				EnableNAC: true,
+			},
+			// Note: Doing setup steps after starting with nac enabled, otherwise the in-memory tests
+			// will lose setup state when the restart happens (i.e. the restart that started nac).
+			&action.AddSchema{
+				Identity: testUtils.ClientIdentity(1),
+				Schema: `
+					type Users {
+						name: String
+					}
+				`,
+			},
+			testUtils.ConnectPeers{
+				Identity:     testUtils.ClientIdentity(1),
+				SourceNodeID: 1,
+				TargetNodeID: 0,
 			},
 
 			// We haven't authorized non-identities. So, this should error.
-			testUtils.CreateReplicator{
+			testUtils.AddCollectionSubscription{
 				Identity:      testUtils.NoIdentity(),
-				SourceNodeID:  1,
-				TargetNodeID:  0,
-				ExpectedError: testUtils.FormatExpectedErrorWithPermission(acpTypes.NodeP2PReplicatorCreatePerm),
+				NodeID:        1,
+				CollectionIDs: []int{0},
+				ExpectedError: testUtils.FormatExpectedErrorWithPermission(acpTypes.NodeP2PCollectionAddPerm),
 			},
 		},
 	}
@@ -79,8 +118,16 @@ func TestNAC_GatesP2PReplicatorCreate_NoIdentity_NotAuthorizedError(t *testing.T
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestNAC_GatesP2PReplicatorCreate_WrongIdentity_NotAuthorizedError(t *testing.T) {
+func TestNAC_GatesP2PCollectionAdd_WrongIdentity_NotAuthorizedError(t *testing.T) {
 	test := testUtils.TestCase{
+		SupportedClientTypes: immutable.Some(
+			[]state.ClientType{
+				state.HTTPClientType,
+				state.CLIClientType,
+				state.GoClientType,
+				state.CClientType,
+			},
+		),
 		Actions: []any{
 			// Doing this in the beggining is important to start all nodes with NAC enabled.
 			testUtils.RandomNetworkingConfig(),
@@ -91,13 +138,28 @@ func TestNAC_GatesP2PReplicatorCreate_WrongIdentity_NotAuthorizedError(t *testin
 				Identity:  testUtils.ClientIdentity(1),
 				EnableNAC: true,
 			},
+			// Note: Doing setup steps after starting with nac enabled, otherwise the in-memory tests
+			// will lose setup state when the restart happens (i.e. the restart that started nac).
+			&action.AddSchema{
+				Identity: testUtils.ClientIdentity(1),
+				Schema: `
+					type Users {
+						name: String
+					}
+				`,
+			},
+			testUtils.ConnectPeers{
+				Identity:     testUtils.ClientIdentity(1),
+				SourceNodeID: 1,
+				TargetNodeID: 0,
+			},
 
 			// Wrong user/identity will also not be authorized.
-			testUtils.CreateReplicator{
+			testUtils.AddCollectionSubscription{
 				Identity:      testUtils.ClientIdentity(2),
-				SourceNodeID:  1,
-				TargetNodeID:  0,
-				ExpectedError: testUtils.FormatExpectedErrorWithPermission(acpTypes.NodeP2PReplicatorCreatePerm),
+				NodeID:        1,
+				CollectionIDs: []int{0},
+				ExpectedError: testUtils.FormatExpectedErrorWithPermission(acpTypes.NodeP2PCollectionAddPerm),
 			},
 		},
 	}
