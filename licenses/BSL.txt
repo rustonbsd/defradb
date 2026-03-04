@@ -7,8 +7,8 @@ Parameters
 Licensor:                   Democratized Data (D2) Foundation
 
 
-Licensed Work:              DefraDB v0.20.0
-                            The Licensed Work is (c) 2025 D2 Foundation.
+Licensed Work:              DefraDB v1.0.0-rc1
+                            The Licensed Work is (c) 2026 D2 Foundation.
 
 
 Additional Use Grant:       You may use the Licensed Work in a production 
@@ -28,7 +28,7 @@ Additional Use Grant:       You may use the Licensed Work in a production
                             functionality on their internal or external 
                             network.
 
-Change Date:                2029-10-31
+Change Date:                2030-03-04
 
 
 Change License:             Apache License, Version 2.0
