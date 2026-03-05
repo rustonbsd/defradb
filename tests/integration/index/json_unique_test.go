@@ -1,12 +1,13 @@
-// Copyright 2025 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package index
 
@@ -25,52 +26,52 @@ func TestJSONUniqueIndex_WithRandomValues_ShouldGuaranteeUniquenessAndBeAbelToUs
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						custom: JSON @index(unique: true)
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"custom": {"height": 168, "weight": 70}
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Andy",
 					"custom": {"height": 190}
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Islam",
 					"custom": {"height": 168}
 				}`,
 				ExpectedError: "can not index a doc's field(s) that violates unique index.",
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"custom": 30
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Bruno",
 					"custom": 20
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Keenan",
 					"custom": 30
 				}`,
 				ExpectedError: "can not index a doc's field(s) that violates unique index.",
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -78,7 +79,7 @@ func TestJSONUniqueIndex_WithRandomValues_ShouldGuaranteeUniquenessAndBeAbelToUs
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(1),
 			},
@@ -101,20 +102,20 @@ func TestJSONUniqueIndex_UponUpdate_ShouldUseNewIndexValues(t *testing.T) {
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						custom: JSON @index(unique: true)
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"custom": {"height": 168, "weight": 70}
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Islam",
 					"custom": {"height": 180, "BMI": 25}
@@ -126,7 +127,7 @@ func TestJSONUniqueIndex_UponUpdate_ShouldUseNewIndexValues(t *testing.T) {
 					"custom": {"height": 172, "BMI": 22}
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req1,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -134,11 +135,11 @@ func TestJSONUniqueIndex_UponUpdate_ShouldUseNewIndexValues(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req1),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(1),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req2,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -146,7 +147,7 @@ func TestJSONUniqueIndex_UponUpdate_ShouldUseNewIndexValues(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req2),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(1),
 			},

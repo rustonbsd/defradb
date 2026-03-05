@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package index
 
@@ -20,14 +21,14 @@ import (
 func TestQueryWithCompositeIndex_WithDefaultOrder_ShouldFetchInDefaultOrder(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User @index(includes: [{field: "name"},  {field: "age"}]) {
 						name: String
 						age: Int
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -35,7 +36,7 @@ func TestQueryWithCompositeIndex_WithDefaultOrder_ShouldFetchInDefaultOrder(t *t
 						"age":	22
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -43,7 +44,7 @@ func TestQueryWithCompositeIndex_WithDefaultOrder_ShouldFetchInDefaultOrder(t *t
 						"age":	29
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -51,7 +52,7 @@ func TestQueryWithCompositeIndex_WithDefaultOrder_ShouldFetchInDefaultOrder(t *t
 						"age":	38
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -59,7 +60,7 @@ func TestQueryWithCompositeIndex_WithDefaultOrder_ShouldFetchInDefaultOrder(t *t
 						"age":	24
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						User(filter: {name: {_like: "Al%"}}) {
@@ -97,14 +98,14 @@ func TestQueryWithCompositeIndex_WithDefaultOrder_ShouldFetchInDefaultOrder(t *t
 func TestQueryWithCompositeIndex_WithDefaultOrderCaseInsensitive_ShouldFetchInDefaultOrder(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User @index(includes: [{field: "name"},  {field: "age"}]) {
 						name: String
 						age: Int
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -112,7 +113,7 @@ func TestQueryWithCompositeIndex_WithDefaultOrderCaseInsensitive_ShouldFetchInDe
 						"age":	22
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -120,7 +121,7 @@ func TestQueryWithCompositeIndex_WithDefaultOrderCaseInsensitive_ShouldFetchInDe
 						"age":	29
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -128,7 +129,7 @@ func TestQueryWithCompositeIndex_WithDefaultOrderCaseInsensitive_ShouldFetchInDe
 						"age":	38
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -136,7 +137,7 @@ func TestQueryWithCompositeIndex_WithDefaultOrderCaseInsensitive_ShouldFetchInDe
 						"age":	24
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						User(filter: {name: {_ilike: "al%"}}) {
@@ -180,14 +181,14 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstField_ShouldFetchInReve
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User @index(includes: [{field: "name", direction: DESC}, {field: "age", direction: ASC}]) {
 						name: String
 						age: Int
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -195,7 +196,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstField_ShouldFetchInReve
 						"age":	22
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -203,7 +204,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstField_ShouldFetchInReve
 						"age":	29
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -211,7 +212,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstField_ShouldFetchInReve
 						"age":	38
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -219,7 +220,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstField_ShouldFetchInReve
 						"age":	24
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -227,7 +228,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstField_ShouldFetchInReve
 						"age":	24
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -254,7 +255,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstField_ShouldFetchInReve
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: makeExplainQuery(req),
 				// we fetch all available docs with index
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(5),
@@ -274,14 +275,14 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstFieldAndNoFilter_Should
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User @index(includes: [{field: "name", direction: DESC}, {field: "age", direction: ASC}]) {
 						name: String
 						age: Int
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -289,7 +290,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstFieldAndNoFilter_Should
 						"age":	22
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -297,7 +298,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstFieldAndNoFilter_Should
 						"age":	29
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -305,7 +306,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstFieldAndNoFilter_Should
 						"age":	38
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -313,7 +314,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstFieldAndNoFilter_Should
 						"age":	24
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -321,7 +322,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstFieldAndNoFilter_Should
 						"age":	24
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -348,7 +349,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstFieldAndNoFilter_Should
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: makeExplainQuery(req),
 				// we fetch all available docs with index
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(5),
@@ -362,14 +363,14 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstFieldAndNoFilter_Should
 func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstFieldCaseInsensitive_ShouldFetchInRevertedOrder(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User @index(includes: [{field: "name", direction: DESC}, {field: "age", direction: ASC}]) {
 						name: String
 						age: Int
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -377,7 +378,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstFieldCaseInsensitive_Sh
 						"age":	22
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -385,7 +386,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstFieldCaseInsensitive_Sh
 						"age":	29
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -393,7 +394,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstFieldCaseInsensitive_Sh
 						"age":	38
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -401,7 +402,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstFieldCaseInsensitive_Sh
 						"age":	24
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -409,7 +410,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstFieldCaseInsensitive_Sh
 						"age":	24
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						User(filter: {name: {_ilike: "a%"}}) {
@@ -451,14 +452,14 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnFirstFieldCaseInsensitive_Sh
 func TestQueryWithCompositeIndex_WithRevertedOrderOnSecondField_ShouldFetchInRevertedOrder(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User @index(includes: [{field: "name", direction: ASC}, {field: "age", direction: DESC}]) {
 						name: String
 						age: Int
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -466,7 +467,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnSecondField_ShouldFetchInRev
 						"age":	22
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -474,7 +475,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnSecondField_ShouldFetchInRev
 						"age":	29
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -482,7 +483,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnSecondField_ShouldFetchInRev
 						"age":	38
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -490,7 +491,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnSecondField_ShouldFetchInRev
 						"age":	24
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						User(filter: {name: {_like: "Al%"}}) {
@@ -530,14 +531,14 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnSecondFieldCaseInsensitive_S
 ) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User @index(includes: [{field: "name", direction: ASC}, {field: "age", direction: DESC}]) {
 						name: String
 						age: Int
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -545,7 +546,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnSecondFieldCaseInsensitive_S
 						"age":	22
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -553,7 +554,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnSecondFieldCaseInsensitive_S
 						"age":	29
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -561,7 +562,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnSecondFieldCaseInsensitive_S
 						"age":	38
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -569,7 +570,7 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnSecondFieldCaseInsensitive_S
 						"age":	24
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						User(filter: {name: {_ilike: "al%"}}) {
@@ -607,14 +608,14 @@ func TestQueryWithCompositeIndex_WithRevertedOrderOnSecondFieldCaseInsensitive_S
 func TestQueryWithCompositeIndex_IfExactMatchWithRevertedOrderOnFirstField_ShouldFetch(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User @index(includes: [{field: "name", direction: DESC}, {field: "age", direction: ASC}]) {
 						name: String
 						age: Int
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -622,7 +623,7 @@ func TestQueryWithCompositeIndex_IfExactMatchWithRevertedOrderOnFirstField_Shoul
 						"age":	38
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -630,7 +631,7 @@ func TestQueryWithCompositeIndex_IfExactMatchWithRevertedOrderOnFirstField_Shoul
 						"age":	22
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -638,7 +639,7 @@ func TestQueryWithCompositeIndex_IfExactMatchWithRevertedOrderOnFirstField_Shoul
 						"age":	29
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						User(filter: {name: {_eq: "Alice"}, age: {_eq: 22}}) {
@@ -664,14 +665,14 @@ func TestQueryWithCompositeIndex_IfExactMatchWithRevertedOrderOnFirstField_Shoul
 func TestQueryWithCompositeIndex_IfExactMatchWithRevertedOrderOnSecondField_ShouldFetch(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User @index(includes: [{field: "name", direction: ASC}, {field: "age", direction: DESC}]) {
 						name: String
 						age: Int
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -679,7 +680,7 @@ func TestQueryWithCompositeIndex_IfExactMatchWithRevertedOrderOnSecondField_Shou
 						"age":	38
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -687,7 +688,7 @@ func TestQueryWithCompositeIndex_IfExactMatchWithRevertedOrderOnSecondField_Shou
 						"age":	22
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -695,7 +696,7 @@ func TestQueryWithCompositeIndex_IfExactMatchWithRevertedOrderOnSecondField_Shou
 						"age":	29
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						User(filter: {name: {_eq: "Alice"}, age: {_eq: 22}}) {
@@ -721,18 +722,18 @@ func TestQueryWithCompositeIndex_IfExactMatchWithRevertedOrderOnSecondField_Shou
 func TestQueryWithCompositeIndex_WithInFilterOnFirstFieldWithRevertedOrder_ShouldFetch(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User @index(includes: [{field: "name", direction: DESC}, {field: "age", direction: ASC}]) {
 						name: String
 						age: Int
 						email: String
 					}`,
 			},
-			testUtils.CreatePredefinedDocs{
+			testUtils.AddPredefinedDocs{
 				Docs: getUserDocs(),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 						User(filter: {name: {_in: ["Addo", "Andy", "Fred"]}}) {
 							name
@@ -756,18 +757,18 @@ func TestQueryWithCompositeIndex_WithInFilterOnFirstFieldWithRevertedOrder_Shoul
 func TestQueryWithCompositeIndex_WithInFilterOnSecondFieldWithRevertedOrder_ShouldFetch(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User @index(includes: [{field: "name", direction: ASC}, {field: "age", direction: DESC}]) {
 						name: String
 						age: Int
 						email: String
 					}`,
 			},
-			testUtils.CreatePredefinedDocs{
+			testUtils.AddPredefinedDocs{
 				Docs: getUserDocs(),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 						User(filter: {age: {_in: [20, 28, 33]}}) {
 							name
@@ -804,49 +805,49 @@ func TestQueryWithCompositeIndex_WithRangeQueryOnFirstField_ShouldUseRangeOptimi
 
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User @index(includes: [{field: "age"}, {field: "name"}]) {
 						name: String
 						age: Int
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `
 					{
 						"name":	"Alice",
 						"age":	22
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `
 					{
 						"name":	"Bob",
 						"age":	30
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `
 					{
 						"name":	"Charlie",
 						"age":	25
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `
 					{
 						"name":	"David",
 						"age":	35
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `
 					{
 						"name":	"Eve",
 						"age":	28
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -865,7 +866,7 @@ func TestQueryWithCompositeIndex_WithRangeQueryOnFirstField_ShouldUseRangeOptimi
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(3),
 			},
@@ -886,56 +887,56 @@ func TestQueryWithCompositeIndex_WithRangeQueryOnFirstFieldWithMultipleFilters_S
 
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User @index(includes: [{field: "age"}, {field: "name"}]) {
 						name: String
 						age: Int
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `
 					{
 						"name":	"Alice",
 						"age":	22
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `
 					{
 						"name":	"Bob",
 						"age":	30
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `
 					{
 						"name":	"Charlie",
 						"age":	25
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `
 					{
 						"name":	"David",
 						"age":	35
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `
 					{
 						"name":	"Eve",
 						"age":	28
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `
 					{
 						"name":	"Bob",
 						"age":	32
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -950,7 +951,7 @@ func TestQueryWithCompositeIndex_WithRangeQueryOnFirstFieldWithMultipleFilters_S
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: makeExplainQuery(req),
 				// Should fetch all entries with age > 25, then filter by name
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(4),
@@ -964,7 +965,7 @@ func TestQueryWithCompositeIndex_WithRangeQueryOnFirstFieldWithMultipleFilters_S
 func TestQueryWithCompositeIndex_WithDescendingFirstFieldAndRangeQuery_ShouldUseRangeOptimization(t *testing.T) {
 	req := `
 		query {
-			User(filter: {age: {_le: 30}}) {
+			User(filter: {age: {_leq: 30}}) {
 				name
 				age
 			}
@@ -972,49 +973,49 @@ func TestQueryWithCompositeIndex_WithDescendingFirstFieldAndRangeQuery_ShouldUse
 
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User @index(includes: [{field: "age", direction: DESC}, {field: "name"}]) {
 						name: String
 						age: Int
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `
 					{
 						"name":	"Alice",
 						"age":	22
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `
 					{
 						"name":	"Bob",
 						"age":	30
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `
 					{
 						"name":	"Charlie",
 						"age":	25
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `
 					{
 						"name":	"David",
 						"age":	35
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `
 					{
 						"name":	"Eve",
 						"age":	28
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -1037,7 +1038,7 @@ func TestQueryWithCompositeIndex_WithDescendingFirstFieldAndRangeQuery_ShouldUse
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(4),
 			},

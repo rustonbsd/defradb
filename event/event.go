@@ -64,6 +64,8 @@ const (
 	ReplicatorCompletedName = Name("replicator-completed")
 	// PurgeName is the name of the purge event.
 	PurgeName = Name("purge")
+	// TopicPeerEventName is the name of the topic peer join/leave event.
+	TopicPeerEventName = Name("topic-peer-event")
 )
 
 // PubSub is an event that is published when
@@ -120,9 +122,6 @@ type Merge struct {
 type MergeComplete struct {
 	// Merge is the merge that was completed.
 	Merge Merge
-
-	// Decrypted specifies if the merge payload was decrypted.
-	Decrypted bool
 }
 
 // SEArtifactReceived is a notification that SE artifacts have been successfully received.
@@ -160,8 +159,8 @@ type PeerInfo struct {
 type Replicator struct {
 	// The peer info for the replicator instance.
 	Info client.PeerInfo
-	// The map of schema roots that the replicator will receive updates for.
-	Schemas map[string]struct{}
+	// The map of collection roots that the replicator will receive updates for.
+	Collections map[string]struct{}
 	// Docs will receive Updates if new collections have been added to the replicator
 	// and those collections have documents to be replicated.
 	Docs <-chan Update
@@ -173,4 +172,14 @@ type ReplicatorFailure struct {
 	PeerID peer.ID
 	// DocID is the unique immutable identifier of the document that failed to replicate.
 	DocID string
+}
+
+// TopicPeerEvent is an event that is published when a peer joins or leaves a pubsub topic.
+type TopicPeerEvent struct {
+	// PeerID is the id of the peer that joined or left the topic.
+	PeerID string
+	// Topic is the name of the topic.
+	Topic string
+	// EventType is the type of event: "JOINED" or "LEFT".
+	EventType string
 }

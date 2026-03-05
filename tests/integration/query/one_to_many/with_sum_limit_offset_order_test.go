@@ -1,12 +1,13 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package one_to_many
 
@@ -20,8 +21,8 @@ import (
 func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderAsc(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Book {
 						name: String
 						rating: Float
@@ -36,7 +37,7 @@ func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderAsc(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "John Grisham",
@@ -44,7 +45,7 @@ func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderAsc(t *testing.T) {
 					"verified": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "Cornelia Funke",
@@ -52,72 +53,72 @@ func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderAsc(t *testing.T) {
 					"verified": false
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "Painted House",
 					"rating":    4.9,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "A Time for Mercy",
 					"rating":    4.5,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "The Associate",
 					"rating":    4.2,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "Sooley",
 					"rating":    3.2,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "The Rooster Bar",
 					"rating":    4,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "Theif Lord",
 					"rating":    4.8,
-					"author_id": testUtils.NewDocIndex(1, 1),
+					"_authorID": testUtils.NewDocIndex(1, 1),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Author {
 						name
-					_sum(published: {field: rating, offset: 1, limit: 2, order: {name: ASC}})
+					SUM(published: {field: rating, offset: 1, limit: 2, order: {name: ASC}})
 					}
 				}`,
 				Results: map[string]any{
 					"Author": []map[string]any{
 						{
 							"name": "Cornelia Funke",
-							"_sum": float64(0),
+							"SUM":  float64(0),
 						},
 						{
 							"name": "John Grisham",
 							// 4.9 + 3.2
 							// ...00001 is float math artifact
-							"_sum": 8.100000000000001,
+							"SUM": 8.100000000000001,
 						},
 					},
 				},
@@ -131,8 +132,8 @@ func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderAsc(t *testing.T) {
 func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderDesc(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Book {
 						name: String
 						rating: Float
@@ -147,7 +148,7 @@ func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderDesc(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "John Grisham",
@@ -155,7 +156,7 @@ func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderDesc(t *testing.T) {
 					"verified": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "Cornelia Funke",
@@ -163,71 +164,71 @@ func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderDesc(t *testing.T) {
 					"verified": false
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "Painted House",
 					"rating":    4.9,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "A Time for Mercy",
 					"rating":    4.5,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "The Associate",
 					"rating":    4.2,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "Sooley",
 					"rating":    3.2,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "The Rooster Bar",
 					"rating":    4,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "Theif Lord",
 					"rating":    4.8,
-					"author_id": testUtils.NewDocIndex(1, 1),
+					"_authorID": testUtils.NewDocIndex(1, 1),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Author {
 						name
-						_sum(published: {field: rating, offset: 1, limit: 2, order: {name: DESC}})
+						SUM(published: {field: rating, offset: 1, limit: 2, order: {name: DESC}})
 					}
 				}`,
 				Results: map[string]any{
 					"Author": []map[string]any{
 						{
 							"name": "Cornelia Funke",
-							"_sum": float64(0),
+							"SUM":  float64(0),
 						},
 						{
 							"name": "John Grisham",
 							// 4.2 + 3.2
-							"_sum": 7.4,
+							"SUM": 7.4,
 						},
 					},
 				},
@@ -241,8 +242,8 @@ func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderDesc(t *testing.T) {
 func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderAscAndDesc(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Book {
 						name: String
 						rating: Float
@@ -257,7 +258,7 @@ func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderAscAndDesc(t *testing.
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "John Grisham",
@@ -265,7 +266,7 @@ func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderAscAndDesc(t *testing.
 					"verified": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "Cornelia Funke",
@@ -273,60 +274,60 @@ func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderAscAndDesc(t *testing.
 					"verified": false
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "Painted House",
 					"rating":    4.9,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "A Time for Mercy",
 					"rating":    4.5,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "The Associate",
 					"rating":    4.2,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "Sooley",
 					"rating":    3.2,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "The Rooster Bar",
 					"rating":    4,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "Theif Lord",
 					"rating":    4.8,
-					"author_id": testUtils.NewDocIndex(1, 1),
+					"_authorID": testUtils.NewDocIndex(1, 1),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Author {
 						name
-						asc: _sum(published: {field: rating, offset: 1, limit: 2, order: {name: ASC}})
-						desc: _sum(published: {field: rating, offset: 1, limit: 2, order: {name: DESC}})
+						asc: SUM(published: {field: rating, offset: 1, limit: 2, order: {name: ASC}})
+						desc: SUM(published: {field: rating, offset: 1, limit: 2, order: {name: DESC}})
 					}
 				}`,
 				Results: map[string]any{
@@ -356,8 +357,8 @@ func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderAscAndDesc(t *testing.
 func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderOnDifferentFields(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Book {
 						name: String
 						rating: Float
@@ -372,7 +373,7 @@ func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderOnDifferentFields(t *t
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "John Grisham",
@@ -380,7 +381,7 @@ func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderOnDifferentFields(t *t
 					"verified": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "Cornelia Funke",
@@ -388,60 +389,60 @@ func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderOnDifferentFields(t *t
 					"verified": false
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "Painted House",
 					"rating":    4.9,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "A Time for Mercy",
 					"rating":    4.5,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "The Associate",
 					"rating":    4.2,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "Sooley",
 					"rating":    3.2,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "The Rooster Bar",
 					"rating":    4,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "Theif Lord",
 					"rating":    4.8,
-					"author_id": testUtils.NewDocIndex(1, 1),
+					"_authorID": testUtils.NewDocIndex(1, 1),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Author {
 						name
-						byName: _sum(published: {field: rating, offset: 1, limit: 2, order: {name: DESC}})
-						byRating: _sum(published: {field: rating, offset: 1, limit: 2, order: {rating: DESC}})
+						byName: SUM(published: {field: rating, offset: 1, limit: 2, order: {name: DESC}})
+						byRating: SUM(published: {field: rating, offset: 1, limit: 2, order: {rating: DESC}})
 					}
 				}`,
 				Results: map[string]any{
@@ -470,8 +471,8 @@ func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderOnDifferentFields(t *t
 func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderDescAndRenderedChildrenOrderedAsc(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Book {
 						name: String
 						rating: Float
@@ -486,7 +487,7 @@ func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderDescAndRenderedChildre
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "John Grisham",
@@ -494,7 +495,7 @@ func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderDescAndRenderedChildre
 					"verified": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "Cornelia Funke",
@@ -502,59 +503,59 @@ func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderDescAndRenderedChildre
 					"verified": false
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "Painted House",
 					"rating":    4.9,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "A Time for Mercy",
 					"rating":    4.5,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "The Associate",
 					"rating":    4.2,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "Sooley",
 					"rating":    3.2,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "The Rooster Bar",
 					"rating":    4,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "Theif Lord",
 					"rating":    4.8,
-					"author_id": testUtils.NewDocIndex(1, 1),
+					"_authorID": testUtils.NewDocIndex(1, 1),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Author {
 						name
-						_sum(published: {field: rating, offset: 1, limit: 2, order: {name: DESC}})
+						SUM(published: {field: rating, offset: 1, limit: 2, order: {name: DESC}})
 						published(offset: 1, limit: 2, order: {name: ASC}) {
 							name
 						}
@@ -564,13 +565,13 @@ func TestQueryOneToManyWithSumWithLimitWithOffsetWithOrderDescAndRenderedChildre
 					"Author": []map[string]any{
 						{
 							"name":      "Cornelia Funke",
-							"_sum":      float64(0),
+							"SUM":       float64(0),
 							"published": []map[string]any{},
 						},
 						{
 							"name": "John Grisham",
 							// 4.2 + 3.2
-							"_sum": 7.4,
+							"SUM": 7.4,
 							"published": []map[string]any{
 								{
 									"name": "Painted House",

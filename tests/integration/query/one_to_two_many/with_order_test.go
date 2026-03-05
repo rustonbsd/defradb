@@ -1,12 +1,13 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package one_to_two_many
 
@@ -20,8 +21,8 @@ import (
 func TestQueryOneToTwoManyWithOrder(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Book {
 						name: String
 						rating: Float
@@ -39,7 +40,7 @@ func TestQueryOneToTwoManyWithOrder(t *testing.T) {
 				`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "John Grisham",
@@ -47,7 +48,7 @@ func TestQueryOneToTwoManyWithOrder(t *testing.T) {
 					"verified": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "Cornelia Funke",
@@ -55,34 +56,34 @@ func TestQueryOneToTwoManyWithOrder(t *testing.T) {
 					"verified": false
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":          "Painted House",
 					"rating":        4.9,
-					"author_id":     testUtils.NewDocIndex(1, 0),
-					"reviewedBy_id": testUtils.NewDocIndex(1, 1),
+					"_authorID":     testUtils.NewDocIndex(1, 0),
+					"_reviewedByID": testUtils.NewDocIndex(1, 1),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":          "A Time for Mercy",
 					"rating":        4.5,
-					"author_id":     testUtils.NewDocIndex(1, 0),
-					"reviewedBy_id": testUtils.NewDocIndex(1, 0),
+					"_authorID":     testUtils.NewDocIndex(1, 0),
+					"_reviewedByID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":          "Theif Lord",
 					"rating":        4.8,
-					"author_id":     testUtils.NewDocIndex(1, 1),
-					"reviewedBy_id": testUtils.NewDocIndex(1, 0),
+					"_authorID":     testUtils.NewDocIndex(1, 1),
+					"_reviewedByID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Author {
 						name

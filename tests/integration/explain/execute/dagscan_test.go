@@ -1,18 +1,20 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_explain_execute
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 	explainUtils "github.com/sourcenetwork/defradb/tests/integration/explain"
 )
@@ -23,9 +25,9 @@ func TestExecuteExplainCommitsDagScan(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			create2AddressDocuments(),
+			add2AddressDocuments(),
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 				Request: `query @explain(type: execute) {
 					_commits (docID: "bae-186c2484-c3ea-5993-95d6-cb886e1b13a1") {
 						links {
@@ -47,53 +49,6 @@ func TestExecuteExplainCommitsDagScan(t *testing.T) {
 										"filterMatches": uint64(3),
 										"dagScanNode": dataMap{
 											"iterations": uint64(4),
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	explainUtils.ExecuteTestCase(t, test)
-}
-
-func TestExecuteExplainLatestCommitsDagScan(t *testing.T) {
-	test := testUtils.TestCase{
-
-		Actions: []any{
-			explainUtils.SchemaForExplainTests,
-
-			create2AddressDocuments(),
-			create2AuthorContactDocuments(),
-			create2AuthorDocuments(),
-
-			testUtils.ExplainRequest{
-				Request: `query @explain(type: execute) {
-					_latestCommits(docID: "bae-186c2484-c3ea-5993-95d6-cb886e1b13a1") {
-						cid
-						links {
-							cid
-						}
-					}
-				}`,
-
-				ExpectedFullGraph: dataMap{
-					"explain": dataMap{
-						"executionSuccess": true,
-						"sizeOfResult":     1,
-						"planExecutions":   uint64(2),
-						"operationNode": []dataMap{
-							{
-								"selectTopNode": dataMap{
-									"selectNode": dataMap{
-										"iterations":    uint64(2),
-										"filterMatches": uint64(1),
-										"dagScanNode": dataMap{
-											"iterations": uint64(2),
 										},
 									},
 								},

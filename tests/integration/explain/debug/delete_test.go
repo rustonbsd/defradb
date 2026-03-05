@@ -1,18 +1,20 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_explain_debug
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 	explainUtils "github.com/sourcenetwork/defradb/tests/integration/explain"
 )
@@ -39,7 +41,7 @@ func TestDebugExplainMutationRequestWithDeleteUsingFilter(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `mutation @explain(type: debug) {
 					delete_Author(filter: {name: {_eq: "Shahzad"}}) {
@@ -61,7 +63,7 @@ func TestDebugExplainMutationRequestWithDeleteUsingFilterToMatchEverything(t *te
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `mutation @explain(type: debug) {
 					delete_Author(filter: {}) {
@@ -83,7 +85,7 @@ func TestDebugExplainMutationRequestWithDeleteUsingId(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `mutation @explain(type: debug) {
 					delete_Author(docID: "bae-079d0bd8-4b1b-5f5f-bd95-4d915c277f9d") {
@@ -105,7 +107,7 @@ func TestDebugExplainMutationRequestWithDeleteUsingIds(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `mutation @explain(type: debug) {
 					delete_Author(docID: [
@@ -130,7 +132,7 @@ func TestDebugExplainMutationRequestWithDeleteUsingNoIds(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `mutation @explain(type: debug) {
 					delete_Author(docID: []) {
@@ -152,7 +154,7 @@ func TestDebugExplainMutationRequestWithDeleteUsingFilterAndIds(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `mutation @explain(type: debug) {
 					delete_Author(

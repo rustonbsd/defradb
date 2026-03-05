@@ -1,12 +1,13 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package collection_version
 
@@ -60,7 +61,7 @@ func (fieldSet fields) array() []any {
 }
 
 // DefaultFields contains the list of fields every
-// defra schema-object should have.
+// defra collection should have.
 var DefaultFields = concat(
 	fields{
 		keyField,
@@ -107,7 +108,7 @@ var versionField = Field{
 }
 
 var groupField = Field{
-	"name": "_group",
+	"name": "GROUP",
 	"type": map[string]any{
 		"kind": "LIST",
 		"name": nil,
@@ -116,35 +117,35 @@ var groupField = Field{
 
 var aggregateFields = fields{
 	map[string]any{
-		"name": "_avg",
+		"name": "AVG",
 		"type": map[string]any{
 			"kind": "SCALAR",
 			"name": "Float",
 		},
 	},
 	map[string]any{
-		"name": "_max",
+		"name": "MAX",
 		"type": map[string]any{
 			"kind": "SCALAR",
 			"name": "Float",
 		},
 	},
 	map[string]any{
-		"name": "_min",
+		"name": "MIN",
 		"type": map[string]any{
 			"kind": "SCALAR",
 			"name": "Float",
 		},
 	},
 	map[string]any{
-		"name": "_count",
+		"name": "COUNT",
 		"type": map[string]any{
 			"kind": "SCALAR",
 			"name": "Int",
 		},
 	},
 	map[string]any{
-		"name": "_sum",
+		"name": "SUM",
 		"type": map[string]any{
 			"kind": "SCALAR",
 			"name": "Float",
@@ -153,7 +154,7 @@ var aggregateFields = fields{
 }
 
 var similarityField = Field{
-	"name": "_similarity",
+	"name": "SIMILARITY",
 	"type": map[string]any{
 		"kind": "SCALAR",
 		"name": "Float",
@@ -163,8 +164,12 @@ var similarityField = Field{
 var cidArg = Field{
 	"name": "cid",
 	"type": map[string]any{
-		"name":        "String",
+		"name":        nil,
 		"inputFields": nil,
+		"ofType": map[string]any{
+			"kind": "NON_NULL",
+			"name": nil,
+		},
 	},
 }
 var docIDArg = Field{

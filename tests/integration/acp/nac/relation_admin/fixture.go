@@ -1,47 +1,43 @@
-// Copyright 2025 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_acp_nac_relation_admin
 
 const examplePolicy = `
-    name: Test Policy
-    description: A Policy
-    actor:
-      name: actor
-    resources:
-      users:
-        permissions:
-          read:
-            expr: owner + reader + updater + deleter
-          update:
-            expr: owner + updater
-          delete:
-            expr: owner + deleter
-        relations:
-          owner:
-            types:
-              - actor
-          manager:
-            types:
-              - actor
-            manages:
-              - reader
-              - updater
-              - deleter
-          reader:
-            types:
-              - actor
-          updater:
-            types:
-              - actor
-          deleter:
-            types:
-              - actor
+description: A Policy
+name: Test Policy
+resources:
+- name: users
+  permissions:
+  - expr: deleter
+    name: delete
+  - expr: reader + updater + deleter
+    name: read
+  - expr: updater
+    name: update
+  relations:
+  - name: deleter
+    types:
+    - actor
+  - manages:
+    - reader
+    - updater
+    - deleter
+    name: manager
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+  - name: updater
+    types:
+    - actor
 `

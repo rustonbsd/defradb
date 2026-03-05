@@ -18,7 +18,6 @@ import (
 
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 
-	"github.com/sourcenetwork/corekv"
 	"github.com/sourcenetwork/immutable"
 
 	"github.com/sourcenetwork/defradb/client"
@@ -35,6 +34,7 @@ import (
 func setCollectionIDs(
 	ctx context.Context,
 	newCollections []client.CollectionVersion,
+	existingCollections []client.CollectionVersion,
 ) error {
 	// We need to group the inputs and then mutate them, so we temporarily
 	// map them to pointers.
@@ -48,11 +48,11 @@ func setCollectionIDs(
 	collectionSets = sortCollectionSets(collectionSets)
 
 	for _, collectionSet := range collectionSets {
-		// The schemas within each set must be in a deterministic order to ensure that
+		// The collections within each set must be in a deterministic order to ensure that
 		// their IDs are deterministic.
 		sortSet(collectionSet)
 
-		substituteRelationFieldKinds(collectionSet, collectionSets)
+		substituteRelationFieldKinds(collectionSet, collectionSets, existingCollections)
 		err := saveBlocks(ctx, collectionSet)
 		if err != nil {
 			return err
@@ -63,7 +63,7 @@ func setCollectionIDs(
 		// Secondary fields are not saved in the blockstore, thus they do not contribute to the collection IDs.
 		// The Kinds do however need to reference by CollectionID, which need to be substituted after the
 		// CollectionIDs have been generated.
-		substituteSecondaryRelationFieldKinds(collectionSet, collectionSets)
+		substituteSecondaryRelationFieldKinds(collectionSet, collectionSets, existingCollections)
 	}
 
 	for i := range newCollectionPtrs {
@@ -247,22 +247,20 @@ func mapCollectionSetIDs(
 		circlesBackHere := circlesBack(collection.name, relation, collectionRelationsByCollectionName, map[string]struct{}{})
 
 		var circleID int
-		if circlesBackHere {
-			if id, ok := collectionSetIds[relation]; ok {
-				// If this collection has already been assigned a setID, use that
-				circleID = id
-			} else {
-				collectionSetId, ok := collectionSetIds[collection.name]
-				if !ok {
-					// If this collection has not already been assigned a setID, it must be
-					// the first discovered node in a new circle.  Assign it a new setID,
-					// this will be picked up by its circle-forming descendents.
-					*i = *i + 1
-					collectionSetId = *i
-				}
-				collectionSetIds[collection.name] = collectionSetId
-				circleID = collectionSetId
+		if id, ok := collectionSetIds[relation]; ok {
+			// If this collection has already been assigned a setID, use that
+			circleID = id
+		} else if circlesBackHere {
+			collectionSetId, ok := collectionSetIds[collection.name]
+			if !ok {
+				// If this collection has not already been assigned a setID, it must be
+				// the first discovered node in a new circle.  Assign it a new setID,
+				// this will be picked up by its circle-forming descendents.
+				*i = *i + 1
+				collectionSetId = *i
 			}
+			collectionSetIds[collection.name] = collectionSetId
+			circleID = collectionSetId
 		} else {
 			// If this collection and its relations does not circle back to itself, we
 			// increment `i` and assign the new value to this collection *only*
@@ -281,35 +279,40 @@ func mapCollectionSetIDs(
 	}
 }
 
-// circlesBack returns true if any path from this schema through it's relations (and their relations) circles
-// back to this schema.
+// circlesBack returns true if any path from this collection through its relations (and their relations) circles
+// back to this collection.
 //
 // Parameters:
-//   - originalSchemaName: The original start schema of this recursive check - this will not change as this function
-//     recursively checks the relations on `currentSchemaName`.
-//   - currentSchemaName: The current schema to process.
-//   - schemasWithRelations: The full set of relevant schemas that may be referenced by this schema or its descendents.
-//   - schemasFullyProcessed: The set of schema names that have already been completely processed.  If `schema` is in
-//     this set the function will return.  This parameter is mutated by this function.
+//   - originalCollectionName: The original start collection of this recursive check -
+//     this will not change as this function recursively checks the relations
+//     on `currentCollectionName`.
+//   - currentCollectionName: The current collection to process.
+//   - collectionsWithRelations: The full set of relevant collections that may be
+//     referenced by this collection or its descendents.
+//   - collectionsFullyProcessed: The set of collection names that have already been
+//     completely processed. If the collection is in this set the function will return.
+//     This parameter is mutated by this function.
 func circlesBack(
-	originalSchemaName string,
-	currentSchemaName string,
-	schemasWithRelations map[string]collectionRelations,
-	schemasFullyProcessed map[string]struct{},
+	originalCollectionName string,
+	currentCollectionName string,
+	collectionsWithRelations map[string]collectionRelations,
+	collectionsFullyProcessed map[string]struct{},
 ) bool {
-	if _, ok := schemasFullyProcessed[currentSchemaName]; ok {
+	if _, ok := collectionsFullyProcessed[currentCollectionName]; ok {
 		// we've circled all the way through and not found the original
 		return false
 	}
 
-	if currentSchemaName == originalSchemaName {
+	if currentCollectionName == originalCollectionName {
 		return true
 	}
 
-	schemasFullyProcessed[currentSchemaName] = struct{}{}
+	collectionsFullyProcessed[currentCollectionName] = struct{}{}
 
-	for _, relation := range schemasWithRelations[currentSchemaName].relations {
-		ciclesBackToOriginal := circlesBack(originalSchemaName, relation, schemasWithRelations, schemasFullyProcessed)
+	for _, relation := range collectionsWithRelations[currentCollectionName].relations {
+		ciclesBackToOriginal := circlesBack(
+			originalCollectionName, relation, collectionsWithRelations, collectionsFullyProcessed,
+		)
 		if ciclesBackToOriginal {
 			return true
 		}
@@ -421,7 +424,7 @@ func saveBlocks(
 			var err error
 			oldCol, err = description.GetCollectionByID(ctx, collection.VersionID)
 			if err != nil {
-				if errors.Is(err, corekv.ErrNotFound) {
+				if errors.Is(err, client.ErrCollectionNotFound) {
 					// If the key does not exist, continue, and let the validation code handle it
 					// in a user friendly way.
 					continue
@@ -533,13 +536,17 @@ func saveBlocks(
 // Using names to reference other types is unsuitable as the names may change over time.
 func substituteRelationFieldKinds(
 	collectionSet []*client.CollectionVersion,
-	allCollectionSets [][]*client.CollectionVersion,
+	newCollectionSets [][]*client.CollectionVersion,
+	existingCollections []client.CollectionVersion,
 ) {
 	collectionsByName := map[string]client.CollectionVersion{}
-	for _, collectionSet := range allCollectionSets {
-		for _, collection := range collectionSet {
+	for _, set := range newCollectionSets {
+		for _, collection := range set {
 			collectionsByName[collection.Name] = *collection
 		}
+	}
+	for _, collection := range existingCollections {
+		collectionsByName[collection.Name] = collection
 	}
 
 	setIndexesByName := map[string]int{}
@@ -571,7 +578,7 @@ func substituteRelationFieldKinds(
 						collectionSet[i].Fields[j].Kind = client.NewSelfKind(fmt.Sprint(relativeIndex), kind.IsArray())
 					} else {
 						// If the relation root is simple and does not contain a relative index, then this relation
-						// must point to the host schema (self-reference, e.g. User=>User).
+						// must point to the host collection (self-reference, e.g. User=>User).
 						collectionSet[i].Fields[j].Kind = client.NewSelfKind("", kind.IsArray())
 					}
 				} else {
@@ -591,13 +598,17 @@ func substituteRelationFieldKinds(
 
 func substituteSecondaryRelationFieldKinds(
 	collectionSet []*client.CollectionVersion,
-	allCollectionSets [][]*client.CollectionVersion,
+	newCollectionSets [][]*client.CollectionVersion,
+	existingCollections []client.CollectionVersion,
 ) {
 	collectionsByName := map[string]client.CollectionVersion{}
-	for _, collectionSet := range allCollectionSets {
-		for _, collection := range collectionSet {
+	for _, set := range newCollectionSets {
+		for _, collection := range set {
 			collectionsByName[collection.Name] = *collection
 		}
+	}
+	for _, collection := range existingCollections {
+		collectionsByName[collection.Name] = collection
 	}
 
 	for i := range collectionSet {

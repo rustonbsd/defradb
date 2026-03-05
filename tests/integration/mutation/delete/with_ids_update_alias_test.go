@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package delete
 
@@ -20,8 +21,8 @@ import (
 func TestMutationDeletion_WithUpdateAndIDsAndSelectAlias(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						age: Int
@@ -30,7 +31,7 @@ func TestMutationDeletion_WithUpdateAndIDsAndSelectAlias(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"age":  26,
@@ -38,7 +39,7 @@ func TestMutationDeletion_WithUpdateAndIDsAndSelectAlias(t *testing.T) {
 					"verified": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"age":  26,
@@ -54,7 +55,7 @@ func TestMutationDeletion_WithUpdateAndIDsAndSelectAlias(t *testing.T) {
 					"verified": false
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `mutation {
 					delete_User(docID: ["bae-3b39742b-cfff-5158-b6d5-d69cf79066b4", "bae-49057a46-bf84-5e83-b043-e6fa6ed5b70c"]) {
 						AliasID: _docID

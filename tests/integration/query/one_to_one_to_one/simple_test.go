@@ -1,12 +1,13 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package one_to_one_to_one
 
@@ -20,8 +21,8 @@ import (
 func TestQueryOneToOneToOne(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Publisher {
 						name: String
 						printed: Book @primary
@@ -39,47 +40,47 @@ func TestQueryOneToOneToOne(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name": "John Grisham",
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name": "Cornelia Funke",
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "Painted House",
-					"author_id": testUtils.NewDocIndex(2, 0),
+					"_authorID": testUtils.NewDocIndex(2, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "Theif Lord",
-					"author_id": testUtils.NewDocIndex(2, 1),
+					"_authorID": testUtils.NewDocIndex(2, 1),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":       "Old Publisher",
-					"printed_id": testUtils.NewDocIndex(1, 0),
+					"_printedID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":       "New Publisher",
-					"printed_id": testUtils.NewDocIndex(1, 1),
+					"_printedID": testUtils.NewDocIndex(1, 1),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Publisher {
 						name
@@ -113,6 +114,7 @@ func TestQueryOneToOneToOne(t *testing.T) {
 						},
 					},
 				},
+				NonOrderedResults: true,
 			},
 		},
 	}
@@ -123,8 +125,8 @@ func TestQueryOneToOneToOne(t *testing.T) {
 func TestQueryOneToOneToOneSecondaryThenPrimary(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Publisher {
 						name: String
 						printed: Book
@@ -142,47 +144,47 @@ func TestQueryOneToOneToOneSecondaryThenPrimary(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Old Publisher"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "New Publisher"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name": "John Grisham",
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name": "Cornelia Funke",
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":         "Painted House",
-					"publisher_id": testUtils.NewDocIndex(0, 0),
-					"author_id":    testUtils.NewDocIndex(2, 0),
+					"_publisherID": testUtils.NewDocIndex(0, 0),
+					"_authorID":    testUtils.NewDocIndex(2, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":         "Theif Lord",
-					"publisher_id": testUtils.NewDocIndex(0, 1),
-					"author_id":    testUtils.NewDocIndex(2, 1),
+					"_publisherID": testUtils.NewDocIndex(0, 1),
+					"_authorID":    testUtils.NewDocIndex(2, 1),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Publisher {
 						name
@@ -227,8 +229,8 @@ func TestQueryOneToOneToOneSecondaryThenPrimary(t *testing.T) {
 func TestQueryOneToOneToOnePrimaryThenSecondary(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Publisher {
 						name: String
 						printed: Book @primary
@@ -246,47 +248,47 @@ func TestQueryOneToOneToOnePrimaryThenSecondary(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name": "Painted House",
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name": "Theif Lord",
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":       "Old Publisher",
-					"printed_id": testUtils.NewDocIndex(1, 0),
+					"_printedID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":       "New Publisher",
-					"printed_id": testUtils.NewDocIndex(1, 1),
+					"_printedID": testUtils.NewDocIndex(1, 1),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name":         "John Grisham",
-					"published_id": testUtils.NewDocIndex(1, 0),
+					"_publishedID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name":         "Cornelia Funke",
-					"published_id": testUtils.NewDocIndex(1, 1),
+					"_publishedID": testUtils.NewDocIndex(1, 1),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Publisher {
 						name
@@ -330,8 +332,8 @@ func TestQueryOneToOneToOnePrimaryThenSecondary(t *testing.T) {
 func TestQueryOneToOneToOneSecondary(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Publisher {
 						name: String
 						printed: Book
@@ -349,47 +351,47 @@ func TestQueryOneToOneToOneSecondary(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Old Publisher"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "New Publisher"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":         "Painted House",
-					"publisher_id": testUtils.NewDocIndex(0, 0),
+					"_publisherID": testUtils.NewDocIndex(0, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":         "Theif Lord",
-					"publisher_id": testUtils.NewDocIndex(0, 1),
+					"_publisherID": testUtils.NewDocIndex(0, 1),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name":         "John Grisham",
-					"published_id": testUtils.NewDocIndex(1, 0),
+					"_publishedID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name":         "Cornelia Funke",
-					"published_id": testUtils.NewDocIndex(1, 1),
+					"_publishedID": testUtils.NewDocIndex(1, 1),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Publisher {
 						name

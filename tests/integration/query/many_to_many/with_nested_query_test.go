@@ -1,12 +1,13 @@
-// Copyright 2025 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package many_to_many
 
@@ -20,8 +21,8 @@ import (
 func TestManyToMany_QueryFromSecondary_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
                     type Student {
                         name: String
                         enrollments: [Enrollment] @relation(name: "student_enrollments")
@@ -38,39 +39,39 @@ func TestManyToMany_QueryFromSecondary_Succeeds(t *testing.T) {
                 `,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc:          `{"name": "Alice"}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc:          `{"name": "Bob"}`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc:          `{"name": "Math"}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc:          `{"name": "Science"}`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2, // Enrollment
 				DocMap: map[string]any{
 					"student": testUtils.NewDocIndex(0, 0), // Alice
 					"course":  testUtils.NewDocIndex(1, 0), // Math
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2, // Enrollment
 				DocMap: map[string]any{
 					"student": testUtils.NewDocIndex(0, 0), // Alice
 					"course":  testUtils.NewDocIndex(1, 1), // Science
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"student": testUtils.NewDocIndex(0, 1), // Bob
@@ -79,7 +80,7 @@ func TestManyToMany_QueryFromSecondary_Succeeds(t *testing.T) {
 			},
 
 			// Query Alice and access her course names
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Student(filter: {name: {_eq: "Alice"}}) {
 						name

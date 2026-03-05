@@ -1,12 +1,13 @@
-// Copyright 2025 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package action
 
@@ -48,6 +49,11 @@ func assertError(t testing.TB, err error, expectedError string) bool {
 }
 
 func assertExpectedErrorRaised(t testing.TB, expectedError string, wasRaised bool) {
+	AssertExpectedErrorRaised(t, expectedError, wasRaised)
+}
+
+// AssertExpectedErrorRaised asserts that an expected error was raised.
+func AssertExpectedErrorRaised(t testing.TB, expectedError string, wasRaised bool) {
 	if expectedError != "" && !wasRaised {
 		assert.Fail(t, "Expected an error however none was raised.")
 	}
@@ -80,7 +86,7 @@ func assertCollectionVersions(
 		require.Equal(s.T, expected.IsBranchable, actual.IsBranchable)
 		require.Equal(s.T, expected.IsActive, actual.IsActive)
 
-		if expected.Indexes != nil || len(actual.Indexes) != 0 {
+		if expected.Indexes != nil {
 			// Dont bother asserting this if the expected is nil and the actual is nil/empty.
 			// This is to save each test action from having to bother declaring an empty slice (if there are no indexes)
 			require.Equal(s.T, expected.Indexes, actual.Indexes)

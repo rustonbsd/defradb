@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package backup
 
@@ -22,24 +23,24 @@ import (
 func TestBackupSelfRefImport_Simple_NoError(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.BackupImport{
+			testUtils.ImportBackup{
 				ImportContent: `{
 					"User":[
 						{
-							"_docID":"bae-498fc496-9ad7-5239-b003-1044d326e072",
+							"_docID":"bae-692a9178-a258-5224-990f-9ad703a2bbea",
 							"age":31,
-							"boss_id":"bae-59a4a7b9-1ce9-557f-bbb8-48485ee44f35",
+							"_bossID":"bae-1635f80b-612a-5378-a185-cad7a3018354",
 							"name":"Bob"
 						},
 						{
-							"_docID":"bae-59a4a7b9-1ce9-557f-bbb8-48485ee44f35",
+							"_docID":"bae-1635f80b-612a-5378-a185-cad7a3018354",
 							"age":30,
 							"name":"John"
 						}
 					]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query  {
 						User {
@@ -75,10 +76,10 @@ func TestBackupSelfRefImport_SelfRef_NoError(t *testing.T) {
 	expectedExportData := `{` +
 		`"User":[` +
 		`{` +
-		`"_docID":"bae-498fc496-9ad7-5239-b003-1044d326e072",` +
-		`"_docIDNew":"bae-498fc496-9ad7-5239-b003-1044d326e072",` +
+		`"_bossID":"bae-0a85be75-1f76-5dcd-b31a-4798f65e45e9",` +
+		`"_docID":"bae-0a85be75-1f76-5dcd-b31a-4798f65e45e9",` +
+		`"_docIDNew":"bae-0a85be75-1f76-5dcd-b31a-4798f65e45e9",` +
 		`"age":31,` +
-		`"boss_id":"bae-498fc496-9ad7-5239-b003-1044d326e072",` +
 		`"name":"Bob"` +
 		`}` +
 		`]` +
@@ -89,10 +90,10 @@ func TestBackupSelfRefImport_SelfRef_NoError(t *testing.T) {
 			// and import to the second.
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: schemas,
+			&action.AddCollection{
+				SDL: userCollection,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 					"name": "Bob",
@@ -102,18 +103,18 @@ func TestBackupSelfRefImport_SelfRef_NoError(t *testing.T) {
 			testUtils.UpdateDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
-					"boss_id": "bae-498fc496-9ad7-5239-b003-1044d326e072"
+					"_bossID": "bae-0a85be75-1f76-5dcd-b31a-4798f65e45e9"
 				}`,
 			},
-			testUtils.BackupExport{
+			testUtils.ExportBackup{
 				NodeID:          immutable.Some(0),
 				ExpectedContent: expectedExportData,
 			},
-			testUtils.BackupImport{
+			testUtils.ImportBackup{
 				NodeID:        immutable.Some(1),
 				ImportContent: expectedExportData,
 			},
-			testUtils.Request{
+			&action.Request{
 				NodeID: immutable.Some(1),
 				Request: `
 					query  {
@@ -144,8 +145,8 @@ func TestBackupSelfRefImport_SelfRef_NoError(t *testing.T) {
 func TestBackupSelfRefImport_PrimaryRelationWithSecondCollection_NoError(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Author {
 						name: String
 						book: Book @relation(name: "author_book")
@@ -158,7 +159,7 @@ func TestBackupSelfRefImport_PrimaryRelationWithSecondCollection_NoError(t *test
 					}
 				`,
 			},
-			testUtils.BackupImport{
+			testUtils.ImportBackup{
 				ImportContent: `{
 					"Author":[
 						{
@@ -174,7 +175,7 @@ func TestBackupSelfRefImport_PrimaryRelationWithSecondCollection_NoError(t *test
 					]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						Book {
@@ -210,8 +211,8 @@ func TestBackupSelfRefImport_PrimaryRelationWithSecondCollection_NoError(t *test
 func TestBackupSelfRefImport_PrimaryRelationWithSecondCollectionWrongOrder_NoError(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Author {
 						name: String
 						book: Book @relation(name: "author_book")
@@ -224,7 +225,7 @@ func TestBackupSelfRefImport_PrimaryRelationWithSecondCollectionWrongOrder_NoErr
 					}
 				`,
 			},
-			testUtils.BackupImport{
+			testUtils.ImportBackup{
 				ImportContent: `{
 					"Book":[
 						{
@@ -240,7 +241,7 @@ func TestBackupSelfRefImport_PrimaryRelationWithSecondCollectionWrongOrder_NoErr
 					]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						Book {
@@ -281,7 +282,7 @@ func TestBackupSelfRefImport_SplitPrimaryRelationWithSecondCollection_NoError(t 
 		`{` +
 		`"_docID":"bae-bf1f16db-3c02-5759-8127-7d73346442cc",` +
 		`"_docIDNew":"bae-bf1f16db-3c02-5759-8127-7d73346442cc",` +
-		`"book_id":"bae-89136f56-3779-5656-b8a6-f76a1c262f37",` +
+		`"_bookID":"bae-89136f56-3779-5656-b8a6-f76a1c262f37",` +
 		`"name":"John"` +
 		`}` +
 		`],` +
@@ -290,7 +291,7 @@ func TestBackupSelfRefImport_SplitPrimaryRelationWithSecondCollection_NoError(t 
 		`"_docID":"bae-89136f56-3779-5656-b8a6-f76a1c262f37",` +
 		`"_docIDNew":"bae-66b0f769-c743-5a50-ae6d-1dcd978e2404",` +
 		`"name":"John and the sourcerers' stone",` +
-		`"reviewedBy_id":"bae-bf1f16db-3c02-5759-8127-7d73346442cc"` +
+		`"_reviewedByID":"bae-bf1f16db-3c02-5759-8127-7d73346442cc"` +
 		`}` +
 		`]` +
 		`}`
@@ -301,8 +302,8 @@ func TestBackupSelfRefImport_SplitPrimaryRelationWithSecondCollection_NoError(t 
 			// and import to the second.
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Author {
 						name: String
 						book: Book @primary @relation(name: "author_book")
@@ -315,7 +316,7 @@ func TestBackupSelfRefImport_SplitPrimaryRelationWithSecondCollection_NoError(t 
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID:       immutable.Some(0),
 				CollectionID: 1,
 				// bae-89136f56-3779-5656-b8a6-f76a1c262f37
@@ -323,7 +324,7 @@ func TestBackupSelfRefImport_SplitPrimaryRelationWithSecondCollection_NoError(t 
 					"name": "John and the sourcerers' stone"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID:       immutable.Some(0),
 				CollectionID: 0,
 				Doc: `{
@@ -336,22 +337,22 @@ func TestBackupSelfRefImport_SplitPrimaryRelationWithSecondCollection_NoError(t 
 				CollectionID: 1,
 				DocID:        0,
 				Doc: `{
-					"reviewedBy_id": "bae-bf1f16db-3c02-5759-8127-7d73346442cc"
+					"_reviewedByID": "bae-bf1f16db-3c02-5759-8127-7d73346442cc"
 				}`,
 			},
 			/*
 				This fails due to the linked ticket.
 				https://github.com/sourcenetwork/defradb/issues/1704
-				testUtils.BackupExport{
+				testUtils.ExportBackup{
 					NodeID:          immutable.Some(0),
 					ExpectedContent: expectedExportData,
 				},
 			*/
-			testUtils.BackupImport{
+			testUtils.ImportBackup{
 				NodeID:        immutable.Some(1),
 				ImportContent: expectedExportData,
 			},
-			testUtils.Request{
+			&action.Request{
 				NodeID: immutable.Some(1),
 				Request: `
 					query {

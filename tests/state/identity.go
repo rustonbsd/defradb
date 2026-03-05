@@ -1,18 +1,21 @@
-// Copyright 2025 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package state
 
 import (
 	"crypto/ed25519"
+	"encoding/base64"
 	"math/rand"
+	"strings"
 
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/stretchr/testify/require"
@@ -87,6 +90,24 @@ func GetIdentityHolder(s *State, identity Identity) *IdentityHolder {
 
 	s.Identities[identity] = newIdentityHolder(generateIdentity(s, keyType))
 	return s.Identities[identity]
+}
+
+// TokenHasAudience returns true if the given JWT token string contains an audience claim.
+// This is used to detect tokens that were generated before the node's HTTP host was available,
+// and need to be regenerated with the correct audience.
+func TokenHasAudience(token string) bool {
+	if token == "" {
+		return false
+	}
+	parts := strings.Split(token, ".")
+	if len(parts) != 3 {
+		return false
+	}
+	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return false
+	}
+	return strings.Contains(string(payload), `"aud"`)
 }
 
 // Generate the keys using predefined seed so that multiple runs yield the same private key.

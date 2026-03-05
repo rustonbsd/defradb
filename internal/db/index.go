@@ -62,7 +62,7 @@ func isSupportedKind(kind client.FieldKind) bool {
 	}
 }
 
-// NewCollectionIndex creates a new collection index
+// NewCollectionIndex adds a new collection index
 func NewCollectionIndex(
 	collection client.Collection,
 	desc client.IndexDescription,
@@ -84,6 +84,9 @@ func NewCollectionIndex(
 		base.fieldsDescs[i] = field
 		if !isSupportedKind(field.Kind) {
 			return nil, NewErrUnsupportedIndexFieldType(field.Kind)
+		}
+		if field.Typ == client.PN_COUNTER || field.Typ == client.P_COUNTER {
+			return nil, NewErrCannotIndexAccumulatedCRDTField(field.Name, field.Typ.String())
 		}
 		base.fieldGenerators[i] = getFieldGenerator(field.Kind)
 	}
@@ -127,6 +130,13 @@ type JSONFieldGenerator struct{}
 
 func (g *JSONFieldGenerator) Generate(value client.NormalValue, f func(client.NormalValue) error) error {
 	json, _ := value.JSON()
+	if json == nil {
+		val, err := client.NewNormalNil(client.FieldKind_NILLABLE_JSON)
+		if err != nil {
+			return err
+		}
+		return f(val)
+	}
 	return client.TraverseJSON(json, func(value client.JSON) error {
 		val, err := client.NewNormalValue(value)
 		if err != nil {
@@ -221,14 +231,14 @@ func (index *collectionBaseIndex) deleteIndexKey(
 ) error {
 	txn := datastore.CtxMustGetTxn(ctx)
 	ds := txn.Datastore()
-	exists, err := ds.Has(ctx, key.Bytes())
+	exists, err := ds.Has(ctx, &key)
 	if err != nil {
 		return err
 	}
 	if !exists {
 		return NewErrCorruptedIndex(index.desc.Name)
 	}
-	return ds.Delete(ctx, key.Bytes())
+	return ds.Delete(ctx, &key)
 }
 
 // RemoveAll remove all artifacts of the index from the storage, i.e. all index
@@ -244,14 +254,38 @@ func (index *collectionBaseIndex) RemoveAll(ctx context.Context) error {
 	prefixKey.IndexID = index.desc.ID
 
 	txn := datastore.CtxMustGetTxn(ctx)
-	ds := txn.Datastore()
-	keys, err := datastore.FetchKeysForPrefix(ctx, prefixKey.Bytes(), ds)
+
+	iter, err := txn.Datastore().Iterator(ctx, datastore.IterOptions{
+		Prefix:   &prefixKey,
+		KeysOnly: true,
+	})
 	if err != nil {
 		return err
 	}
 
-	for _, key := range keys {
-		err := ds.Delete(ctx, key)
+	keysToDelete := make([]keys.IndexDataStoreKey, 0)
+	for {
+		hasNext, err := iter.Next()
+		if err != nil {
+			return errors.Join(err, iter.Close())
+		}
+		if !hasNext {
+			break
+		}
+
+		key, err := keys.DecodeIndexDataStoreKey(iter.Key(), &index.desc, index.fieldsDescs)
+		if err != nil {
+			return errors.Join(err, iter.Close())
+		}
+
+		keysToDelete = append(keysToDelete, key)
+	}
+	if err := iter.Close(); err != nil {
+		return err
+	}
+
+	for _, key := range keysToDelete {
+		err := txn.Datastore().Delete(ctx, &key)
 		if err != nil {
 			return NewCanNotDeleteIndexedField(err)
 		}
@@ -330,7 +364,7 @@ func (index *collectionSimpleIndex) Save(
 	txn := datastore.CtxMustGetTxn(ctx)
 
 	return index.generateKeysAndProcess(ctx, doc, true, func(key keys.IndexDataStoreKey) error {
-		return txn.Datastore().Set(ctx, key.Bytes(), []byte{})
+		return txn.Datastore().Set(ctx, &key, []byte{})
 	})
 }
 
@@ -420,7 +454,7 @@ func validateUniqueKeyValue(
 	txn := datastore.CtxMustGetTxn(ctx)
 
 	if len(val) != 0 {
-		exists, err := txn.Datastore().Has(ctx, key.Bytes())
+		exists, err := txn.Datastore().Has(ctx, &key)
 		if err != nil {
 			return err
 		}
@@ -447,7 +481,7 @@ func addNewUniqueKey(
 	if err != nil {
 		return err
 	}
-	err = txn.Datastore().Set(ctx, key.Bytes(), val)
+	err = txn.Datastore().Set(ctx, &key, val)
 	if err != nil {
 		return NewErrFailedToStoreIndexedField(key.ToString(), err)
 	}
@@ -464,7 +498,7 @@ func (index *collectionUniqueIndex) Delete(
 		if err != nil {
 			return err
 		}
-		return txn.Datastore().Delete(ctx, key.Bytes())
+		return txn.Datastore().Delete(ctx, &key)
 	})
 }
 
@@ -494,8 +528,8 @@ func isUpdatingIndexedFields(index CollectionIndex, oldDoc, newDoc *client.Docum
 
 		// GetValue will return an error when the field doesn't exist.
 		// This will happen for oldDoc only if the field hasn't been set
-		// when first creating the document. For newDoc, this will happen
-		// only if the field hasn't been set when first creating the document
+		// when first adding the document. For newDoc, this will happen
+		// only if the field hasn't been set when first adding the document
 		// AND the field hasn't been set on the update.
 		switch {
 		case getOldValErr != nil && getNewValErr != nil:

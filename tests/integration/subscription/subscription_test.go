@@ -1,12 +1,13 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package subscription
 
@@ -15,12 +16,13 @@ import (
 
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
+	"github.com/sourcenetwork/defradb/tests/multiplier"
 )
 
-func TestSubscriptionWithCreateMutations(t *testing.T) {
+func TestSubscriptionWithAddMutations(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.SubscriptionRequest{
+			&action.SubscriptionRequest{
 				Request: `subscription {
 					User {
 						_docID
@@ -49,28 +51,28 @@ func TestSubscriptionWithCreateMutations(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `mutation {
-					create_User(input: {name: "John", age: 27, points: 42.1, verified: true}) {
+					add_User(input: {name: "John", age: 27, points: 42.1, verified: true}) {
 						name
 					}
 				}`,
 				Results: map[string]any{
-					"create_User": []map[string]any{
+					"add_User": []map[string]any{
 						{
 							"name": "John",
 						},
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `mutation {
-					create_User(input: {name: "Addo", age: 31, points: 42.1, verified: true}) {
+					add_User(input: {name: "Addo", age: 31, points: 42.1, verified: true}) {
 						name
 					}
 				}`,
 				Results: map[string]any{
-					"create_User": []map[string]any{
+					"add_User": []map[string]any{
 						{
 							"name": "Addo",
 						},
@@ -83,10 +85,12 @@ func TestSubscriptionWithCreateMutations(t *testing.T) {
 	execute(t, test)
 }
 
-func TestSubscriptionWithFilterAndOneCreateMutation(t *testing.T) {
+func TestSubscriptionWithFilterAndOneAddMutation(t *testing.T) {
 	test := testUtils.TestCase{
+		// TODO: https://github.com/sourcenetwork/defradb/issues/4353
+		MultiplierExcludes: []string{multiplier.SecondaryIndex},
 		Actions: []any{
-			testUtils.SubscriptionRequest{
+			&action.SubscriptionRequest{
 				Request: `subscription {
 					User(filter: {age: {_lt: 30}}) {
 						name
@@ -104,14 +108,14 @@ func TestSubscriptionWithFilterAndOneCreateMutation(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `mutation {
-					create_User(input: {name: "John", age: 27, points: 42.1, verified: true}) {
+					add_User(input: {name: "John", age: 27, points: 42.1, verified: true}) {
 						name
 					}
 				}`,
 				Results: map[string]any{
-					"create_User": []map[string]any{
+					"add_User": []map[string]any{
 						{
 							"name": "John",
 						},
@@ -124,10 +128,10 @@ func TestSubscriptionWithFilterAndOneCreateMutation(t *testing.T) {
 	execute(t, test)
 }
 
-func TestSubscriptionWithFilterAndOneCreateMutationOutsideFilter(t *testing.T) {
+func TestSubscriptionWithFilterAndOneAddMutationOutsideFilter(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.SubscriptionRequest{
+			&action.SubscriptionRequest{
 				Request: `subscription {
 					User(filter: {age: {_gt: 30}}) {
 						_docID
@@ -137,14 +141,14 @@ func TestSubscriptionWithFilterAndOneCreateMutationOutsideFilter(t *testing.T) {
 				}`,
 				Results: []map[string]any{},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `mutation {
-					create_User(input: {name: "John", age: 27, points: 42.1, verified: true}) {
+					add_User(input: {name: "John", age: 27, points: 42.1, verified: true}) {
 						name
 					}
 				}`,
 				Results: map[string]any{
-					"create_User": []map[string]any{
+					"add_User": []map[string]any{
 						{
 							"name": "John",
 						},
@@ -157,10 +161,12 @@ func TestSubscriptionWithFilterAndOneCreateMutationOutsideFilter(t *testing.T) {
 	execute(t, test)
 }
 
-func TestSubscriptionWithFilterAndCreateMutations(t *testing.T) {
+func TestSubscriptionWithFilterAndAddMutations(t *testing.T) {
 	test := testUtils.TestCase{
+		// TODO: https://github.com/sourcenetwork/defradb/issues/4353
+		MultiplierExcludes: []string{multiplier.SecondaryIndex},
 		Actions: []any{
-			testUtils.SubscriptionRequest{
+			&action.SubscriptionRequest{
 				Request: `subscription {
 					User(filter: {age: {_lt: 30}}) {
 						name
@@ -178,28 +184,28 @@ func TestSubscriptionWithFilterAndCreateMutations(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `mutation {
-					create_User(input: {name: "John", age: 27, points: 42.1, verified: true}) {
+					add_User(input: {name: "John", age: 27, points: 42.1, verified: true}) {
 						name
 					}
 				}`,
 				Results: map[string]any{
-					"create_User": []map[string]any{
+					"add_User": []map[string]any{
 						{
 							"name": "John",
 						},
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `mutation {
-					create_User(input: {name: "Addo", age: 31, points: 42.1, verified: true}) {
+					add_User(input: {name: "Addo", age: 31, points: 42.1, verified: true}) {
 						name
 					}
 				}`,
 				Results: map[string]any{
-					"create_User": []map[string]any{
+					"add_User": []map[string]any{
 						{
 							"name": "Addo",
 						},
@@ -215,7 +221,7 @@ func TestSubscriptionWithFilterAndCreateMutations(t *testing.T) {
 func TestSubscriptionWithUpdateMutations(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "John",
@@ -224,7 +230,7 @@ func TestSubscriptionWithUpdateMutations(t *testing.T) {
 					"points": 42.1
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Addo",
@@ -233,7 +239,7 @@ func TestSubscriptionWithUpdateMutations(t *testing.T) {
 					"points": 50
 				}`,
 			},
-			testUtils.SubscriptionRequest{
+			&action.SubscriptionRequest{
 				Request: `subscription {
 					User {
 						name
@@ -253,7 +259,7 @@ func TestSubscriptionWithUpdateMutations(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `mutation {
 					update_User(filter: {name: {_eq: "John"}}, input: {points: 45}) {
 						name
@@ -276,7 +282,7 @@ func TestSubscriptionWithUpdateMutations(t *testing.T) {
 func TestSubscriptionWithUpdateAllMutations(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "John",
@@ -285,7 +291,7 @@ func TestSubscriptionWithUpdateAllMutations(t *testing.T) {
 					"points": 42.1
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Addo",
@@ -294,7 +300,7 @@ func TestSubscriptionWithUpdateAllMutations(t *testing.T) {
 					"points": 50
 				}`,
 			},
-			testUtils.SubscriptionRequest{
+			&action.SubscriptionRequest{
 				Request: `subscription {
 					User {
 						name
@@ -323,7 +329,7 @@ func TestSubscriptionWithUpdateAllMutations(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `mutation {
 					update_User(input: {points: 55}) {
 						name
@@ -349,7 +355,7 @@ func TestSubscriptionWithUpdateAllMutations(t *testing.T) {
 func TestSubscription_WithDocIDFilter_ShouldOnlyGetUpdatesForThatDocID(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.SubscriptionRequest{
+			&action.SubscriptionRequest{
 				Request: `subscription {
 					User(docID: "bae-a160ba13-dbf9-50da-a598-018bffa10569") {
 						name
@@ -375,14 +381,14 @@ func TestSubscription_WithDocIDFilter_ShouldOnlyGetUpdatesForThatDocID(t *testin
 					},
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name": "John",
 					"age":  27,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name": "Addo",
@@ -408,7 +414,7 @@ func TestSubscription_WithDocIDFilter_ShouldOnlyGetUpdatesForThatDocID(t *testin
 func TestSubscription_WithClose_WontBlock(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.SubscriptionRequest{
+			&action.SubscriptionRequest{
 				Request: `subscription {
 					User{
 						name
@@ -426,15 +432,18 @@ func TestSubscription_WithClose_WontBlock(t *testing.T) {
 
 func TestSubscription_WithCounterCRDT_ShouldSucceed(t *testing.T) {
 	test := testUtils.TestCase{
+		// Accumulated CRDT fields (pncounter/pcounter) cannot be indexed.
+		// https://github.com/sourcenetwork/defradb/issues/4439
+		MultiplierExcludes: []string{multiplier.SecondaryIndex},
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						counter: Int @crdt(type: pcounter)
 					}
 				`,
 			},
-			testUtils.SubscriptionRequest{
+			&action.SubscriptionRequest{
 				Request: `subscription {
 					User {
 						counter
@@ -457,7 +466,7 @@ func TestSubscription_WithCounterCRDT_ShouldSucceed(t *testing.T) {
 					},
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"counter": int64(1),
@@ -477,14 +486,14 @@ func TestSubscription_WithCounterCRDT_ShouldSucceed(t *testing.T) {
 func TestSubscription_WithDeleteOperation_ShouldSucceed(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 					}
 				`,
 			},
-			testUtils.SubscriptionRequest{
+			&action.SubscriptionRequest{
 				Request: `subscription {
 					User (showDeleted: true) { 
 						name
@@ -518,7 +527,7 @@ func TestSubscription_WithDeleteOperation_ShouldSucceed(t *testing.T) {
 					},
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name": "John",

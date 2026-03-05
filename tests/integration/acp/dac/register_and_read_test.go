@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_acp_dac
 
@@ -17,7 +18,7 @@ import (
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
-func TestACP_CreateWithoutIdentityAndReadWithoutIdentity_CanRead(t *testing.T) {
+func TestACP_AddWithoutIdentityAndReadWithoutIdentity_CanRead(t *testing.T) {
 	test := testUtils.TestCase{
 
 		Actions: []any{
@@ -26,39 +27,29 @@ func TestACP_CreateWithoutIdentityAndReadWithoutIdentity_CanRead(t *testing.T) {
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: test
-                    description: a test policy which marks a collection in a database as a resource
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-                `,
+description: a test policy which marks a collection in a database as a resource
+name: test
+resources:
+- name: users
+  permissions:
+  - name: delete
+  - expr: reader
+    name: read
+  - name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @policy(
 						id: "{{.Policy0}}",
 						resource: "users"
@@ -69,7 +60,7 @@ func TestACP_CreateWithoutIdentityAndReadWithoutIdentity_CanRead(t *testing.T) {
 				`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 
 				Doc: `
@@ -80,7 +71,7 @@ func TestACP_CreateWithoutIdentityAndReadWithoutIdentity_CanRead(t *testing.T) {
 				`,
 			},
 
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						Users {
@@ -106,7 +97,7 @@ func TestACP_CreateWithoutIdentityAndReadWithoutIdentity_CanRead(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestACP_CreateWithoutIdentityAndReadWithIdentity_CanRead(t *testing.T) {
+func TestACP_AddWithoutIdentityAndReadWithIdentity_CanRead(t *testing.T) {
 	test := testUtils.TestCase{
 
 		Actions: []any{
@@ -115,39 +106,29 @@ func TestACP_CreateWithoutIdentityAndReadWithIdentity_CanRead(t *testing.T) {
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: test
-                    description: a test policy which marks a collection in a database as a resource
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-                `,
+description: a test policy which marks a collection in a database as a resource
+name: test
+resources:
+- name: users
+  permissions:
+  - name: delete
+  - expr: reader
+    name: read
+  - name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @policy(
 						id: "{{.Policy0}}",
 						resource: "users"
@@ -158,7 +139,7 @@ func TestACP_CreateWithoutIdentityAndReadWithIdentity_CanRead(t *testing.T) {
 				`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 
 				Doc: `
@@ -169,100 +150,7 @@ func TestACP_CreateWithoutIdentityAndReadWithIdentity_CanRead(t *testing.T) {
 				`,
 			},
 
-			testUtils.Request{
-				Identity: testUtils.ClientIdentity(1),
-
-				Request: `
-					query {
-						Users {
-							_docID
-							name
-							age
-						}
-					}
-				`,
-				Results: map[string]any{
-					"Users": []map[string]any{
-						{
-							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
-							"name":   "Shahzad",
-							"age":    int64(28),
-						},
-					},
-				},
-			},
-		},
-	}
-
-	testUtils.ExecuteTestCase(t, test)
-}
-
-func TestACP_CreateWithIdentityAndReadWithIdentity_CanRead(t *testing.T) {
-	test := testUtils.TestCase{
-
-		Actions: []any{
-			testUtils.AddDACPolicy{
-
-				Identity: testUtils.ClientIdentity(1),
-
-				Policy: `
-                    name: test
-                    description: a test policy which marks a collection in a database as a resource
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-                `,
-			},
-
-			&action.AddSchema{
-				Schema: `
-					type Users @policy(
-						id: "{{.Policy0}}",
-						resource: "users"
-					) {
-						name: String
-						age: Int
-					}
-				`,
-			},
-
-			testUtils.CreateDoc{
-				CollectionID: 0,
-
-				Identity: testUtils.ClientIdentity(1),
-
-				Doc: `
-					{
-						"name": "Shahzad",
-						"age": 28
-					}
-				`,
-			},
-
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(1),
 
 				Request: `
@@ -290,7 +178,7 @@ func TestACP_CreateWithIdentityAndReadWithIdentity_CanRead(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestACP_CreateWithIdentityAndReadWithoutIdentity_CanNotRead(t *testing.T) {
+func TestACP_AddWithIdentityAndReadWithIdentity_CanRead(t *testing.T) {
 	test := testUtils.TestCase{
 
 		Actions: []any{
@@ -299,39 +187,29 @@ func TestACP_CreateWithIdentityAndReadWithoutIdentity_CanNotRead(t *testing.T) {
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: test
-                    description: a test policy which marks a collection in a database as a resource
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-                `,
+description: a test policy which marks a collection in a database as a resource
+name: test
+resources:
+- name: users
+  permissions:
+  - name: delete
+  - expr: reader
+    name: read
+  - name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @policy(
 						id: "{{.Policy0}}",
 						resource: "users"
@@ -342,7 +220,7 @@ func TestACP_CreateWithIdentityAndReadWithoutIdentity_CanNotRead(t *testing.T) {
 				`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 
 				Identity: testUtils.ClientIdentity(1),
@@ -355,7 +233,90 @@ func TestACP_CreateWithIdentityAndReadWithoutIdentity_CanNotRead(t *testing.T) {
 				`,
 			},
 
-			testUtils.Request{
+			&action.Request{
+				Identity: testUtils.ClientIdentity(1),
+
+				Request: `
+					query {
+						Users {
+							_docID
+							name
+							age
+						}
+					}
+				`,
+				Results: map[string]any{
+					"Users": []map[string]any{
+						{
+							"_docID": "bae-cad49a1d-299c-5c34-9dab-a23f233f1a2f",
+							"name":   "Shahzad",
+							"age":    int64(28),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	testUtils.ExecuteTestCase(t, test)
+}
+
+func TestACP_AddWithIdentityAndReadWithoutIdentity_CanNotRead(t *testing.T) {
+	test := testUtils.TestCase{
+
+		Actions: []any{
+			testUtils.AddDACPolicy{
+
+				Identity: testUtils.ClientIdentity(1),
+
+				Policy: `
+description: a test policy which marks a collection in a database as a resource
+name: test
+resources:
+- name: users
+  permissions:
+  - name: delete
+  - expr: reader
+    name: read
+  - name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+`,
+			},
+
+			&action.AddCollection{
+				SDL: `
+					type Users @policy(
+						id: "{{.Policy0}}",
+						resource: "users"
+					) {
+						name: String
+						age: Int
+					}
+				`,
+			},
+
+			&action.AddDoc{
+				CollectionID: 0,
+
+				Identity: testUtils.ClientIdentity(1),
+
+				Doc: `
+					{
+						"name": "Shahzad",
+						"age": 28
+					}
+				`,
+			},
+
+			&action.Request{
 				Request: `
 					query {
 						Users {
@@ -375,7 +336,7 @@ func TestACP_CreateWithIdentityAndReadWithoutIdentity_CanNotRead(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestACP_CreateWithIdentityAndReadWithWrongIdentity_CanNotRead(t *testing.T) {
+func TestACP_AddWithIdentityAndReadWithWrongIdentity_CanNotRead(t *testing.T) {
 	test := testUtils.TestCase{
 
 		Actions: []any{
@@ -384,39 +345,29 @@ func TestACP_CreateWithIdentityAndReadWithWrongIdentity_CanNotRead(t *testing.T)
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: test
-                    description: a test policy which marks a collection in a database as a resource
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-                `,
+description: a test policy which marks a collection in a database as a resource
+name: test
+resources:
+- name: users
+  permissions:
+  - name: delete
+  - expr: reader
+    name: read
+  - name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
  					type Users @policy(
 						id: "{{.Policy0}}",
  						resource: "users"
@@ -427,7 +378,7 @@ func TestACP_CreateWithIdentityAndReadWithWrongIdentity_CanNotRead(t *testing.T)
  				`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 
 				Identity: testUtils.ClientIdentity(1),
@@ -440,7 +391,7 @@ func TestACP_CreateWithIdentityAndReadWithWrongIdentity_CanNotRead(t *testing.T)
  				`,
 			},
 
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(2),
 
 				Request: `

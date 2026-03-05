@@ -13,6 +13,7 @@ package schema
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 
 	gql "github.com/sourcenetwork/graphql-go"
@@ -20,6 +21,7 @@ import (
 	"github.com/sourcenetwork/defradb/client"
 
 	"github.com/sourcenetwork/defradb/client/request"
+	"github.com/sourcenetwork/defradb/internal/connor"
 	"github.com/sourcenetwork/defradb/internal/db/description"
 	schemaTypes "github.com/sourcenetwork/defradb/internal/request/graphql/schema/types"
 )
@@ -43,8 +45,10 @@ const (
 // Generator creates all the necessary typed schema definitions from an AST Document
 // and adds them to the Schema via the SchemaManager
 type Generator struct {
-	typeDefs []*gql.Object
-	manager  *SchemaManager
+	typeDefs            []*gql.Object
+	typDefCollectionMap map[string]client.CollectionVersion
+
+	manager *SchemaManager
 
 	expandedFields map[string]bool
 
@@ -57,6 +61,7 @@ func (s *SchemaManager) NewGenerator(isSearchableEncryptionEnabled bool) *Genera
 	s.Generator = &Generator{
 		manager:                       s,
 		expandedFields:                make(map[string]bool),
+		typDefCollectionMap:           make(map[string]client.CollectionVersion),
 		isSearchableEncryptionEnabled: isSearchableEncryptionEnabled,
 	}
 	return s.Generator
@@ -421,7 +426,7 @@ func (g *Generator) createExpandedFieldList(
 		Description: f.Description,
 		Type:        gql.NewList(t),
 		Args: gql.FieldConfigArgument{
-			request.DocIDArgName: schemaTypes.NewArgConfig(gql.NewList(gql.NewNonNull(gql.String)), docIDsArgDescription),
+			request.DocIDArgName: schemaTypes.NewArgConfig(gql.NewList(gql.NewNonNull(gql.ID)), docIDsArgDescription),
 			"filter": schemaTypes.NewArgConfig(
 				g.manager.schema.TypeMap()[typeName+filterInputNameSuffix],
 				listFieldFilterArgDescription,
@@ -557,13 +562,14 @@ func (g *Generator) buildTypes(
 
 		g.manager.schema.TypeMap()[obj.Name()] = obj
 		g.typeDefs = append(g.typeDefs, obj)
+		g.typDefCollectionMap[obj.Name()] = collection
 	}
 
 	return objs, nil
 }
 
 // buildMutationInputTypes creates the input object types
-// for collection create and update mutation operations.
+// for collection add and update mutation operations.
 func (g *Generator) buildMutationInputTypes(collections []client.CollectionVersion) error {
 	for _, collection := range collections {
 		if collection.IsEmbeddedOnly {
@@ -590,19 +596,19 @@ func (g *Generator) buildMutationInputTypes(collections []client.CollectionVersi
 			fields := make(gql.InputObjectConfigFieldMap)
 
 			for _, field := range collection.Fields {
-				if strings.HasPrefix(field.Name, "_") {
-					// ignore system defined args as the
-					// user cannot override their values
-					continue
-				}
-
-				if field.Kind == client.FieldKind_DocID && strings.HasSuffix(field.Name, request.RelatedObjectID) {
-					objFieldName := strings.TrimSuffix(field.Name, request.RelatedObjectID)
-					ofd, exists := collection.GetFieldByName(objFieldName)
-					if exists && !ofd.IsPrimary {
-						// We do not allow the mutation of relations from the secondary side,
-						// they must not be included in the input type(s)
+				if field.Kind == client.FieldKind_DocID {
+					if field.Name == request.DocIDFieldName {
+						// This is the system _docID field, users cannot set its value
 						continue
+					}
+					objFieldName, isRelationID := request.ToRelatedObjectName(field.Name)
+					if isRelationID {
+						ofd, exists := collection.GetFieldByName(objFieldName)
+						if exists && !ofd.IsPrimary {
+							// We do not allow the mutation of relations from the secondary side,
+							// they must not be included in the input type(s)
+							continue
+						}
 					}
 				} else if field.Kind.IsObject() && !field.IsPrimary {
 					// We do not allow the mutation of relations from the secondary side,
@@ -914,8 +920,13 @@ func (g *Generator) getNumericFields(obj *gql.Object) map[string]gql.Type {
 	for _, field := range obj.Fields() {
 		listType, isList := field.Type.(*gql.List)
 		var inputObjectName string
-		if !isList {
-			fieldTypes[field.Name] = gql.NewInputObject(gql.InputObjectConfig{})
+
+		col := g.typDefCollectionMap[obj.Name()]
+
+		if !isList && isNumeric(field.Type) && isUserDefinedField(field.Name, col) {
+			fieldTypes[field.Name] = g.manager.schema.TypeMap()["ScalarAggregateNumericBlock"]
+		} else if !isList {
+			continue
 		} else if isNumericArray(listType) {
 			inputObjectName = genNumericInlineArraySelectorName(obj.Name(), field.Name)
 		} else {
@@ -1205,13 +1216,13 @@ func (g *Generator) GenerateMutationInputForGQLType(obj *gql.Object) ([]*gql.Fie
 
 	g.manager.schema.TypeMap()[explicitUserFieldsEnum.Name()] = explicitUserFieldsEnum
 
-	create := &gql.Field{
-		Name:        "create_" + obj.Name(),
-		Description: createDocumentDescription,
+	add := &gql.Field{
+		Name:        "add_" + obj.Name(),
+		Description: addDocumentDescription,
 		Type:        gql.NewList(obj),
 		Args: gql.FieldConfigArgument{
 			request.Input: schemaTypes.NewArgConfig(gql.NewList(gql.NewNonNull(mutationInput)),
-				"Create "+obj.Name()+" documents"),
+				"Add "+obj.Name()+" documents"),
 			request.EncryptDocArgName: schemaTypes.NewArgConfig(gql.Boolean, encryptArgDescription),
 			request.EncryptFieldsArgName: schemaTypes.NewArgConfig(gql.NewList(gql.NewNonNull(explicitUserFieldsEnum)),
 				encryptFieldsArgDescription),
@@ -1223,7 +1234,7 @@ func (g *Generator) GenerateMutationInputForGQLType(obj *gql.Object) ([]*gql.Fie
 		Description: updateDocumentsDescription,
 		Type:        gql.NewList(obj),
 		Args: gql.FieldConfigArgument{
-			request.DocIDArgName: schemaTypes.NewArgConfig(gql.NewList(gql.ID), updateIDsArgDescription),
+			request.DocIDArgName: schemaTypes.NewArgConfig(gql.NewList(gql.NewNonNull(gql.ID)), updateIDsArgDescription),
 			"filter":             schemaTypes.NewArgConfig(filterInput, updateFilterArgDescription),
 			request.Input:        schemaTypes.NewArgConfig(mutationInput, "Update field values"),
 		},
@@ -1234,7 +1245,7 @@ func (g *Generator) GenerateMutationInputForGQLType(obj *gql.Object) ([]*gql.Fie
 		Description: deleteDocumentsDescription,
 		Type:        gql.NewList(obj),
 		Args: gql.FieldConfigArgument{
-			request.DocIDArgName: schemaTypes.NewArgConfig(gql.NewList(gql.ID), deleteIDsArgDescription),
+			request.DocIDArgName: schemaTypes.NewArgConfig(gql.NewList(gql.NewNonNull(gql.ID)), deleteIDsArgDescription),
 			"filter":             schemaTypes.NewArgConfig(filterInput, deleteFilterArgDescription),
 		},
 	}
@@ -1245,12 +1256,12 @@ func (g *Generator) GenerateMutationInputForGQLType(obj *gql.Object) ([]*gql.Fie
 		Type:        gql.NewList(obj),
 		Args: gql.FieldConfigArgument{
 			request.FilterClause: schemaTypes.NewArgConfig(gql.NewNonNull(filterInput), upsertFilterArgDescription),
-			request.CreateInput:  schemaTypes.NewArgConfig(gql.NewNonNull(mutationInput), "Create field values"),
+			request.AddInput:     schemaTypes.NewArgConfig(gql.NewNonNull(mutationInput), "Add field values"),
 			request.UpdateInput:  schemaTypes.NewArgConfig(gql.NewNonNull(mutationInput), "Update field values"),
 		},
 	}
 
-	return []*gql.Field{create, update, delete, upsert}, nil
+	return []*gql.Field{add, update, delete, upsert}, nil
 }
 
 func (g *Generator) genTypeFieldsEnum(obj *gql.Object) *gql.Enum {
@@ -1274,6 +1285,9 @@ func (g *Generator) genUserExplicitTypeFieldsEnum(obj *gql.Object) *gql.Enum {
 
 	for f, field := range obj.Fields() {
 		if strings.HasPrefix(field.Name, "_") {
+			continue
+		}
+		if slices.Contains(request.AggregateFields, field.Name) {
 			continue
 		}
 		enumFieldsCfg.Values[field.Name] = &gql.EnumValueConfig{Value: f}
@@ -1460,7 +1474,7 @@ func (g *Generator) genEncryptedLeafFilterArgInput(obj gql.Type) *gql.InputObjec
 			underlyingType = notNull.OfType
 		}
 
-		fields["_eq"] = &gql.InputObjectFieldConfig{
+		fields[connor.EqualOp] = &gql.InputObjectFieldConfig{
 			Type: underlyingType,
 		}
 
@@ -1545,8 +1559,8 @@ func (g *Generator) genTypeQueryableFieldList(
 		Description: obj.Description(),
 		Type:        gql.NewList(obj),
 		Args: gql.FieldConfigArgument{
-			request.DocIDArgName: schemaTypes.NewArgConfig(gql.NewList(gql.NewNonNull(gql.String)), docIDsArgDescription),
-			"cid":                schemaTypes.NewArgConfig(gql.String, cidArgDescription),
+			request.DocIDArgName: schemaTypes.NewArgConfig(gql.NewList(gql.NewNonNull(gql.ID)), docIDsArgDescription),
+			request.CidArgName:   schemaTypes.NewArgConfig(gql.NewList(gql.NewNonNull(gql.ID)), cidArgDescription),
 			"filter":             schemaTypes.NewArgConfig(config.filter, selectFilterArgDescription),
 			"groupBy": schemaTypes.NewArgConfig(
 				gql.NewList(gql.NewNonNull(config.groupBy)),
@@ -1594,16 +1608,32 @@ func genTypeName(obj gql.Type, name string) string {
 	return fmt.Sprintf("%s%s", obj.Name(), name)
 }
 
+func isNumeric(t gql.Type) bool {
+	// We have to compare the names here, as the gql lib we use
+	// does not have an easier way to compare non-nullable types
+	return t.Name() == gql.NewNonNull(schemaTypes.Float64).Name() ||
+		t.Name() == gql.NewNonNull(schemaTypes.Float32).Name() ||
+		t.Name() == gql.NewNonNull(gql.Int).Name() ||
+		t == gql.Int ||
+		t == schemaTypes.Float64 ||
+		t == schemaTypes.Float32
+}
+
 // isNumericArray returns true if the given list is a list of numerical values.
 func isNumericArray(list *gql.List) bool {
 	// We have to compare the names here, as the gql lib we use
 	// does not have an easier way to compare non-nullable types
-	return list.OfType.Name() == gql.NewNonNull(schemaTypes.Float64).Name() ||
-		list.OfType.Name() == gql.NewNonNull(schemaTypes.Float32).Name() ||
-		list.OfType.Name() == gql.NewNonNull(gql.Int).Name() ||
-		list.OfType == gql.Int ||
-		list.OfType == schemaTypes.Float64 ||
-		list.OfType == schemaTypes.Float32
+	return isNumeric(list.OfType)
+}
+
+func isUserDefinedField(fieldName string, col client.CollectionVersion) bool {
+	for _, field := range col.Fields {
+		if field.Name == fieldName {
+			return true
+		}
+	}
+
+	return false
 }
 
 func genFilterOperatorName(fieldType gql.Type) string {

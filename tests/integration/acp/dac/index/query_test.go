@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_acp_dac_index
 
@@ -24,8 +25,8 @@ func TestACPWithIndex_UponQueryingPrivateDocWithoutIdentity_ShouldNotFetch(t *te
 				Identity: testUtils.ClientIdentity(1),
 				Policy:   userPolicy,
 			},
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @policy(
 						id: "{{.Policy0}}",
 						resource: "users"
@@ -35,14 +36,14 @@ func TestACPWithIndex_UponQueryingPrivateDocWithoutIdentity_ShouldNotFetch(t *te
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `
 					{
 						"name": "Shahzad"
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Identity: testUtils.ClientIdentity(1),
 				Doc: `
 					{
@@ -50,7 +51,7 @@ func TestACPWithIndex_UponQueryingPrivateDocWithoutIdentity_ShouldNotFetch(t *te
 					}
 				`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query  {
 						Users {
@@ -76,8 +77,8 @@ func TestACPWithIndex_UponQueryingPrivateDocWithIdentity_ShouldFetch(t *testing.
 				Identity: testUtils.ClientIdentity(1),
 				Policy:   userPolicy,
 			},
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @policy(
 						id: "{{.Policy0}}",
 						resource: "users"
@@ -87,14 +88,14 @@ func TestACPWithIndex_UponQueryingPrivateDocWithIdentity_ShouldFetch(t *testing.
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `
 					{
 						"name": "Shahzad"
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Identity: testUtils.ClientIdentity(1),
 				Doc: `
 					{
@@ -102,7 +103,7 @@ func TestACPWithIndex_UponQueryingPrivateDocWithIdentity_ShouldFetch(t *testing.
 					}
 				`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(1),
 				Request: `
 					query  {
@@ -134,8 +135,8 @@ func TestACPWithIndex_UponQueryingPrivateDocWithWrongIdentity_ShouldNotFetch(t *
 				Identity: testUtils.ClientIdentity(1),
 				Policy:   userPolicy,
 			},
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @policy(
 						id: "{{.Policy0}}",
 						resource: "users"
@@ -145,14 +146,14 @@ func TestACPWithIndex_UponQueryingPrivateDocWithWrongIdentity_ShouldNotFetch(t *
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `
 					{
 						"name": "Shahzad"
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Identity: testUtils.ClientIdentity(1),
 				Doc: `
 					{
@@ -160,7 +161,7 @@ func TestACPWithIndex_UponQueryingPrivateDocWithWrongIdentity_ShouldNotFetch(t *
 					}
 				`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(2),
 				Request: `
 					query  {

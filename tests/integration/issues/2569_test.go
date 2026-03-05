@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package issues
 
@@ -19,6 +20,7 @@ import (
 
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
+	"github.com/sourcenetwork/defradb/tests/multiplier"
 	"github.com/sourcenetwork/defradb/tests/state"
 )
 
@@ -26,6 +28,9 @@ import (
 
 func TestP2PUpdate_WithPNCounterFloatOverflowIncrement_PreventsQuerying(t *testing.T) {
 	test := testUtils.TestCase{
+		// Accumulated CRDT fields (pncounter/pcounter) cannot be indexed.
+		// https://github.com/sourcenetwork/defradb/issues/4439
+		MultiplierExcludes: []string{multiplier.SecondaryIndex},
 		SupportedClientTypes: immutable.Some(
 			[]state.ClientType{
 				// This issue only affects the http and the cli clients
@@ -34,15 +39,15 @@ func TestP2PUpdate_WithPNCounterFloatOverflowIncrement_PreventsQuerying(t *testi
 			},
 		),
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 						points: Float @crdt(type: pncounter)
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: fmt.Sprintf(`{
 					"name": "John",
 					"points": %g
@@ -54,7 +59,7 @@ func TestP2PUpdate_WithPNCounterFloatOverflowIncrement_PreventsQuerying(t *testi
 					"points": %g
 				}`, math.MaxFloat64/10),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users {
 						name
@@ -71,6 +76,9 @@ func TestP2PUpdate_WithPNCounterFloatOverflowIncrement_PreventsQuerying(t *testi
 
 func TestP2PUpdate_WithPNCounterFloatOverflowDecrement_PreventsQuerying(t *testing.T) {
 	test := testUtils.TestCase{
+		// Accumulated CRDT fields (pncounter/pcounter) cannot be indexed.
+		// https://github.com/sourcenetwork/defradb/issues/4439
+		MultiplierExcludes: []string{multiplier.SecondaryIndex},
 		SupportedClientTypes: immutable.Some(
 			[]state.ClientType{
 				// This issue only affects the http and the cli clients
@@ -79,15 +87,15 @@ func TestP2PUpdate_WithPNCounterFloatOverflowDecrement_PreventsQuerying(t *testi
 			},
 		),
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 						points: Float @crdt(type: pncounter)
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: fmt.Sprintf(`{
 					"name": "John",
 					"points": %g
@@ -99,7 +107,7 @@ func TestP2PUpdate_WithPNCounterFloatOverflowDecrement_PreventsQuerying(t *testi
 					"points": %g
 				}`, -math.MaxFloat64/10),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users {
 						name
@@ -116,6 +124,9 @@ func TestP2PUpdate_WithPNCounterFloatOverflowDecrement_PreventsQuerying(t *testi
 
 func TestP2PUpdate_WithPNCounterFloatOverflow_PreventsCollectionGet(t *testing.T) {
 	test := testUtils.TestCase{
+		// Accumulated CRDT fields (pncounter/pcounter) cannot be indexed.
+		// https://github.com/sourcenetwork/defradb/issues/4439
+		MultiplierExcludes: []string{multiplier.SecondaryIndex},
 		SupportedClientTypes: immutable.Some(
 			[]state.ClientType{
 				// This issue only affects the http and the cli clients
@@ -124,24 +135,24 @@ func TestP2PUpdate_WithPNCounterFloatOverflow_PreventsCollectionGet(t *testing.T
 			},
 		),
 		SupportedMutationTypes: immutable.Some(
-			[]testUtils.MutationType{
+			[]state.MutationType{
 				// We limit the test to Collection mutation calls, as the test framework
 				// will make a `Get` call before submitting the document, which is where the error
 				// will surface (not the update itelf)
-				testUtils.CollectionSaveMutationType,
-				testUtils.CollectionNamedMutationType,
+				state.CollectionSaveMutationType,
+				state.CollectionNamedMutationType,
 			},
 		),
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 						points: Float @crdt(type: pncounter)
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: fmt.Sprintf(`{
 					"name": "John",
 					"points": %g

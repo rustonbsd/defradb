@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package branchables
 
@@ -20,21 +21,21 @@ import (
 func TestQueryCommitsBranchables_WithCidAndDocIDParam(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @branchable {
 						name: String
 						age: Int
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name":	"John",
 					"age":	21
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				// This request uses the document's docID, and the collection's cid.
 				// It would be very nice if this worked:
 				// https://github.com/sourcenetwork/defradb/issues/3213

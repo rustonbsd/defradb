@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_acp_dac_add_policy
 
@@ -24,35 +25,25 @@ func TestACP_AddPolicy_WithRelationManagingOtherRelation_ValidPolicyID(t *testin
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: a policy
-                    description: a policy with admin relation managing reader relation
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-                `,
+description: a policy with admin relation managing reader relation
+name: a policy
+resources:
+- name: users
+  permissions:
+  - name: delete
+  - expr: reader
+    name: read
+  - name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+`,
 			},
 		},
 	}

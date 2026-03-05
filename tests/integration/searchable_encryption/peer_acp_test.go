@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package searchable_encryption
 
@@ -27,50 +28,43 @@ name: Test Policy
 
 description: A Policy
 
-actor:
-  name: actor
-
 resources:
-  users:
-    permissions:
-      read:
-        expr: owner + reader + updater + deleter
+- name: users
+  permissions:
+  - name: read
+    expr: reader + updater + deleter
+  - name: update
+    expr: updater
+  - name: delete
+    expr: deleter
+  - name: nothing
+    doc: |
+      placeholder permission, to show a policy can contain any user defined relation,
+      in addition to the defra required ones
+    expr: dummy
 
-      update:
-        expr: owner + updater
+  relations:
+  - name: reader
+    types:
+    - actor
 
-      delete:
-        expr: owner + deleter
+  - name: updater
+    types:
+    - actor
 
-      nothing:
-        expr: dummy
+  - name: deleter
+    types:
+    - actor
 
-    relations:
-      owner:
-        types:
-          - actor
+  - name: admin
+    manages:
+    - reader
+    types:
+    - actor
 
-      reader:
-        types:
-          - actor
-
-      updater:
-        types:
-          - actor
-
-      deleter:
-        types:
-          - actor
-
-      admin:
-        manages:
-          - reader
-        types:
-          - actor
-
-      dummy:
-        types:
-          - actor
+  - name: dummy
+    types:
+    - actor
 `
 
 func TestDocEncryptionPeer_WithACP_ReplicatorShouldNotHaveAccess(t *testing.T) {
@@ -89,8 +83,8 @@ func TestDocEncryptionPeer_WithACP_ReplicatorShouldNotHaveAccess(t *testing.T) {
 				Identity: testUtils.NodeIdentity(0),
 				Policy:   policy,
 			},
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User @policy(
 						id: "{{.Policy0}}",
 						resource: "users"
@@ -100,11 +94,11 @@ func TestDocEncryptionPeer_WithACP_ReplicatorShouldNotHaveAccess(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.ConfigureReplicator{
+			testUtils.AddReplicator{
 				SourceNodeID: 0,
 				TargetNodeID: 1,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Identity: testUtils.NodeIdentity(0),
 				NodeID:   immutable.Some(0),
 				Doc: `{
@@ -114,7 +108,7 @@ func TestDocEncryptionPeer_WithACP_ReplicatorShouldNotHaveAccess(t *testing.T) {
 				IsDocEncrypted: true,
 			},
 			testUtils.WaitForSESync{},
-			testUtils.Request{
+			&action.Request{
 				NodeID:   immutable.Some(0),
 				Identity: testUtils.NodeIdentity(0),
 				Request: `
@@ -132,7 +126,7 @@ func TestDocEncryptionPeer_WithACP_ReplicatorShouldNotHaveAccess(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				NodeID:   immutable.Some(1),
 				Identity: testUtils.NodeIdentity(0),
 				Request: `
@@ -147,7 +141,7 @@ func TestDocEncryptionPeer_WithACP_ReplicatorShouldNotHaveAccess(t *testing.T) {
 					"User": []map[string]any{},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				NodeID:   immutable.Some(1),
 				Identity: testUtils.NodeIdentity(0),
 				Request: `

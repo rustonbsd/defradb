@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_explain_default
 
@@ -15,6 +16,7 @@ import (
 
 	"github.com/sourcenetwork/immutable"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 	explainUtils "github.com/sourcenetwork/defradb/tests/integration/explain"
 )
@@ -41,13 +43,13 @@ func TestDefaultExplainRequestWithSumOnOneToManyJoinedField(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain {
 					Author {
 						name
 						_docID
-						TotalPages: _sum(
+						TotalPages: SUM(
 							books: {field: pages}
 						)
 					}
@@ -55,7 +57,7 @@ func TestDefaultExplainRequestWithSumOnOneToManyJoinedField(t *testing.T) {
 
 				ExpectedPatterns: sumTypeIndexJoinPattern,
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName:    "sumNode",
 						IncludeChildNodes: false,
@@ -83,7 +85,7 @@ func TestDefaultExplainRequestWithSumOnOneToManyJoinedField(t *testing.T) {
 						OccurancesToSkip:  0,
 						IncludeChildNodes: true, // should be leaf of it's branch, so will have no child nodes.
 						ExpectedAttributes: dataMap{
-							"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
+							"collectionID":   "bafyreid73sgzodav5hxhrsypjapj6r2uzo7mhm3vqykjhfehj7i5hhksuu",
 							"collectionName": "Author",
 							"filter":         nil,
 							"prefixes": []string{
@@ -96,7 +98,7 @@ func TestDefaultExplainRequestWithSumOnOneToManyJoinedField(t *testing.T) {
 						OccurancesToSkip:  1,
 						IncludeChildNodes: true, // should be leaf of it's branch, so will have no child nodes.
 						ExpectedAttributes: dataMap{
-							"collectionID":   "bafyreihlwj5mr73cjwhvkctg6ywd6c2z3kldafxmju7ppcvwqpjjt74p4q",
+							"collectionID":   "bafyreifnc6yphaqxf7x7fa3phxrsuvzqvnnjz4q7fuirhty4cnrxubp6eq",
 							"collectionName": "Book",
 							"filter":         nil,
 							"prefixes": []string{
@@ -118,12 +120,12 @@ func TestDefaultExplainRequestWithSumOnOneToManyJoinedFieldWithFilter(t *testing
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain {
 					Author {
 						name
-						TotalPages: _sum(
+						TotalPages: SUM(
 							articles: {
 								field: pages,
 								filter: {
@@ -138,7 +140,7 @@ func TestDefaultExplainRequestWithSumOnOneToManyJoinedFieldWithFilter(t *testing
 
 				ExpectedPatterns: sumTypeIndexJoinPattern,
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName:    "sumNode",
 						IncludeChildNodes: false,
@@ -170,7 +172,7 @@ func TestDefaultExplainRequestWithSumOnOneToManyJoinedFieldWithFilter(t *testing
 						OccurancesToSkip:  0,
 						IncludeChildNodes: true, // should be leaf of it's branch, so will have no child nodes.
 						ExpectedAttributes: dataMap{
-							"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
+							"collectionID":   "bafyreid73sgzodav5hxhrsypjapj6r2uzo7mhm3vqykjhfehj7i5hhksuu",
 							"collectionName": "Author",
 							"filter":         nil,
 							"prefixes": []string{
@@ -183,7 +185,7 @@ func TestDefaultExplainRequestWithSumOnOneToManyJoinedFieldWithFilter(t *testing
 						OccurancesToSkip:  1,
 						IncludeChildNodes: true, // should be leaf of it's branch, so will have no child nodes.
 						ExpectedAttributes: dataMap{
-							"collectionID":   "bafyreiboye46wpmcj5zscmsgysiguun5goojvqpo2gtp7q6xzedg5osveu",
+							"collectionID":   "bafyreidpjzf5kytlap2nilnnemywjmwt74hr56e72llri2z7c6w7un7sje",
 							"collectionName": "Article",
 							"filter": dataMap{
 								"name": dataMap{
@@ -209,12 +211,12 @@ func TestDefaultExplainRequestWithSumOnOneToManyJoinedFieldWithManySources(t *te
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain {
 					Author {
 						name
-						TotalPages: _sum(
+						TotalPages: SUM(
 							books: {field: pages},
 							articles: {field: pages}
 						)
@@ -244,7 +246,7 @@ func TestDefaultExplainRequestWithSumOnOneToManyJoinedFieldWithManySources(t *te
 					},
 				},
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName:    "sumNode",
 						IncludeChildNodes: false,
@@ -279,7 +281,7 @@ func TestDefaultExplainRequestWithSumOnOneToManyJoinedFieldWithManySources(t *te
 						OccurancesToSkip:  0,
 						IncludeChildNodes: true, // should be leaf of it's branch, so will have no child nodes.
 						ExpectedAttributes: dataMap{
-							"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
+							"collectionID":   "bafyreid73sgzodav5hxhrsypjapj6r2uzo7mhm3vqykjhfehj7i5hhksuu",
 							"collectionName": "Author",
 							"filter":         nil,
 							"prefixes": []string{
@@ -292,7 +294,7 @@ func TestDefaultExplainRequestWithSumOnOneToManyJoinedFieldWithManySources(t *te
 						OccurancesToSkip:  1,
 						IncludeChildNodes: true, // should be leaf of it's branch, so will have no child nodes.
 						ExpectedAttributes: dataMap{
-							"collectionID":   "bafyreihlwj5mr73cjwhvkctg6ywd6c2z3kldafxmju7ppcvwqpjjt74p4q",
+							"collectionID":   "bafyreifnc6yphaqxf7x7fa3phxrsuvzqvnnjz4q7fuirhty4cnrxubp6eq",
 							"collectionName": "Book",
 							"filter":         nil,
 							"prefixes": []string{
@@ -315,7 +317,7 @@ func TestDefaultExplainRequestWithSumOnOneToManyJoinedFieldWithManySources(t *te
 						OccurancesToSkip:  2,
 						IncludeChildNodes: true, // should be leaf of it's branch, so will have no child nodes.
 						ExpectedAttributes: dataMap{
-							"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
+							"collectionID":   "bafyreid73sgzodav5hxhrsypjapj6r2uzo7mhm3vqykjhfehj7i5hhksuu",
 							"collectionName": "Author",
 							"filter":         nil,
 							"prefixes": []string{
@@ -328,7 +330,7 @@ func TestDefaultExplainRequestWithSumOnOneToManyJoinedFieldWithManySources(t *te
 						OccurancesToSkip:  3,
 						IncludeChildNodes: true, // should be leaf of it's branch, so will have no child nodes.
 						ExpectedAttributes: dataMap{
-							"collectionID":   "bafyreiboye46wpmcj5zscmsgysiguun5goojvqpo2gtp7q6xzedg5osveu",
+							"collectionID":   "bafyreidpjzf5kytlap2nilnnemywjmwt74hr56e72llri2z7c6w7un7sje",
 							"collectionName": "Article",
 							"filter":         nil,
 							"prefixes": []string{

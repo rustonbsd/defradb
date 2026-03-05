@@ -1,12 +1,13 @@
-// Copyright 2025 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package signature
 
@@ -55,7 +56,7 @@ func (matcher *signatureMatcher) Match(actual any) (bool, error) {
 		return false, err
 	}
 
-	ident := matcher.s.GetIdentity(testUtils.NodeIdentity(matcher.s.GetCurrentNodeID()).Value())
+	ident := matcher.s.GetIdentity(testUtils.NodeIdentity(matcher.s.GetCurrentAssertingNodeID()).Value())
 	fullIdent, ok := ident.(acpIdentity.FullIdentity)
 	if !ok {
 		return false, fmt.Errorf("identity does not implement FullIdentity")
@@ -139,33 +140,22 @@ func (matcher *identityMatcher) SetTestState(s testUtils.TestState) {
 func (matcher *identityMatcher) Match(actual any) (bool, error) {
 	ident := matcher.s.GetIdentity(matcher.identity)
 
-	actualString := ""
+	actualString, ok := actual.(string)
+	if !ok {
+		return false, fmt.Errorf("expected actual to be a string, got %T", actual)
+	}
+
 	if matcher.s.GetClientType() == state.GoClientType {
-		actualBytes, ok := actual.([]byte)
-		if !ok {
-			return false, fmt.Errorf("expected actual to be a byte slice, but got %T", actual)
+		if b, ok := actual.([]byte); ok {
+			actualString = string(b)
 		}
-		actualString = string(actualBytes)
-	} else {
-		actualTmpString, ok := actual.(string)
-		if !ok {
-			return false, fmt.Errorf("expected actual to be a string, but got %T", actual)
-		}
-
-		// CLI and HTTP clients return json response, so here we should expect a json string
-		var actualBytes []byte
-		err := json.Unmarshal([]byte("\""+actualTmpString+"\""), &actualBytes)
-		if err != nil {
-			return false, err
-		}
-
-		actualString = string(actualBytes)
 	}
 
 	pubKey, err := crypto.PublicKeyFromString(ident.PublicKey().Type(), actualString)
 	if err != nil {
 		return false, errors.Wrap("failed to convert actual to public key", err)
 	}
+
 	return ident.PublicKey().Equal(pubKey), nil
 }
 

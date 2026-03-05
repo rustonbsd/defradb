@@ -38,7 +38,7 @@ $(error "No git in $(PATH), version information won't be included")
 else
 VERSION_GOINFO=$(shell go version)
 VERSION_GITCOMMIT=$(shell git rev-parse HEAD)
-VERSION_GITCOMMITDATE=$(shell git show -s --format=%cs HEAD)
+VERSION_GITCOMMITDATE=$(shell git show -s --date=short --format=%cd HEAD)
 ifneq ($(shell git symbolic-ref -q --short HEAD),master)
 VERSION_GITRELEASE=dev-$(shell git symbolic-ref -q --short HEAD)
 else
@@ -84,6 +84,9 @@ default:
 install:
 	@go install $(BUILD_FLAGS) ./cmd/defradb
 
+install-wizard: install
+	@defradb wizard
+
 .PHONY: install\:manpages
 install\:manpages:
 ifeq ($(OS_GENERAL),Linux)
@@ -120,9 +123,9 @@ start:
 client\:dump:
 	./build/defradb client dump
 
-.PHONY: client\:add-schema
-client\:add-schema:
-	./build/defradb client schema add -f examples/schema/bookauthpub.graphql
+.PHONY: client\:collection-add
+client\:collection-add:
+	./build/defradb client collection add -f examples/collection/bookauthpub.graphql
 
 .PHONY: deps\:lint-go
 deps\:lint-go:
@@ -151,6 +154,10 @@ deps\:test:
 	go install gotest.tools/gotestsum@latest
 	rustup target add wasm32-unknown-unknown
 	@$(MAKE) -C ./tests/lenses build
+
+.PHONY: deps\:test\:js
+deps\:test\:js:
+	npm install graphql-introspection-json-to-sdl --prefix tests
 
 .PHONY: deps\:bench
 deps\:bench:
@@ -207,7 +214,7 @@ ollama:
 ollama\:nomic:
 # make sure ollama is running before continuing
 	time curl --retry 5 --retry-connrefused --retry-delay 0 -sf http://localhost:11434
-	ollama pull nomic-embed-text
+	tools/scripts/ollama-pull.sh nomic-embed-text
 
 .PHONY: dev\:start
 dev\:start:
@@ -338,9 +345,9 @@ test\:coverage:
 	@$(MAKE) clean:coverage
 	mkdir $(COVERAGE_DIRECTORY)
 ifeq ($(path),)
-	gotestsum --format testname -- ./... $(TEST_FLAGS) $(COVERAGE_FLAGS)
+	gotestsum --format pkgname-and-test-fails -- ./... $(TEST_FLAGS) $(COVERAGE_FLAGS)
 else
-	gotestsum --format testname -- $(path) $(TEST_FLAGS) $(COVERAGE_FLAGS)
+	gotestsum --format pkgname-and-test-fails -- $(path) $(TEST_FLAGS) $(COVERAGE_FLAGS)
 endif
 	go tool covdata textfmt -i=$(COVERAGE_DIRECTORY) -o $(COVERAGE_FILE)
 
@@ -368,7 +375,22 @@ test\:changes:
 
 .PHONY: test\:js
 test\:js:
-	GOOS=js GOARCH=wasm go test $(JS_TEST_DIRS) $(JS_TEST_FLAGS)
+	GOOS=js GOARCH=wasm gotestsum --format testname -- $(JS_TEST_DIRS) $(JS_TEST_FLAGS)
+
+# This test scans all the test files to find ones that include the npx build tag
+# then runs only those tests and their respective packages
+# Note: simply include `-tags npx` isnt sufficient since go test still includes
+# all the other tests and packages that arent tagged.
+.PHONY: test\:npx
+test\:npx:
+	@npx_files=$$(grep -rl --include='*_test.go' -E '^//go:build.*\bnpx\b|^// \+build.*\bnpx\b' .); \
+	if [ -z "$$npx_files" ]; then \
+		echo "No npx-tagged tests found"; \
+		exit 0; \
+	fi; \
+	packages=$$(echo "$$npx_files" | xargs -n1 dirname | sort -u | sed 's|^\./||' | sed 's|^|./|'); \
+	test_pattern=$$(echo "$$npx_files" | xargs grep -h -E '^func (Test[A-Za-z0-9_]+)' | sed -E 's/^func (Test[A-Za-z0-9_]+).*/\1/' | paste -sd '|' -); \
+	echo "$$packages" | xargs gotestsum --format pkgname -- -tags=npx -run "^($$test_pattern)$$"
 
 .PHONY: validate\:codecov
 validate\:codecov:
@@ -381,7 +403,9 @@ validate\:circleci:
 .PHONY: lint
 lint:
 	golangci-lint config verify --config=tools/configs/golangci.yaml
+	golangci-lint config verify --config=tools/configs/golangci-tests.yaml
 	golangci-lint run --config=tools/configs/golangci.yaml
+	golangci-lint run --config=tools/configs/golangci-tests.yaml ./tests/...
 	yamllint -c tools/configs/yamllint.yaml .
 
 .PHONY: lint\:fix
@@ -437,7 +461,7 @@ fix:
 	@$(MAKE) mocks
 	@$(MAKE) docs
 
-.PHONY build-c-shared-linux:	
+.PHONY build-c-shared-linux:
 build-c-shared-linux:
 	@tools/scripts/build-c-shared-linux.sh $(BUILD_FLAGS)
 

@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package simple
 
@@ -20,14 +21,14 @@ import (
 func TestView_Simple(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddView{
 				Query: `
 					User {
 						name
@@ -39,12 +40,12 @@ func TestView_Simple(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name":	"John"
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 							UserView {
 								name
@@ -67,14 +68,14 @@ func TestView_Simple(t *testing.T) {
 func TestView_SimpleMultipleDocs(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddView{
 				Query: `
 					User {
 						name
@@ -86,17 +87,17 @@ func TestView_SimpleMultipleDocs(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name":	"John"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name":	"Fred"
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 							UserView {
 								name
@@ -123,15 +124,15 @@ func TestView_SimpleMultipleDocs(t *testing.T) {
 func TestView_SimpleWithFieldSubset_ErrorsSelectingExcludedField(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						age: Int
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddView{
 				Query: `
 					User {
 						name
@@ -143,12 +144,12 @@ func TestView_SimpleWithFieldSubset_ErrorsSelectingExcludedField(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name":	"John"
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						UserView {
@@ -167,15 +168,15 @@ func TestView_SimpleWithFieldSubset_ErrorsSelectingExcludedField(t *testing.T) {
 func TestView_SimpleWithExtraFieldInViewSDL(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						age: Int
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddView{
 				Query: `
 					User {
 						name
@@ -189,12 +190,12 @@ func TestView_SimpleWithExtraFieldInViewSDL(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name":	"John"
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 							UserView {
 								name
@@ -217,15 +218,15 @@ func TestView_SimpleWithExtraFieldInViewSDL(t *testing.T) {
 func TestView_SimpleWithExtraFieldInViewQuery(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						age: Int
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddView{
 				// `age` is present in the query but not the SDL
 				Query: `
 					User {
@@ -239,12 +240,12 @@ func TestView_SimpleWithExtraFieldInViewQuery(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name":	"John"
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						UserView {
@@ -269,14 +270,14 @@ func TestView_SimpleWithExtraFieldInViewQuery(t *testing.T) {
 func TestView_SimpleViewOfView(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddView{
 				Query: `
 					User {
 						name
@@ -288,7 +289,7 @@ func TestView_SimpleViewOfView(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddView{
 				Query: `
 					UserView {
 						name
@@ -300,12 +301,12 @@ func TestView_SimpleViewOfView(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name":	"John"
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						UserViewView {

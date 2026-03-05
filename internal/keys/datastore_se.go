@@ -17,6 +17,7 @@ import (
 	ds "github.com/ipfs/go-datastore"
 
 	"github.com/sourcenetwork/defradb/errors"
+	"github.com/sourcenetwork/defradb/internal/encoding"
 )
 
 const (
@@ -25,13 +26,14 @@ const (
 
 // DatastoreSE provides key generation for SE artifacts
 type DatastoreSE struct {
-	CollectionID string
-	IndexID      string
-	SearchTag    []byte
-	DocID        string
+	CollectionShortID uint32
+	IndexID           string
+	SearchTag         []byte
+	DocID             string
 }
 
 var _ Key = (*DatastoreSE)(nil)
+var _ CollectionedKey = DatastoreSE{}
 
 func (k DatastoreSE) Bytes() []byte {
 	return []byte(k.ToString())
@@ -41,9 +43,11 @@ func (k DatastoreSE) ToString() string {
 	var sb strings.Builder
 	sb.WriteString(SE_PREFIX)
 
-	if k.CollectionID != "" {
+	if k.CollectionShortID != 0 {
 		sb.WriteString("/")
-		sb.WriteString(k.CollectionID)
+
+		colIDBytes := encoding.EncodeUvarintAscending([]byte{}, uint64(k.CollectionShortID))
+		sb.Write(colIDBytes)
 
 		if k.IndexID != "" {
 			sb.WriteString("/")
@@ -78,8 +82,12 @@ func NewDatastoreSEFromString(key string) (DatastoreSE, error) {
 
 	k := DatastoreSE{}
 
-	if len(parts) > 2 {
-		k.CollectionID = parts[2]
+	if len(parts) > 2 && len(parts[2]) != 0 {
+		_, colShortID, err := encoding.DecodeUvarintAscending([]byte(parts[2]))
+		if err != nil {
+			return DatastoreSE{}, err
+		}
+		k.CollectionShortID = uint32(colShortID)
 	}
 
 	if len(parts) > 3 {
@@ -99,4 +107,8 @@ func NewDatastoreSEFromString(key string) (DatastoreSE, error) {
 	}
 
 	return k, nil
+}
+
+func (k DatastoreSE) GetCollectionShortID() uint32 {
+	return k.CollectionShortID
 }

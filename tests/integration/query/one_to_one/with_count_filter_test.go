@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package one_to_one
 
@@ -20,82 +21,82 @@ import (
 func TestQueryOneToOneWithCountWithCompoundOrFilterThatIncludesRelation(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: bookAuthorGQLSchema,
+			&action.AddCollection{
+				SDL: bookAuthorGQLSchema,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Painted House",
 					"rating": 4.9
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Some Book",
 					"rating": 4.0
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Some Other Book",
 					"rating": 3.5
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Yet Another Book",
 					"rating": 3.0
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":         "John Grisham",
 					"age":          65,
 					"verified":     true,
-					"published_id": testUtils.NewDocIndex(0, 0),
+					"_publishedID": testUtils.NewDocIndex(0, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":         "Some Writer",
 					"age":          45,
 					"verified":     false,
-					"published_id": testUtils.NewDocIndex(0, 1),
+					"_publishedID": testUtils.NewDocIndex(0, 1),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":         "Some Other Writer",
 					"age":          35,
 					"verified":     false,
-					"published_id": testUtils.NewDocIndex(0, 2),
+					"_publishedID": testUtils.NewDocIndex(0, 2),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":         "Yet Another Writer",
 					"age":          30,
 					"verified":     false,
-					"published_id": testUtils.NewDocIndex(0, 3),
+					"_publishedID": testUtils.NewDocIndex(0, 3),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-					_count(Book: {filter: {_or: [
+					COUNT(Book: {filter: {_or: [
 						{_not: {author: {age: {_lt: 65}}} },
 						{_not: {author: {age: {_gt: 30}}} }
 					]}})
 				}`,
 				Results: map[string]any{
-					"_count": int(2),
+					"COUNT": int(2),
 				},
 			},
 		},

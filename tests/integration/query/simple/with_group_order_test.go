@@ -1,53 +1,55 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package simple
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
 func TestQuerySimpleWithGroupByStringWithGroupNumberWithGroupOrder(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "John",
 					"Age": 25
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "John",
 					"Age": 32
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Carlo",
 					"Age": 55
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Alice",
 					"Age": 19
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(groupBy: [Name]) {
 						Name
-						_group (order: {Age: ASC}){
+						GROUP (order: {Age: ASC}){
 							Age
 						}
 					}
@@ -56,7 +58,7 @@ func TestQuerySimpleWithGroupByStringWithGroupNumberWithGroupOrder(t *testing.T)
 					"Users": []map[string]any{
 						{
 							"Name": "John",
-							"_group": []map[string]any{
+							"GROUP": []map[string]any{
 								{
 									"Age": int64(25),
 								},
@@ -67,7 +69,7 @@ func TestQuerySimpleWithGroupByStringWithGroupNumberWithGroupOrder(t *testing.T)
 						},
 						{
 							"Name": "Alice",
-							"_group": []map[string]any{
+							"GROUP": []map[string]any{
 								{
 									"Age": int64(19),
 								},
@@ -75,7 +77,7 @@ func TestQuerySimpleWithGroupByStringWithGroupNumberWithGroupOrder(t *testing.T)
 						},
 						{
 							"Name": "Carlo",
-							"_group": []map[string]any{
+							"GROUP": []map[string]any{
 								{
 									"Age": int64(55),
 								},
@@ -93,35 +95,35 @@ func TestQuerySimpleWithGroupByStringWithGroupNumberWithGroupOrder(t *testing.T)
 func TestQuerySimpleWithGroupByStringWithGroupNumberWithGroupOrderDescending(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "John",
 					"Age": 25
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "John",
 					"Age": 32
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Carlo",
 					"Age": 55
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Alice",
 					"Age": 19
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(groupBy: [Name]) {
 						Name
-						_group (order: {Age: DESC}){
+						GROUP (order: {Age: DESC}){
 							Age
 						}
 					}
@@ -130,7 +132,7 @@ func TestQuerySimpleWithGroupByStringWithGroupNumberWithGroupOrderDescending(t *
 					"Users": []map[string]any{
 						{
 							"Name": "John",
-							"_group": []map[string]any{
+							"GROUP": []map[string]any{
 								{
 									"Age": int64(32),
 								},
@@ -141,7 +143,7 @@ func TestQuerySimpleWithGroupByStringWithGroupNumberWithGroupOrderDescending(t *
 						},
 						{
 							"Name": "Carlo",
-							"_group": []map[string]any{
+							"GROUP": []map[string]any{
 								{
 									"Age": int64(55),
 								},
@@ -149,7 +151,7 @@ func TestQuerySimpleWithGroupByStringWithGroupNumberWithGroupOrderDescending(t *
 						},
 						{
 							"Name": "Alice",
-							"_group": []map[string]any{
+							"GROUP": []map[string]any{
 								{
 									"Age": int64(19),
 								},
@@ -167,35 +169,35 @@ func TestQuerySimpleWithGroupByStringWithGroupNumberWithGroupOrderDescending(t *
 func TestQuerySimpleWithGroupByStringAndOrderDescendingWithGroupNumberWithGroupOrder(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "John",
 					"Age": 25
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "John",
 					"Age": 32
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Carlo",
 					"Age": 55
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Alice",
 					"Age": 19
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(groupBy: [Name], order: {Name: DESC}) {
 						Name
-						_group (order: {Age: ASC}){
+						GROUP (order: {Age: ASC}){
 							Age
 						}
 					}
@@ -204,7 +206,7 @@ func TestQuerySimpleWithGroupByStringAndOrderDescendingWithGroupNumberWithGroupO
 					"Users": []map[string]any{
 						{
 							"Name": "John",
-							"_group": []map[string]any{
+							"GROUP": []map[string]any{
 								{
 									"Age": int64(25),
 								},
@@ -215,7 +217,7 @@ func TestQuerySimpleWithGroupByStringAndOrderDescendingWithGroupNumberWithGroupO
 						},
 						{
 							"Name": "Carlo",
-							"_group": []map[string]any{
+							"GROUP": []map[string]any{
 								{
 									"Age": int64(55),
 								},
@@ -223,7 +225,7 @@ func TestQuerySimpleWithGroupByStringAndOrderDescendingWithGroupNumberWithGroupO
 						},
 						{
 							"Name": "Alice",
-							"_group": []map[string]any{
+							"GROUP": []map[string]any{
 								{
 									"Age": int64(19),
 								},
@@ -241,48 +243,48 @@ func TestQuerySimpleWithGroupByStringAndOrderDescendingWithGroupNumberWithGroupO
 func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanThenInnerOrderDescending(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "John",
 					"Age": 25,
 					"Verified": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "John",
 					"Age": 32,
 					"Verified": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "John",
 					"Age": 34,
 					"Verified": false
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Carlo",
 					"Age": 55,
 					"Verified": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Alice",
 					"Age": 19,
 					"Verified": false
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(groupBy: [Name]) {
 						Name
-						_group (groupBy: [Verified]){
+						GROUP (groupBy: [Verified]){
 							Verified
-							_group (order: {Age: DESC}) {
+							GROUP (order: {Age: DESC}) {
 								Age
 							}
 						}
@@ -292,10 +294,10 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanThenInnerOrderDescendi
 					"Users": []map[string]any{
 						{
 							"Name": "Carlo",
-							"_group": []map[string]any{
+							"GROUP": []map[string]any{
 								{
 									"Verified": true,
-									"_group": []map[string]any{
+									"GROUP": []map[string]any{
 										{
 											"Age": int64(55),
 										},
@@ -305,10 +307,10 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanThenInnerOrderDescendi
 						},
 						{
 							"Name": "John",
-							"_group": []map[string]any{
+							"GROUP": []map[string]any{
 								{
 									"Verified": true,
-									"_group": []map[string]any{
+									"GROUP": []map[string]any{
 										{
 											"Age": int64(32),
 										},
@@ -319,7 +321,7 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanThenInnerOrderDescendi
 								},
 								{
 									"Verified": false,
-									"_group": []map[string]any{
+									"GROUP": []map[string]any{
 										{
 											"Age": int64(34),
 										},
@@ -329,10 +331,10 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanThenInnerOrderDescendi
 						},
 						{
 							"Name": "Alice",
-							"_group": []map[string]any{
+							"GROUP": []map[string]any{
 								{
 									"Verified": false,
-									"_group": []map[string]any{
+									"GROUP": []map[string]any{
 										{
 											"Age": int64(19),
 										},
@@ -354,48 +356,48 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanAndOrderAscendingThenI
 ) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "John",
 					"Age": 25,
 					"Verified": false
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "John",
 					"Age": 32,
 					"Verified": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "John",
 					"Age": 34,
 					"Verified": false
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Carlo",
 					"Age": 55,
 					"Verified": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Alice",
 					"Age": 19,
 					"Verified": false
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(groupBy: [Name]) {
 						Name
-						_group (groupBy: [Verified], order: {Verified: ASC}){
+						GROUP (groupBy: [Verified], order: {Verified: ASC}){
 							Verified
-							_group (order: {Age: DESC}) {
+							GROUP (order: {Age: DESC}) {
 								Age
 							}
 						}
@@ -405,10 +407,10 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanAndOrderAscendingThenI
 					"Users": []map[string]any{
 						{
 							"Name": "Carlo",
-							"_group": []map[string]any{
+							"GROUP": []map[string]any{
 								{
 									"Verified": true,
-									"_group": []map[string]any{
+									"GROUP": []map[string]any{
 										{
 											"Age": int64(55),
 										},
@@ -418,10 +420,10 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanAndOrderAscendingThenI
 						},
 						{
 							"Name": "John",
-							"_group": []map[string]any{
+							"GROUP": []map[string]any{
 								{
 									"Verified": false,
-									"_group": []map[string]any{
+									"GROUP": []map[string]any{
 										{
 											"Age": int64(34),
 										},
@@ -432,7 +434,7 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanAndOrderAscendingThenI
 								},
 								{
 									"Verified": true,
-									"_group": []map[string]any{
+									"GROUP": []map[string]any{
 										{
 											"Age": int64(32),
 										},
@@ -442,10 +444,10 @@ func TestQuerySimpleWithGroupByStringWithInnerGroupBooleanAndOrderAscendingThenI
 						},
 						{
 							"Name": "Alice",
-							"_group": []map[string]any{
+							"GROUP": []map[string]any{
 								{
 									"Verified": false,
-									"_group": []map[string]any{
+									"GROUP": []map[string]any{
 										{
 											"Age": int64(19),
 										},

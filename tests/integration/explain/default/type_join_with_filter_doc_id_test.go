@@ -1,18 +1,20 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_explain_default
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 	explainUtils "github.com/sourcenetwork/defradb/tests/integration/explain"
 )
@@ -23,7 +25,7 @@ func TestDefaultExplainRequestWithRelatedAndRegularFilterAndDocIDs(t *testing.T)
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain {
 					Author(
@@ -55,7 +57,7 @@ func TestDefaultExplainRequestWithRelatedAndRegularFilterAndDocIDs(t *testing.T)
 					},
 				},
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName: "selectNode",
 						ExpectedAttributes: dataMap{
@@ -76,7 +78,7 @@ func TestDefaultExplainRequestWithRelatedAndRegularFilterAndDocIDs(t *testing.T)
 						TargetNodeName:    "scanNode",
 						IncludeChildNodes: true, // should be last node, so will have no child nodes.
 						ExpectedAttributes: dataMap{
-							"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
+							"collectionID":   "bafyreid73sgzodav5hxhrsypjapj6r2uzo7mhm3vqykjhfehj7i5hhksuu",
 							"collectionName": "Author",
 							"filter": dataMap{
 								"name": dataMap{
@@ -103,7 +105,7 @@ func TestDefaultExplainRequestWithManyRelatedFiltersAndDocID(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain {
 					Author(
@@ -140,7 +142,7 @@ func TestDefaultExplainRequestWithManyRelatedFiltersAndDocID(t *testing.T) {
 					},
 				},
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName: "selectNode",
 						ExpectedAttributes: dataMap{
@@ -165,7 +167,7 @@ func TestDefaultExplainRequestWithManyRelatedFiltersAndDocID(t *testing.T) {
 						TargetNodeName:    "scanNode",
 						IncludeChildNodes: true, // should be last node, so will have no child nodes.
 						ExpectedAttributes: dataMap{
-							"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
+							"collectionID":   "bafyreid73sgzodav5hxhrsypjapj6r2uzo7mhm3vqykjhfehj7i5hhksuu",
 							"collectionName": "Author",
 							"filter": dataMap{
 								"name": dataMap{

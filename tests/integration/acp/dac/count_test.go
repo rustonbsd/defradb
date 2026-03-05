@@ -1,18 +1,20 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_acp_dac
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
@@ -22,14 +24,14 @@ func TestACP_QueryCountDocumentsWithoutIdentity(t *testing.T) {
 		Actions: []any{
 			getSetupEmployeeCompanyActions(),
 
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
-						_count(Employee: {})
+						COUNT(Employee: {})
 					}
 				`,
 				Results: map[string]any{
-					"_count": int(2),
+					"COUNT": int(2),
 				},
 			},
 		},
@@ -44,11 +46,11 @@ func TestACP_QueryCountRelatedObjectsWithoutIdentity(t *testing.T) {
 		Actions: []any{
 			getSetupEmployeeCompanyActions(),
 
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						Company {
-							_count(employees: {})
+							COUNT(employees: {})
 						}
 					}
 				`,
@@ -56,7 +58,7 @@ func TestACP_QueryCountRelatedObjectsWithoutIdentity(t *testing.T) {
 					"Company": []map[string]any{
 						{
 							// 1 of 2 companies is public and has 1 public employee out of 2
-							"_count": int(1),
+							"COUNT": int(1),
 						},
 					},
 				},
@@ -73,15 +75,15 @@ func TestACP_QueryCountDocumentsWithIdentity(t *testing.T) {
 		Actions: []any{
 			getSetupEmployeeCompanyActions(),
 
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(1),
 				Request: `
 					query {
-						_count(Employee: {})
+						COUNT(Employee: {})
 					}
 				`,
 				Results: map[string]any{
-					"_count": int(4),
+					"COUNT": int(4),
 				},
 			},
 		},
@@ -96,22 +98,22 @@ func TestACP_QueryCountRelatedObjectsWithIdentity(t *testing.T) {
 		Actions: []any{
 			getSetupEmployeeCompanyActions(),
 
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(1),
 				Request: `
 					query {
 						Company {
-							_count(employees: {})
+							COUNT(employees: {})
 						}
 					}
 				`,
 				Results: map[string]any{
 					"Company": []map[string]any{
 						{
-							"_count": int(2),
+							"COUNT": int(2),
 						},
 						{
-							"_count": int(2),
+							"COUNT": int(2),
 						},
 					},
 				},
@@ -128,15 +130,15 @@ func TestACP_QueryCountDocumentsWithWrongIdentity(t *testing.T) {
 		Actions: []any{
 			getSetupEmployeeCompanyActions(),
 
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(2),
 				Request: `
 					query {
-						_count(Employee: {})
+						COUNT(Employee: {})
 					}
 				`,
 				Results: map[string]any{
-					"_count": int(2),
+					"COUNT": int(2),
 				},
 			},
 		},
@@ -151,12 +153,12 @@ func TestACP_QueryCountRelatedObjectsWithWrongIdentity(t *testing.T) {
 		Actions: []any{
 			getSetupEmployeeCompanyActions(),
 
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(2),
 				Request: `
 					query {
 						Company {
-							_count(employees: {})
+							COUNT(employees: {})
 						}
 					}
 				`,
@@ -164,7 +166,7 @@ func TestACP_QueryCountRelatedObjectsWithWrongIdentity(t *testing.T) {
 					"Company": []map[string]any{
 						{
 							// 1 of 2 companies is public and has 1 public employee out of 2
-							"_count": int(1),
+							"COUNT": int(1),
 						},
 					},
 				},

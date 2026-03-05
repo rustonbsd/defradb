@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package cli
 
@@ -49,7 +50,7 @@ Example: The following command generates 100 User documents and 500 Device docum
 				return NewErrInvalidDemandValue(err)
 			}
 
-			collections, err := c.GetCollections(cmd.Context(), client.CollectionFetchOptions{})
+			collections, err := c.GetCollections(cmd.Context())
 			if err != nil {
 				return err
 			}
@@ -58,7 +59,7 @@ Example: The following command generates 100 User documents and 500 Device docum
 			for colName, numDocs := range demandMap {
 				opts = append(opts, gen.WithTypeDemand(colName, numDocs))
 			}
-			docs, err := gen.AutoGenerate(colsToVersions(collections), opts...)
+			docs, err := gen.AutoGenerate(ctx, colsToVersions(collections), opts...)
 			if err != nil {
 				return err
 			}
@@ -121,7 +122,7 @@ func saveBatchToCollections(
 	for colName, colDocs := range colDocsMap {
 		for _, col := range collections {
 			if col.Version().Name == colName {
-				err := col.CreateMany(ctx, colDocs)
+				err := col.AddManyDocuments(ctx, colDocs)
 				if err != nil {
 					return err
 				}

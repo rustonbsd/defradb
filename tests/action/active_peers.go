@@ -1,0 +1,86 @@
+// Copyright 2026 Democratized Data Foundation
+//
+// This file is part of the DefraDB test suite.
+//
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
+
+package action
+
+import (
+	"github.com/stretchr/testify/require"
+
+	"github.com/sourcenetwork/immutable"
+
+	"github.com/sourcenetwork/defradb/client/options"
+	"github.com/sourcenetwork/defradb/tests/state"
+)
+
+// ActivePeers is an action that will get the active peers from the given node(s)
+// and assert that the given expect result matches the actual.
+type ActivePeers struct {
+	stateful
+
+	// NodeID holds the ID (index) of a node to get active peers for.
+	NodeID int
+
+	// The identity of this request. Optional.
+	//
+	// If node acp is enabled, identity will be used to check if this operation can be performed.
+	Identity immutable.Option[state.Identity]
+
+	// The expected set of results.
+	//
+	// Respects `replace`, and should typically be provided a string similar to
+	// `{{.Peer1_Address0}}`.
+	//
+	// The order of elements in the given slice is not asserted.
+	Expected []string
+
+	// Any error expected from the action. Optional.
+	//
+	// String can be a partial, and the test will pass if an error is returned that
+	// contains this string.
+	ExpectedError string
+}
+
+var _ Action = (*ActivePeers)(nil)
+var _ Stateful = (*ActivePeers)(nil)
+
+func (a *ActivePeers) Execute() {
+	nodeIDs, nodes := getNodesWithIDs(immutable.Some(a.NodeID), a.s.Nodes)
+	for index, node := range nodes {
+		nodeID := nodeIDs[index]
+
+		opts := options.ActivePeers()
+		identOption := getIdentityForRequestSpecificToNode(a.s, a.Identity, nodeID)
+		if identOption.HasValue() {
+			opts.SetIdentity(identOption.Value())
+		}
+
+		actual, err := node.ActivePeers(a.s.Ctx, opts)
+
+		expectedErrorRaised := assertError(a.s.T, err, a.ExpectedError)
+		assertExpectedErrorRaised(a.s.T, a.ExpectedError, expectedErrorRaised)
+
+		if expectedErrorRaised {
+			continue
+		}
+
+		expected := cloneAndReplacePeerInfos(a.s, nodeID, a.Expected)
+
+		require.ElementsMatch(a.s.T, expected, actual)
+	}
+}
+
+func cloneAndReplacePeerInfos(s *state.State, nodeID int, addresses []string) []string {
+	result := make([]string, len(addresses))
+	for i, address := range addresses {
+		result[i] = replace(s, nodeID, address)
+	}
+	return result
+}

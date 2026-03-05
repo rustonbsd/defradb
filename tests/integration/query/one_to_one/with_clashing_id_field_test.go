@@ -1,12 +1,13 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package one_to_one
 
@@ -20,11 +21,11 @@ import (
 func TestQueryOneToOneWithClashingIdFieldOnSecondary(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Book {
 						name: String
-						author_id: Int
+						_authorID: Int
 						author: Author
 					}
 
@@ -33,7 +34,7 @@ func TestQueryOneToOneWithClashingIdFieldOnSecondary(t *testing.T) {
 						published: Book @primary
 					}
 				`,
-				ExpectedError: "duplicate field. Name: author_id",
+				ExpectedError: "duplicate field. Name: _authorID",
 			},
 		},
 	}
@@ -44,11 +45,11 @@ func TestQueryOneToOneWithClashingIdFieldOnSecondary(t *testing.T) {
 func TestQueryOneToOneWithClashingIdFieldOnPrimary(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Book {
 						name: String
-						author_id: Int
+						_authorID: Int
 						author: Author @primary
 					}
 
@@ -57,7 +58,7 @@ func TestQueryOneToOneWithClashingIdFieldOnPrimary(t *testing.T) {
 						published: Book
 					}
 				`,
-				ExpectedError: "duplicate field. Name: author_id",
+				ExpectedError: "duplicate field. Name: _authorID",
 			},
 		},
 	}

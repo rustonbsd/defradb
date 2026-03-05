@@ -1,18 +1,20 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_explain_default
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 	explainUtils "github.com/sourcenetwork/defradb/tests/integration/explain"
 )
@@ -39,18 +41,18 @@ func TestDefaultExplainRequest_WithMinOnInlineArrayField_ChildFieldWillBeEmpty(t
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain {
 					Book {
 						name
-						MinChapterPages: _min(chapterPages: {})
+						MinChapterPages: MIN(chapterPages: {})
 					}
 				}`,
 
 				ExpectedPatterns: minPattern,
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName:    "minNode",
 						IncludeChildNodes: false,
@@ -68,7 +70,7 @@ func TestDefaultExplainRequest_WithMinOnInlineArrayField_ChildFieldWillBeEmpty(t
 						TargetNodeName:    "scanNode",
 						IncludeChildNodes: true, // should be leaf of it's branch, so will have no child nodes.
 						ExpectedAttributes: dataMap{
-							"collectionID":   "bafyreihlwj5mr73cjwhvkctg6ywd6c2z3kldafxmju7ppcvwqpjjt74p4q",
+							"collectionID":   "bafyreifnc6yphaqxf7x7fa3phxrsuvzqvnnjz4q7fuirhty4cnrxubp6eq",
 							"collectionName": "Book",
 							"filter":         nil,
 							"prefixes": []string{

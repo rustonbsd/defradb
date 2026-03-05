@@ -24,10 +24,11 @@ import (
 )
 
 func TestReplicationCoordinator_WhenHandlePushToReplicatorsCalled_ShouldPushSEArtifactsToPeers(t *testing.T) {
+	ctx := context.Background()
 	setup := newTestSetup(t)
 	defer setup.close()
 
-	requestChan := setup.expectSEArtifactPush()
+	requestChan := setup.expectSEArtifactPush(ctx)
 
 	evt := setup.makeUpdateEvent()
 	err := setup.coordinator.HandlePushToReplicators(context.Background(), evt)
@@ -100,11 +101,12 @@ func TestReplicationCoordinator_WhenCollectionNotFound_ShouldNotPushToPeer(t *te
 }
 
 func TestReplicationCoordinator_WhenInvalidDocID_ShouldNotPushToPeer(t *testing.T) {
+	ctx := context.Background()
 	setup := newTestSetup(t)
 	defer setup.close()
 
 	setup.docID = "invalid-doc-id"
-	setup.mockGetCollections(setup.createMockCollectionWithDocument())
+	setup.mockGetCollections(setup.createMockCollectionWithDocument(ctx))
 
 	evt := setup.makeUpdateEvent()
 	err := setup.coordinator.HandlePushToReplicators(context.Background(), evt)
@@ -118,7 +120,7 @@ func TestReplicationCoordinator_WhenDocumentNotFound_ShouldNotPushToPeer(t *test
 	defer setup.close()
 
 	mockCollection := setup.createMockCollection()
-	mockCollection.EXPECT().Get(mock.Anything, mock.Anything, mock.Anything).
+	mockCollection.EXPECT().GetDocument(mock.Anything, mock.Anything, mock.Anything).
 		Return(nil, client.ErrDocumentNotFoundOrNotAuthorized).Maybe()
 	setup.mockGetCollections(mockCollection)
 
@@ -136,7 +138,7 @@ func TestReplicationCoordinator_WhenDocumentGetFails_ShouldNotPushToPeer(t *test
 	defer setup.close()
 
 	mockCollection := setup.createMockCollection()
-	mockCollection.EXPECT().Get(mock.Anything, mock.Anything, mock.Anything).
+	mockCollection.EXPECT().GetDocument(mock.Anything, mock.Anything, mock.Anything).
 		Return(nil, fmt.Errorf("database error")).Maybe()
 	setup.mockGetCollections(mockCollection)
 
@@ -148,6 +150,7 @@ func TestReplicationCoordinator_WhenDocumentGetFails_ShouldNotPushToPeer(t *test
 }
 
 func TestReplicationCoordinator_WhenNoEncryptedIndexes_ShouldNotPushToPeer(t *testing.T) {
+	ctx := context.Background()
 	setup := newTestSetup(t)
 	defer setup.close()
 
@@ -159,8 +162,8 @@ func TestReplicationCoordinator_WhenNoEncryptedIndexes_ShouldNotPushToPeer(t *te
 	ver.EncryptedIndexes = []client.EncryptedIndexDescription{}
 	mockCollection.EXPECT().Version().Return(ver).Maybe()
 
-	doc, err := client.NewDocFromMap(map[string]any{"age": 21}, ver)
-	mockCollection.EXPECT().Get(mock.Anything, mock.Anything, mock.Anything).Return(doc, err).Maybe()
+	doc, err := client.NewDocFromMap(ctx, map[string]any{"age": 21}, ver)
+	mockCollection.EXPECT().GetDocument(mock.Anything, mock.Anything, mock.Anything).Return(doc, err).Maybe()
 
 	setup.mockGetCollections(mockCollection)
 

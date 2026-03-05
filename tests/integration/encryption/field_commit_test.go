@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package encryption
 
@@ -22,12 +23,12 @@ import (
 func TestDocEncryptionField_WithEncryptionOnField_ShouldStoreOnlyFieldsDeltaEncrypted(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			updateUserCollectionSchema(),
-			testUtils.CreateDoc{
+			addUserCollection(),
+			&action.AddDoc{
 				Doc:             john21Doc,
 				EncryptedFields: []string{"age"},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						_commits {
@@ -77,8 +78,8 @@ func TestDocEncryptionField_WithDocAndFieldEncryption_ShouldUseDedicatedEncKeyFo
 
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name1: String
 						name2: String
@@ -86,7 +87,7 @@ func TestDocEncryptionField_WithDocAndFieldEncryption_ShouldUseDedicatedEncKeyFo
 						name4: String
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 						"name1": "John",
 						"name2": "John",
@@ -96,7 +97,7 @@ func TestDocEncryptionField_WithDocAndFieldEncryption_ShouldUseDedicatedEncKeyFo
 				IsDocEncrypted:  true,
 				EncryptedFields: []string{"name1", "name3"},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						_commits {
@@ -138,8 +139,8 @@ func TestDocEncryptionField_UponUpdateWithDocAndFieldEncryption_ShouldUseDedicat
 
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name1: String
 						name2: String
@@ -147,7 +148,7 @@ func TestDocEncryptionField_UponUpdateWithDocAndFieldEncryption_ShouldUseDedicat
 						name4: String
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 						"name1": "John",
 						"name2": "John",
@@ -165,7 +166,7 @@ func TestDocEncryptionField_UponUpdateWithDocAndFieldEncryption_ShouldUseDedicat
 					"name4": "Andy"
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						_commits(order: {height: DESC}, limit: 5) {

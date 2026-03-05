@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package index
 
@@ -28,17 +29,17 @@ func TestQueryWithIndex_IfIndexFilterWithRegular_ShouldFilter(t *testing.T) {
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String @index
 						age: Int
 					}`,
 			},
-			testUtils.CreatePredefinedDocs{
+			testUtils.AddPredefinedDocs{
 				Docs: getUserDocs(),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -46,7 +47,7 @@ func TestQueryWithIndex_IfIndexFilterWithRegular_ShouldFilter(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(3),
 			},
@@ -68,18 +69,18 @@ func TestQueryWithIndex_IfMultipleIndexFiltersWithRegular_ShouldFilter(t *testin
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String @index
 						age: Int @index
 						email: String 
 					}`,
 			},
-			testUtils.CreatePredefinedDocs{
+			testUtils.AddPredefinedDocs{
 				Docs: getUserDocs(),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -87,7 +88,7 @@ func TestQueryWithIndex_IfMultipleIndexFiltersWithRegular_ShouldFilter(t *testin
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(6),
 			},
@@ -108,18 +109,18 @@ func TestQueryWithIndex_IfMultipleIndexFiltersWithRegularCaseInsensitive_ShouldF
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String @index
 						age: Int @index
 						email: String 
 					}`,
 			},
-			testUtils.CreatePredefinedDocs{
+			testUtils.AddPredefinedDocs{
 				Docs: getUserDocs(),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -128,7 +129,7 @@ func TestQueryWithIndex_IfMultipleIndexFiltersWithRegularCaseInsensitive_ShouldF
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(6),
 			},
@@ -148,17 +149,17 @@ func TestQueryWithIndex_FilterOnNonIndexedField_ShouldIgnoreIndex(t *testing.T) 
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String @index
 						age: Int
 					}`,
 			},
-			testUtils.CreatePredefinedDocs{
+			testUtils.AddPredefinedDocs{
 				Docs: getUserDocs(),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -166,7 +167,7 @@ func TestQueryWithIndex_FilterOnNonIndexedField_ShouldIgnoreIndex(t *testing.T) 
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(0),
 			},

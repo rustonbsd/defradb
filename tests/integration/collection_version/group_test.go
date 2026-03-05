@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package collection_version
 
@@ -17,12 +18,12 @@ import (
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
-func TestGroupByFieldForTheManySideInSchema(t *testing.T) {
+func TestGroupByFieldForTheManySideInCollection(t *testing.T) {
 	test := testUtils.TestCase{
 
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Book {
 						name: String
 						rating: Float
@@ -56,15 +57,15 @@ func TestGroupByFieldForTheManySideInSchema(t *testing.T) {
 						"enumValues": []any{
 							// Internal related object fields.
 							map[string]any{"name": "author"},
-							map[string]any{"name": "author_id"},
+							map[string]any{"name": "_authorID"},
 
 							// Internal fields.
 							map[string]any{"name": "_deleted"},
-							map[string]any{"name": "_group"},
+							map[string]any{"name": "GROUP"},
 							map[string]any{"name": "_docID"},
 							map[string]any{"name": "_version"},
 
-							// User defined schema fields>
+							// User defined collection fields>
 							map[string]any{"name": "name"},
 							map[string]any{"name": "rating"},
 						},
@@ -77,12 +78,12 @@ func TestGroupByFieldForTheManySideInSchema(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestGroupByFieldForTheSingleSideInSchema(t *testing.T) {
+func TestGroupByFieldForTheSingleSideInCollection(t *testing.T) {
 	test := testUtils.TestCase{
 
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Book {
 						name: String
 						rating: Float
@@ -116,15 +117,15 @@ func TestGroupByFieldForTheSingleSideInSchema(t *testing.T) {
 						"enumValues": []any{
 							// Internal related object fields.
 							map[string]any{"name": "published"},
-							// Note: No `published_id` of this side.
+							// Note: No `_publishedID` of this side.
 
 							// Internal fields.
 							map[string]any{"name": "_deleted"},
-							map[string]any{"name": "_group"},
+							map[string]any{"name": "GROUP"},
 							map[string]any{"name": "_docID"},
 							map[string]any{"name": "_version"},
 
-							// User defined schema fields>
+							// User defined collection fields>
 							map[string]any{"name": "name"},
 							map[string]any{"name": "age"},
 							map[string]any{"name": "verified"},

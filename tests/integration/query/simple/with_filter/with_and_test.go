@@ -1,12 +1,13 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package simple
 
@@ -20,31 +21,31 @@ import (
 func TestQuerySimpleWithIntGreaterThanAndIntLessThanFilter(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "John",
 					"Age": 21
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Bob",
 					"Age": 32
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Carlo",
 					"Age": 55
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Alice",
 					"Age": 19
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(filter: {_and: [{Age: {_gt: 20}}, {Age: {_lt: 50}}]}) {
 						Name
@@ -74,28 +75,28 @@ func TestQuerySimpleWithIntGreaterThanAndIntLessThanFilter(t *testing.T) {
 func TestQuerySimple_WithInlineIntArray_GreaterThanAndLessThanFilter_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `type Users {
+			&action.AddCollection{
+				SDL: `type Users {
 					Name: String
 					FavoriteNumbers: [Int!]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Bob",
 					"FavoriteNumbers": [0, 10, 20]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Alice",
 					"FavoriteNumbers": [30, 40, 50]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(filter: {_and: [
-						{FavoriteNumbers: {_all: {_ge: 0}}},
+						{FavoriteNumbers: {_all: {_geq: 0}}},
 						{FavoriteNumbers: {_all: {_lt: 30}}},
 					]}) {
 						Name

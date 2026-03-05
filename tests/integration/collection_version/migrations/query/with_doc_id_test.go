@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package query
 
@@ -22,28 +23,28 @@ import (
 )
 
 // This test asserts that prefixes are being passed correctly through the new Lens fetcher.
-func TestSchemaMigrationQueryByDocID(t *testing.T) {
+func TestCollectionMigrationQueryByDocID(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// bae-d1536ab3-c3d8-5c3d-9622-087ee707fd99
 				Doc: `{
 					"name": "Shahzad"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Fred"
 				}`,
 			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				Patch: `
 					[
 						{ "op": "add", "path": "/Users/Fields/-", "value": {"Name": "verified", "Kind": "Boolean"} }
@@ -52,8 +53,8 @@ func TestSchemaMigrationQueryByDocID(t *testing.T) {
 			},
 			testUtils.ConfigureMigration{
 				LensConfig: client.LensConfig{
-					SourceSchemaVersionID:      "bafyreiciz2hrrmt7ritk5gf5fyruw46v2tfhq5dc7qto4wgpzluben2smu",
-					DestinationSchemaVersionID: "bafyreigqfjat435ghyt66tdaucp7oi2mke5jafx3jw3rozanopihr2vf44",
+					SourceCollectionVersionID:      "bafyreiciz2hrrmt7ritk5gf5fyruw46v2tfhq5dc7qto4wgpzluben2smu",
+					DestinationCollectionVersionID: "bafyreigqfjat435ghyt66tdaucp7oi2mke5jafx3jw3rozanopihr2vf44",
 					Lens: model.Lens{
 						Lenses: []model.LensModule{
 							{
@@ -67,7 +68,7 @@ func TestSchemaMigrationQueryByDocID(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users (docID: "bae-d1536ab3-c3d8-5c3d-9622-087ee707fd99") {
 						name
@@ -101,11 +102,11 @@ func TestSchemaMigrationQueryByDocID(t *testing.T) {
 //
 // At the time of writing, the lens pool size is hardcoded to 5, so we should test with 6
 // documents/queries, if the size changes so should this test.
-func TestSchemaMigrationQueryMultipleQueriesByDocID(t *testing.T) {
+func TestCollectionMigrationQueryMultipleQueriesByDocID(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 					}
@@ -114,43 +115,43 @@ func TestSchemaMigrationQueryMultipleQueriesByDocID(t *testing.T) {
 			// We want 6 documents, and 6 queries, as lens pool is limited to 5
 			// and we want to make sure that lenses are being correctly returned
 			// to the pool for reuse after.
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// bae-d1536ab3-c3d8-5c3d-9622-087ee707fd99
 				Doc: `{
 					"name": "Shahzad"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// bae-235c64e3-abf7-549c-9aff-971c8afdfa3f
 				Doc: `{
 					"name": "Fred"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// bae-eadc6f5f-a52b-57de-ad6c-e76315fff6bd
 				Doc: `{
 					"name": "Chris"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// bae-9b4d35b6-00f0-50df-8627-44cea1dbcf11
 				Doc: `{
 					"name": "John"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// bae-aa68c022-519a-50cf-8a91-2ff6d4349c90
 				Doc: `{
 					"name": "Islam"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// bae-81418211-7e0c-5e0c-8505-6288318c7248
 				Doc: `{
 					"name": "Dave"
 				}`,
 			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				Patch: `
 					[
 						{ "op": "add", "path": "/Users/Fields/-", "value": {"Name": "verified", "Kind": "Boolean"} }
@@ -159,8 +160,8 @@ func TestSchemaMigrationQueryMultipleQueriesByDocID(t *testing.T) {
 			},
 			testUtils.ConfigureMigration{
 				LensConfig: client.LensConfig{
-					SourceSchemaVersionID:      "bafyreiciz2hrrmt7ritk5gf5fyruw46v2tfhq5dc7qto4wgpzluben2smu",
-					DestinationSchemaVersionID: "bafyreigqfjat435ghyt66tdaucp7oi2mke5jafx3jw3rozanopihr2vf44",
+					SourceCollectionVersionID:      "bafyreiciz2hrrmt7ritk5gf5fyruw46v2tfhq5dc7qto4wgpzluben2smu",
+					DestinationCollectionVersionID: "bafyreigqfjat435ghyt66tdaucp7oi2mke5jafx3jw3rozanopihr2vf44",
 					Lens: model.Lens{
 						Lenses: []model.LensModule{
 							{
@@ -174,7 +175,7 @@ func TestSchemaMigrationQueryMultipleQueriesByDocID(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users (docID: "bae-d1536ab3-c3d8-5c3d-9622-087ee707fd99") {
 						name
@@ -190,7 +191,7 @@ func TestSchemaMigrationQueryMultipleQueriesByDocID(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users (docID: "bae-235c64e3-abf7-549c-9aff-971c8afdfa3f") {
 						name
@@ -206,7 +207,7 @@ func TestSchemaMigrationQueryMultipleQueriesByDocID(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users (docID: "bae-eadc6f5f-a52b-57de-ad6c-e76315fff6bd") {
 						name
@@ -222,7 +223,7 @@ func TestSchemaMigrationQueryMultipleQueriesByDocID(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users (docID: "bae-9b4d35b6-00f0-50df-8627-44cea1dbcf11") {
 						name
@@ -238,7 +239,7 @@ func TestSchemaMigrationQueryMultipleQueriesByDocID(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users (docID: "bae-aa68c022-519a-50cf-8a91-2ff6d4349c90") {
 						name
@@ -254,7 +255,7 @@ func TestSchemaMigrationQueryMultipleQueriesByDocID(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users (docID: "bae-81418211-7e0c-5e0c-8505-6288318c7248") {
 						name

@@ -19,12 +19,23 @@ import "C"
 import (
 	"context"
 
+	"github.com/sourcenetwork/defradb/client/options"
 	"github.com/sourcenetwork/defradb/crypto"
+	iIdentity "github.com/sourcenetwork/defradb/internal/identity"
 )
 
-//export BlockVerifySignature
-func BlockVerifySignature(nodePtr C.uintptr_t, keyType *C.char, publicKey *C.char, cid *C.char) C.Result {
+//export VerifyBlockSignature
+func VerifyBlockSignature(nodePtr C.uintptr_t,
+	keyType *C.char,
+	publicKey *C.char,
+	cid *C.char,
+	identityPtr C.uintptr_t,
+) C.Result {
 	ctx := context.Background()
+	ctx, err := contextWithIdentity(ctx, identityPtr)
+	if err != nil {
+		return returnC(returnGoC(1, err.Error(), ""))
+	}
 	keyTypeStr := C.GoString(keyType)
 	pubKeyStr := C.GoString(publicKey)
 	cryptoKeyType := crypto.KeyTypeSecp256k1
@@ -41,7 +52,8 @@ func BlockVerifySignature(nodePtr C.uintptr_t, keyType *C.char, publicKey *C.cha
 		return returnC(returnGoC(1, err.Error(), ""))
 	}
 
-	err = store.VerifySignature(ctx, C.GoString(cid), pubKey)
+	verifyOpt := options.WithIdentity(options.VerifySignature(), iIdentity.FromContext(ctx))
+	err = store.VerifySignature(ctx, C.GoString(cid), pubKey, verifyOpt)
 	if err != nil {
 		return returnC(returnGoC(1, err.Error(), ""))
 	}

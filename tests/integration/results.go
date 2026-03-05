@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package tests
 
@@ -15,20 +16,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"testing"
 	"time"
 
 	"github.com/onsi/gomega"
 	"github.com/onsi/gomega/format"
-	"github.com/onsi/gomega/types"
-
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/sourcenetwork/immutable"
 
-	acpIdentity "github.com/sourcenetwork/defradb/acp/identity"
-	"github.com/sourcenetwork/defradb/client"
 	"github.com/sourcenetwork/defradb/tests/state"
 )
 
@@ -41,39 +36,21 @@ func init() {
 	})
 }
 
-// TestState is read-only interface for test state. It allows passing the state to custom matchers
-// without allowing them to modify the state.
-type TestState interface {
-	// GetClientType returns the client type of the test.
-	GetClientType() state.ClientType
-	// GetCurrentNodeID returns the node id that is currently being asserted.
-	GetCurrentNodeID() int
-	// GetIdentity returns the identity for the given node index.
-	GetIdentity(state.Identity) acpIdentity.Identity
-	// GetDocID returns the document ID for the given collection index and document index.
-	GetDocID(collectionIndex, docIndex int) client.DocID
-}
+// TestState is a type alias for state.TestState.
+type TestState = state.TestState
+
+// TestStateMatcher is a type alias for state.TestStateMatcher.
+type TestStateMatcher = state.TestStateMatcher
+
+// StatefulMatcher is a type alias for state.StatefulMatcher.
+type StatefulMatcher = state.StatefulMatcher
 
 type testStateMatcher struct {
-	s TestState
+	s state.TestState
 }
 
-func (matcher *testStateMatcher) SetTestState(s TestState) {
+func (matcher *testStateMatcher) SetTestState(s state.TestState) {
 	matcher.s = s
-}
-
-// TestStateMatcher is a matcher that requires access to the test state.
-type TestStateMatcher interface {
-	types.GomegaMatcher
-	// SetTestState sets the test state.
-	SetTestState(s TestState)
-}
-
-// StatefulMatcher is a matcher that requires state to be reset between tests.
-type StatefulMatcher interface {
-	types.GomegaMatcher
-	// ResetMatcherState resets the state of the matcher.
-	ResetMatcherState()
 }
 
 // AnyOf may be used as `Results` field where the value may
@@ -135,7 +112,7 @@ func (matcher *UniqueValue) ResetMatcherState() {
 }
 
 func (matcher *UniqueValue) Match(actual any) (bool, error) {
-	nodeID := matcher.s.GetCurrentNodeID()
+	nodeID := matcher.s.GetCurrentAssertingNodeID()
 	for nodeID >= len(matcher.seenValues) {
 		matcher.seenValues = append(matcher.seenValues, make(map[any]bool))
 	}
@@ -257,35 +234,6 @@ func (matcher *docIDAt) NegatedFailureMessage(actual any) string {
 func (matcher *docIDAt) String() string {
 	return fmt.Sprintf("DocIDAt(collectionIndex: %d, docIndex: %d): %s", matcher.collectionIndex,
 		matcher.docIndex, matcher.s.GetDocID(matcher.collectionIndex, matcher.docIndex).String())
-}
-
-// assertResultsEqual asserts that actual result is equal to the expected result.
-//
-// The comparison is relaxed when using client types other than goClientType.
-func assertResultsEqual(t testing.TB, client state.ClientType, expected any, actual any, msgAndArgs ...any) {
-	switch client {
-	case state.HTTPClientType, state.CLIClientType, state.JSClientType, state.CClientType:
-		if !areResultsEqual(expected, actual) {
-			assert.EqualValues(t, expected, actual, msgAndArgs...)
-		}
-	default:
-		assert.EqualValues(t, expected, actual, msgAndArgs...)
-	}
-}
-
-// isResultsEqual checks that actual result is equal to the expected result and returns true if they are.
-//
-// The comparison is relaxed when using client types other than goClientType.
-func isResultsEqual(client state.ClientType, expected any, actual any) bool {
-	switch client {
-	case state.HTTPClientType, state.CLIClientType, state.JSClientType, state.CClientType:
-		if !areResultsEqual(expected, actual) {
-			return assert.ObjectsAreEqualValues(expected, actual)
-		}
-		return true
-	default:
-		return assert.ObjectsAreEqualValues(expected, actual)
-	}
 }
 
 // areResultsAnyOf returns true if any of the expected results are of equal value.
@@ -436,88 +384,60 @@ func areResultArraysEqual[S any](expected []S, actual any) bool {
 	return true
 }
 
-func assertCollectionVersions(
-	s *state.State,
-	expected []client.CollectionVersion,
-	actual []client.CollectionVersion,
-) {
-	require.Equal(s.T, len(expected), len(actual))
+// CurrentTimestampMatcher is a matcher that checks if the actual value is a
+//
+//	time.Time within 120 seconds of the current time. The reason for this window
+//
+// is to allow for some latency in our test runs.
+type CurrentTimestampMatcher struct {
+	testStateMatcher
+}
 
-	for i, expected := range expected {
-		actual := actual[i]
-		require.Equal(s.T, expected.Name, actual.Name)
+var _ TestStateMatcher = (*CurrentTimestampMatcher)(nil)
 
-		if expected.CollectionSet.HasValue() {
-			require.Equal(s.T, expected.CollectionSet.Value().CollectionSetID, actual.CollectionSet.Value().CollectionSetID)
-			require.Equal(s.T, expected.CollectionSet.Value().RelativeID, actual.CollectionSet.Value().RelativeID)
-		}
+func CurrentTimestamp() *CurrentTimestampMatcher {
+	return &CurrentTimestampMatcher{}
+}
 
-		if expected.VersionID != "" {
-			require.Equal(s.T, expected.VersionID, actual.VersionID)
-		}
-		if expected.CollectionID != "" {
-			require.Equal(s.T, expected.CollectionID, actual.CollectionID)
-		}
+func (matcher *CurrentTimestampMatcher) Match(actual any) (bool, error) {
+	var ts time.Time
 
-		require.Equal(s.T, expected.IsMaterialized, actual.IsMaterialized)
-		require.Equal(s.T, expected.IsBranchable, actual.IsBranchable)
-		require.Equal(s.T, expected.IsActive, actual.IsActive)
+	// We want this to work with time.Time as well as strings that can
+	// be parsed into a time.Time
+	switch v := actual.(type) {
+	case time.Time:
+		ts = v
 
-		if expected.Indexes != nil || len(actual.Indexes) != 0 {
-			// Dont bother asserting this if the expected is nil and the actual is nil/empty.
-			// This is to save each test action from having to bother declaring an empty slice (if there are no indexes)
-			require.Equal(s.T, expected.Indexes, actual.Indexes)
-		}
-
-		require.Equal(s.T, expected.PreviousVersion.HasValue(), actual.PreviousVersion.HasValue())
-		if expected.PreviousVersion.HasValue() {
-			require.Equal(
-				s.T,
-				expected.PreviousVersion.Value().SourceCollectionID,
-				actual.PreviousVersion.Value().SourceCollectionID,
+	case string:
+		parsed, err := time.Parse(time.RFC3339, v)
+		if err != nil {
+			return false, fmt.Errorf(
+				"expected time.Time or RFC3339 string, got unparsable string %q: %w",
+				v, err,
 			)
-			require.Equal(
-				s.T,
-				expected.PreviousVersion.Value().Transform.HasValue(),
-				actual.PreviousVersion.Value().Transform.HasValue(),
-			)
-
-			if expected.PreviousVersion.Value().Transform.HasValue() {
-				// Dont bother asserting this by default, the transform object is too complex to bother with in most cases.
-				require.Equal(
-					s.T,
-					expected.PreviousVersion.Value().Transform.Value(),
-					actual.PreviousVersion.Value().Transform.Value(),
-				)
-			}
 		}
+		ts = parsed
 
-		if expected.Query.HasValue() {
-			// Dont bother asserting this by default, the query object is to complex to bother with in most cases.
-			require.Equal(s.T, expected.Query, actual.Query)
-		}
-
-		if expected.Fields != nil {
-			require.Equal(s.T, len(expected.Fields), len(actual.Fields))
-			for i := range expected.Fields {
-				expectedField := expected.Fields[i]
-				actualField := actual.Fields[i]
-
-				require.Equal(s.T, expectedField.Name, actualField.Name)
-				if expectedField.FieldID != "" {
-					require.Equal(s.T, expectedField.FieldID, actualField.FieldID)
-				}
-				require.Equal(s.T, expectedField.IsPrimary, actualField.IsPrimary)
-				require.Equal(s.T, expectedField.Kind, actualField.Kind)
-				require.Equal(s.T, expectedField.Typ, actualField.Typ)
-				require.Equal(s.T, expectedField.DefaultValue, actualField.DefaultValue)
-				require.Equal(s.T, expectedField.RelationName, actualField.RelationName)
-				require.Equal(s.T, expectedField.Size, actualField.Size)
-			}
-		}
-
-		if expected.VectorEmbeddings != nil {
-			require.Equal(s.T, expected.VectorEmbeddings, actual.VectorEmbeddings)
-		}
+	default:
+		return false, fmt.Errorf("expected time.Time or string, got %T", actual)
 	}
+
+	diff := time.Since(ts)
+	if diff < 0 {
+		diff = -diff
+	}
+
+	if diff > 120*time.Second {
+		return false, fmt.Errorf("timestamp %v is more than 120 seconds away from now", ts)
+	}
+
+	return true, nil
+}
+
+func (matcher *CurrentTimestampMatcher) FailureMessage(actual any) string {
+	return fmt.Sprintf("Expected timestamp %v to be within 120 seconds of now", actual)
+}
+
+func (matcher *CurrentTimestampMatcher) NegatedFailureMessage(actual any) string {
+	return fmt.Sprintf("Expected timestamp %v not to be within 120 seconds of now", actual)
 }

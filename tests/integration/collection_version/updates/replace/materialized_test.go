@@ -1,21 +1,21 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package replace
 
 import (
 	"testing"
 
-	"github.com/sourcenetwork/immutable"
-
 	"github.com/sourcenetwork/defradb/client"
+	"github.com/sourcenetwork/defradb/client/options"
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
@@ -23,14 +23,14 @@ import (
 func TestColVersionUpdateReplaceIsMaterialized_GivenFalseAndCollection_Errors(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 					}
 				`,
 			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				Patch: `
 					[
 						{
@@ -51,14 +51,14 @@ func TestColVersionUpdateReplaceIsMaterialized_GivenFalseAndCollection_Errors(t 
 func TestColVersionUpdateReplaceIsMaterialized_GivenFalseAndView(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddView{
 				Query: `
 					User {
 						name
@@ -70,13 +70,13 @@ func TestColVersionUpdateReplaceIsMaterialized_GivenFalseAndView(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// Create John when the view is materialized
 				DocMap: map[string]any{
 					"name": "John",
 				},
 			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				Patch: `
 					[
 						{
@@ -87,7 +87,7 @@ func TestColVersionUpdateReplaceIsMaterialized_GivenFalseAndView(t *testing.T) {
 					]
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// Create Fred when the view is not materialized, noting that there is no `RefreshView`
 				// call after this action, meaning that if the view was still materialized Fred would not
 				// be returned by the query.
@@ -95,10 +95,8 @@ func TestColVersionUpdateReplaceIsMaterialized_GivenFalseAndView(t *testing.T) {
 					"name": "Fred",
 				},
 			},
-			testUtils.GetCollections{
-				FilterOptions: client.CollectionFetchOptions{
-					Name: immutable.Some("UserView"),
-				},
+			&action.GetCollections{
+				FilterOptions: options.GetCollections().SetCollectionName("UserView"),
 				ExpectedResults: []client.CollectionVersion{
 					{
 						Name:           "UserView",
@@ -107,7 +105,7 @@ func TestColVersionUpdateReplaceIsMaterialized_GivenFalseAndView(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					User {
 						name

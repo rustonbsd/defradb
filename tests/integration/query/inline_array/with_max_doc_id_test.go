@@ -1,18 +1,20 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package inline_array
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
@@ -21,24 +23,24 @@ import (
 func TestQueryInlineNillableFloatArray_WithDocIDAndMax_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"pageRatings": [3.1425, 0.00000000001, 10, null]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(docID: "bae-234d84a8-37f9-57ea-9c53-34c247f3b272") {
 						name
-						_max(pageRatings: {})
+						MAX(pageRatings: {})
 					}
 				}`,
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
 							"name": "Shahzad",
-							"_max": float64(10),
+							"MAX":  float64(10),
 						},
 					},
 				},

@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package remove
 
@@ -19,24 +20,27 @@ import (
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 	"github.com/sourcenetwork/defradb/tests/lenses"
+	"github.com/sourcenetwork/defradb/tests/multiplier"
 )
 
 func TestColVersionUpdateRemoveCollectionSourceTransform(t *testing.T) {
 	test := testUtils.TestCase{
+		// TODO: https://github.com/sourcenetwork/defradb/issues/4353
+		MultiplierExcludes: []string{multiplier.SecondaryIndex},
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad"
 				}`,
 			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				Patch: `
 					[
 						{ "op": "add", "path": "/Users/Fields/-", "value": {"Name": "email", "Kind": 11} }
@@ -54,7 +58,7 @@ func TestColVersionUpdateRemoveCollectionSourceTransform(t *testing.T) {
 					},
 				}),
 			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				Patch: `
 					[
 						{
@@ -64,7 +68,7 @@ func TestColVersionUpdateRemoveCollectionSourceTransform(t *testing.T) {
 					]
 				`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users {
 						name

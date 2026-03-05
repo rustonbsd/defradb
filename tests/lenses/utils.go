@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package lenses
 
@@ -61,6 +62,26 @@ var PrependModulePath string = getPathRelativeToProjectRoot(
 //     only documents with values that match this given value will be returned.
 var FilterModulePath string = getPathRelativeToProjectRoot(
 	"/tests/lenses/rust_wasm32_filter/target/wasm32-unknown-unknown/debug/rust_wasm32_filter.wasm",
+)
+
+// StandardDeviationModulePath is the path to the `Standard deviation` lens module compiled to wasm.
+//
+// The module has two parameters:
+//   - `src` is a string and is the name of the property you wish to evaluate
+//   - `dst` is a string and is the name of the property you wish to write the standard deviation to.
+var StandardDeviationModulePath string = getPathRelativeToProjectRoot(
+	"/tests/lenses/rust_wasm32_std_dev/target/wasm32-unknown-unknown/debug/std_dev.wasm",
+)
+
+// IncrementModulePath is the path to the `Increment` lens module compiled to wasm.
+//
+// The module has two parameters:
+//   - `field` is a string and is the name of the numeric property you wish to increment
+//   - `value` is an integer that will be added to the current value of the `field` property.
+//
+// This module has an inverse, which will subtract the `value` from the `field` property.
+var IncrementModulePath string = getPathRelativeToProjectRoot(
+	"/tests/lenses/rust_wasm32_increment/target/wasm32-unknown-unknown/debug/rust_wasm32_increment.wasm",
 )
 
 func getPathRelativeToProjectRoot(relativePath string) string {

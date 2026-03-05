@@ -1,39 +1,41 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package inline_array
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
 func TestQueryInlineStringArray_WithAllFilter_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"pageHeaders": ["first", "second"]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Fred",
 					"pageHeaders": [null, "second"]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-					Users(filter: {pageHeaders: {_all: {_ne: null}}}) {
+					Users(filter: {pageHeaders: {_all: {_neq: null}}}) {
 						name
 					}
 				}`,
@@ -54,21 +56,21 @@ func TestQueryInlineStringArray_WithAllFilter_Succeeds(t *testing.T) {
 func TestQueryInlineNotNullStringArray_WithAllFilter_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"preferredStrings": ["first", "second"]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Fred",
 					"preferredStrings": ["", "second"]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-					Users(filter: {preferredStrings: {_all: {_ne: ""}}}) {
+					Users(filter: {preferredStrings: {_all: {_neq: ""}}}) {
 						name
 					}
 				}`,
@@ -89,21 +91,21 @@ func TestQueryInlineNotNullStringArray_WithAllFilter_Succeeds(t *testing.T) {
 func TestQueryInlineIntArray_WithAllFilter_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"testScores": [50, 80]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Fred",
 					"testScores": [null, 60]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-					Users(filter: {testScores: {_all: {_ne: null}}}) {
+					Users(filter: {testScores: {_all: {_neq: null}}}) {
 						name
 					}
 				}`,
@@ -124,19 +126,19 @@ func TestQueryInlineIntArray_WithAllFilter_Succeeds(t *testing.T) {
 func TestQueryInlineNotNullIntArray_WithAllFilter_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"testScores": [50, 80]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Fred",
 					"testScores": [0, 60]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(filter: {testScores: {_all: {_lt: 70}}}) {
 						name
@@ -159,21 +161,21 @@ func TestQueryInlineNotNullIntArray_WithAllFilter_Succeeds(t *testing.T) {
 func TestQueryInlineFloatArray_WithAllFilter_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"pageRatings": [50, 80]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Fred",
 					"pageRatings": [null, 60]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-					Users(filter: {pageRatings: {_all: {_ne: null}}}) {
+					Users(filter: {pageRatings: {_all: {_neq: null}}}) {
 						name
 					}
 				}`,
@@ -194,19 +196,19 @@ func TestQueryInlineFloatArray_WithAllFilter_Succeeds(t *testing.T) {
 func TestQueryInlineNotNullFloatArray_WithAllFilter_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"pageRatings": [50, 80]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Fred",
 					"pageRatings": [0, 60]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(filter: {pageRatings: {_all: {_lt: 70}}}) {
 						name
@@ -229,21 +231,21 @@ func TestQueryInlineNotNullFloatArray_WithAllFilter_Succeeds(t *testing.T) {
 func TestQueryInlineBooleanArray_WithAllFilter_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"indexLikesDislikes": [false, false]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Fred",
 					"indexLikesDislikes": [null, true]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-					Users(filter: {indexLikesDislikes: {_all: {_ne: null}}}) {
+					Users(filter: {indexLikesDislikes: {_all: {_neq: null}}}) {
 						name
 					}
 				}`,
@@ -264,19 +266,19 @@ func TestQueryInlineBooleanArray_WithAllFilter_Succeeds(t *testing.T) {
 func TestQueryInlineNotNullBooleanArray_WithAllFilter_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"likedIndexes": [false, false]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Fred",
 					"likedIndexes": [true, true]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(filter: {likedIndexes: {_all: {_eq: true}}}) {
 						name
@@ -299,13 +301,13 @@ func TestQueryInlineNotNullBooleanArray_WithAllFilter_Succeeds(t *testing.T) {
 func TestQueryInlineStringArray_WithAllFilterAndNullValue_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Islam",
 					"pageHeaders": null
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(filter: {pageHeaders: {_all: {_eq: null}}}) {
 						name

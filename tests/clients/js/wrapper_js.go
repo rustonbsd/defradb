@@ -1,12 +1,13 @@
-// Copyright 2025 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 //go:build js
 
@@ -18,8 +19,9 @@ import (
 
 	"github.com/sourcenetwork/goji"
 
-	"github.com/sourcenetwork/defradb/acp/identity"
+	acpIdentity "github.com/sourcenetwork/defradb/acp/identity"
 	"github.com/sourcenetwork/defradb/internal/datastore"
+	iIdentity "github.com/sourcenetwork/defradb/internal/identity"
 )
 
 func execute(ctx context.Context, value js.Value, method string, args ...any) ([]js.Value, error) {
@@ -28,9 +30,9 @@ func execute(ctx context.Context, value js.Value, method string, args ...any) ([
 	if ok {
 		contextValues["transaction"] = tx.ID()
 	}
-	ident := identity.FromContext(ctx)
+	ident := iIdentity.FromContext(ctx)
 	if ident.HasValue() {
-		if full, ok := ident.Value().(identity.FullIdentity); ok && full.PrivateKey() != nil {
+		if full, ok := ident.Value().(acpIdentity.FullIdentity); ok && full.PrivateKey() != nil {
 			contextValues["full_identity"] = full.PrivateKey().String()
 		}
 	}

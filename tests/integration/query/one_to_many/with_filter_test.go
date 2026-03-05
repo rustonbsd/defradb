@@ -1,12 +1,13 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package one_to_many
 
@@ -20,35 +21,35 @@ import (
 func TestQueryOneToManyWithNumericGreaterThanFilterOnParent(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: bookAuthorGQLSchema,
+			&action.AddCollection{
+				SDL: bookAuthorGQLSchema,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				// bae-8627532a-2ed3-50ed-91d5-26f6b9b44c25
 				Doc: `{
 					"name": "Painted House",
 					"rating": 4.9,
-					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
+					"_authorID": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "A Time for Mercy",
 					"rating": 4.5,
-					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
+					"_authorID": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Theif Lord",
 					"rating": 4.8,
-					"author_id": "bae-3d5a3204-4e55-5236-992a-ce27da27902b"
+					"_authorID": "bae-3d5a3204-4e55-5236-992a-ce27da27902b"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				// bae-9d52c335-c8e3-5782-8daa-e359c106e0ab
 				Doc: `{
@@ -57,7 +58,7 @@ func TestQueryOneToManyWithNumericGreaterThanFilterOnParent(t *testing.T) {
 					"verified": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				// bae-3d5a3204-4e55-5236-992a-ce27da27902b
 				Doc: `{
@@ -66,7 +67,7 @@ func TestQueryOneToManyWithNumericGreaterThanFilterOnParent(t *testing.T) {
 					"verified": false
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Author(filter: {age: {_gt: 63}}) {
 						name
@@ -106,35 +107,35 @@ func TestQueryOneToManyWithNumericGreaterThanFilterOnParent(t *testing.T) {
 func TestQueryOneToManyWithNumericGreaterThanChildFilterOnParentWithUnrenderedChild(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: bookAuthorGQLSchema,
+			&action.AddCollection{
+				SDL: bookAuthorGQLSchema,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				// bae-8627532a-2ed3-50ed-91d5-26f6b9b44c25
 				Doc: `{
 					"name": "Painted House",
 					"rating": 4.9,
-					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
+					"_authorID": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "A Time for Mercy",
 					"rating": 4.5,
-					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
+					"_authorID": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Theif Lord",
 					"rating": 4.8,
-					"author_id": "bae-3d5a3204-4e55-5236-992a-ce27da27902b"
+					"_authorID": "bae-3d5a3204-4e55-5236-992a-ce27da27902b"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				// bae-9d52c335-c8e3-5782-8daa-e359c106e0ab
 				Doc: `{
@@ -143,7 +144,7 @@ func TestQueryOneToManyWithNumericGreaterThanChildFilterOnParentWithUnrenderedCh
 					"verified": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				// bae-3d5a3204-4e55-5236-992a-ce27da27902b
 				Doc: `{
@@ -152,7 +153,7 @@ func TestQueryOneToManyWithNumericGreaterThanChildFilterOnParentWithUnrenderedCh
 					"verified": false
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Author(filter: {published: {rating: {_gt: 4.8}}, age: {_gt: 63}}) {
 						name
@@ -175,35 +176,35 @@ func TestQueryOneToManyWithNumericGreaterThanChildFilterOnParentWithUnrenderedCh
 func TestQueryOneToManyWithNumericGreaterThanFilterOnParentAndChild(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: bookAuthorGQLSchema,
+			&action.AddCollection{
+				SDL: bookAuthorGQLSchema,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				// bae-8627532a-2ed3-50ed-91d5-26f6b9b44c25
 				Doc: `{
 					"name": "Painted House",
 					"rating": 4.9,
-					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
+					"_authorID": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "A Time for Mercy",
 					"rating": 4.5,
-					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
+					"_authorID": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Theif Lord",
 					"rating": 4.8,
-					"author_id": "bae-3d5a3204-4e55-5236-992a-ce27da27902b"
+					"_authorID": "bae-3d5a3204-4e55-5236-992a-ce27da27902b"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				// bae-9d52c335-c8e3-5782-8daa-e359c106e0ab
 				Doc: `{
@@ -212,7 +213,7 @@ func TestQueryOneToManyWithNumericGreaterThanFilterOnParentAndChild(t *testing.T
 					"verified": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				// bae-3d5a3204-4e55-5236-992a-ce27da27902b
 				Doc: `{
@@ -221,7 +222,7 @@ func TestQueryOneToManyWithNumericGreaterThanFilterOnParentAndChild(t *testing.T
 					"verified": false
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Author(filter: {age: {_gt: 63}}) {
 						name
@@ -256,35 +257,35 @@ func TestQueryOneToManyWithNumericGreaterThanFilterOnParentAndChild(t *testing.T
 func TestQueryOneToManyWithMultipleAliasedFilteredChildren(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: bookAuthorGQLSchema,
+			&action.AddCollection{
+				SDL: bookAuthorGQLSchema,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				// bae-8627532a-2ed3-50ed-91d5-26f6b9b44c25
 				Doc: `{
 					"name": "Painted House",
 					"rating": 4.9,
-					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
+					"_authorID": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "A Time for Mercy",
 					"rating": 4.5,
-					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
+					"_authorID": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Theif Lord",
 					"rating": 4.8,
-					"author_id": "bae-3d5a3204-4e55-5236-992a-ce27da27902b"
+					"_authorID": "bae-3d5a3204-4e55-5236-992a-ce27da27902b"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				// bae-9d52c335-c8e3-5782-8daa-e359c106e0ab
 				Doc: `{
@@ -293,7 +294,7 @@ func TestQueryOneToManyWithMultipleAliasedFilteredChildren(t *testing.T) {
 					"verified": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				// bae-3d5a3204-4e55-5236-992a-ce27da27902b
 				Doc: `{
@@ -302,7 +303,7 @@ func TestQueryOneToManyWithMultipleAliasedFilteredChildren(t *testing.T) {
 					"verified": false
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Author {
 						name
@@ -359,42 +360,42 @@ func TestQueryOneToManyWithMultipleAliasedFilteredChildren(t *testing.T) {
 func TestQueryOneToManyWithCompoundOperatorInFilterAndRelation(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: bookAuthorGQLSchema,
+			&action.AddCollection{
+				SDL: bookAuthorGQLSchema,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Painted House",
 					"rating": 4.9,
-					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
+					"_authorID": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "A Time for Mercy",
 					"rating": 4.5,
-					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
+					"_authorID": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Theif Lord",
 					"rating": 4.8,
-					"author_id": "bae-3d5a3204-4e55-5236-992a-ce27da27902b"
+					"_authorID": "bae-3d5a3204-4e55-5236-992a-ce27da27902b"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "The Lord of the Rings",
 					"rating": 5.0,
-					"author_id": "bae-3027a2d8-0820-5db3-a25f-20239a3571c8"
+					"_authorID": "bae-3027a2d8-0820-5db3-a25f-20239a3571c8"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				// bae-9d52c335-c8e3-5782-8daa-e359c106e0ab
 				Doc: `{
@@ -403,7 +404,7 @@ func TestQueryOneToManyWithCompoundOperatorInFilterAndRelation(t *testing.T) {
 					"verified": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				// bae-3d5a3204-4e55-5236-992a-ce27da27902b
 				Doc: `{
@@ -412,7 +413,7 @@ func TestQueryOneToManyWithCompoundOperatorInFilterAndRelation(t *testing.T) {
 					"verified": false
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				// bae-3027a2d8-0820-5db3-a25f-20239a3571c8
 				Doc: `{
@@ -421,7 +422,7 @@ func TestQueryOneToManyWithCompoundOperatorInFilterAndRelation(t *testing.T) {
 					"verified": true
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Author(filter: {_or: [
 						{_and: [
@@ -429,7 +430,7 @@ func TestQueryOneToManyWithCompoundOperatorInFilterAndRelation(t *testing.T) {
 							{published: {rating: {_gt: 4.8}}}
 						]},
 						{_and: [
-							{age: {_le: 65}},
+							{age: {_leq: 65}},
 							{published: {name: {_like: "%Lord%"}}}
 						]},
 					]}) {
@@ -448,7 +449,7 @@ func TestQueryOneToManyWithCompoundOperatorInFilterAndRelation(t *testing.T) {
 				},
 				NonOrderedResults: true,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Author(filter: {_and: [
 						{ _not: {published: {rating: {_gt: 4.8}}}},
@@ -471,10 +472,10 @@ func TestQueryOneToManyWithCompoundOperatorInFilterAndRelation(t *testing.T) {
 func TestQueryOneToMany_WithCompoundOperatorInFilterAndRelationAndCaseInsensitiveLike_NoError(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: bookAuthorGQLSchema,
+			&action.AddCollection{
+				SDL: bookAuthorGQLSchema,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "John Grisham",
@@ -482,7 +483,7 @@ func TestQueryOneToMany_WithCompoundOperatorInFilterAndRelationAndCaseInsensitiv
 					"verified": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "Cornelia Funke",
@@ -490,7 +491,7 @@ func TestQueryOneToMany_WithCompoundOperatorInFilterAndRelationAndCaseInsensitiv
 					"verified": false
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "John Tolkien",
@@ -498,39 +499,39 @@ func TestQueryOneToMany_WithCompoundOperatorInFilterAndRelationAndCaseInsensitiv
 					"verified": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "Painted House",
 					"rating":    4.9,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "A Time for Mercy",
 					"rating":    4.5,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "Theif Lord",
 					"rating":    4.8,
-					"author_id": testUtils.NewDocIndex(1, 1),
+					"_authorID": testUtils.NewDocIndex(1, 1),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "The Lord of the Rings",
 					"rating":    5.0,
-					"author_id": testUtils.NewDocIndex(1, 2),
+					"_authorID": testUtils.NewDocIndex(1, 2),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Author(filter: {_or: [
 						{_and: [
@@ -538,7 +539,7 @@ func TestQueryOneToMany_WithCompoundOperatorInFilterAndRelationAndCaseInsensitiv
 							{published: {rating: {_gt: 4.8}}}
 						]},
 						{_and: [
-							{age: {_le: 65}},
+							{age: {_leq: 65}},
 							{published: {name: {_ilike: "%lord%"}}}
 						]},
 					]}) {
@@ -565,35 +566,35 @@ func TestQueryOneToMany_WithCompoundOperatorInFilterAndRelationAndCaseInsensitiv
 func TestQueryOneToMany_WithAliasFilterOnRelated_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: bookAuthorGQLSchema,
+			&action.AddCollection{
+				SDL: bookAuthorGQLSchema,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				// bae-8627532a-2ed3-50ed-91d5-26f6b9b44c25
 				Doc: `{
 					"name": "Painted House",
 					"rating": 4.9,
-					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
+					"_authorID": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "A Time for Mercy",
 					"rating": 4.5,
-					"author_id": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
+					"_authorID": "bae-9d52c335-c8e3-5782-8daa-e359c106e0ab"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Theif Lord",
 					"rating": 4.8,
-					"author_id": "bae-3d5a3204-4e55-5236-992a-ce27da27902b"
+					"_authorID": "bae-3d5a3204-4e55-5236-992a-ce27da27902b"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				// bae-9d52c335-c8e3-5782-8daa-e359c106e0ab
 				Doc: `{
@@ -602,7 +603,7 @@ func TestQueryOneToMany_WithAliasFilterOnRelated_Succeeds(t *testing.T) {
 					"verified": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				// bae-3d5a3204-4e55-5236-992a-ce27da27902b
 				Doc: `{
@@ -611,7 +612,7 @@ func TestQueryOneToMany_WithAliasFilterOnRelated_Succeeds(t *testing.T) {
 					"verified": false
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Author(filter: {_alias: {books: {rating: {_gt: 4.8}}}}) {
 						name

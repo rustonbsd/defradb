@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package one_to_one
 
@@ -19,12 +20,12 @@ import (
 )
 
 func TestMutationUpdateOneToOne_SelfReferencingFromPrimary(t *testing.T) {
-	user1ID := "bae-0e45c185-722e-5795-9205-98d8a488e364"
+	user1ID := "bae-1d57efc8-a1f3-5b0e-9d08-51e03359285e"
 
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						boss: User @primary
@@ -32,12 +33,12 @@ func TestMutationUpdateOneToOne_SelfReferencingFromPrimary(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Fred"
 				}`,
@@ -46,12 +47,12 @@ func TestMutationUpdateOneToOne_SelfReferencingFromPrimary(t *testing.T) {
 				DocID: 1,
 				Doc: fmt.Sprintf(
 					`{
-						"boss_id": "%s"
+						"_bossID": "%s"
 					}`,
 					user1ID,
 				),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						User {
@@ -77,7 +78,7 @@ func TestMutationUpdateOneToOne_SelfReferencingFromPrimary(t *testing.T) {
 				},
 				NonOrderedResults: true,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						User {

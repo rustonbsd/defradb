@@ -1,37 +1,39 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package inline_array
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
 func TestQueryInlineStringArray_WithAnyFilter_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"pageHeaders": ["first", "second"]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Fred",
 					"pageHeaders": [null, "second"]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(filter: {pageHeaders: {_any: {_eq: null}}}) {
 						name
@@ -54,19 +56,19 @@ func TestQueryInlineStringArray_WithAnyFilter_Succeeds(t *testing.T) {
 func TestQueryInlineNotNullStringArray_WithAnyFilter_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"preferredStrings": ["first", "second"]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Fred",
 					"preferredStrings": ["", "second"]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(filter: {preferredStrings: {_any: {_eq: ""}}}) {
 						name
@@ -89,19 +91,19 @@ func TestQueryInlineNotNullStringArray_WithAnyFilter_Succeeds(t *testing.T) {
 func TestQueryInlineIntArray_WithAnyFilter_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"testScores": [50, 80]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Fred",
 					"testScores": [null, 60]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(filter: {testScores: {_any: {_eq: null}}}) {
 						name
@@ -124,19 +126,19 @@ func TestQueryInlineIntArray_WithAnyFilter_Succeeds(t *testing.T) {
 func TestQueryInlineNotNullIntArray_WithAnyFilter_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"testScores": [50, 80]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Fred",
 					"testScores": [0, 60]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(filter: {testScores: {_any: {_gt: 70}}}) {
 						name
@@ -159,19 +161,19 @@ func TestQueryInlineNotNullIntArray_WithAnyFilter_Succeeds(t *testing.T) {
 func TestQueryInlineFloatArray_WithAnyFilter_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"pageRatings": [50, 80]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Fred",
 					"pageRatings": [null, 60]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(filter: {pageRatings: {_any: {_eq: null}}}) {
 						name
@@ -194,19 +196,19 @@ func TestQueryInlineFloatArray_WithAnyFilter_Succeeds(t *testing.T) {
 func TestQueryInlineNotNullFloatArray_WithAnyFilter_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"pageRatings": [50, 80]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Fred",
 					"pageRatings": [0, 60]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(filter: {pageRatings: {_any: {_gt: 70}}}) {
 						name
@@ -229,19 +231,19 @@ func TestQueryInlineNotNullFloatArray_WithAnyFilter_Succeeds(t *testing.T) {
 func TestQueryInlineBooleanArray_WithAnyFilter_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"indexLikesDislikes": [false, false]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Fred",
 					"indexLikesDislikes": [null, true]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(filter: {indexLikesDislikes: {_any: {_eq: null}}}) {
 						name
@@ -264,19 +266,19 @@ func TestQueryInlineBooleanArray_WithAnyFilter_Succeeds(t *testing.T) {
 func TestQueryInlineNotNullBooleanArray_WithAnyFilter_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"likedIndexes": [false, false]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Fred",
 					"likedIndexes": [true, true]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(filter: {likedIndexes: {_any: {_eq: true}}}) {
 						name
@@ -299,13 +301,13 @@ func TestQueryInlineNotNullBooleanArray_WithAnyFilter_Succeeds(t *testing.T) {
 func TestQueryInlineStringArray_WithAnyFilterAndNullValue_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Islam",
 					"pageHeaders": null
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(filter: {pageHeaders: {_any: {_eq: null}}}) {
 						name

@@ -20,8 +20,10 @@ import (
 	"github.com/sourcenetwork/immutable"
 
 	"github.com/sourcenetwork/defradb/client"
+	"github.com/sourcenetwork/defradb/client/options"
 	"github.com/sourcenetwork/defradb/client/request"
 	"github.com/sourcenetwork/defradb/internal/core"
+	"github.com/sourcenetwork/defradb/internal/db/description"
 	"github.com/sourcenetwork/defradb/internal/db/id"
 	"github.com/sourcenetwork/defradb/internal/keys"
 	"github.com/sourcenetwork/defradb/internal/planner/filter"
@@ -199,6 +201,12 @@ func (n *selectNode) Close() error {
 	return n.source.Close()
 }
 
+// checkForMigrations checks if there are any migrations registered for the given collection.
+// This is used to determine if the filter should be kept in selectNode for post-lens application.
+func (n *selectNode) checkForMigrations(col client.Collection) (bool, error) {
+	return description.HasMigrations(n.planner.ctx, col.Version().CollectionID, col.Version().VersionID)
+}
+
 func (n *selectNode) simpleExplain() (map[string]any, error) {
 	simpleExplainMap := map[string]any{}
 
@@ -266,27 +274,38 @@ func (n *selectNode) initSource() ([]aggregateNode, []*similarityNode, error) {
 		if n.selectReq.OrderBy != nil {
 			origScan.ordering = n.selectReq.OrderBy.Conditions
 		}
-		n.filter = nil
+
+		// If there are migrations, we keep the filter in selectNode so it can be applied
+		// after lens transformation. Otherwise, we nil it out as the scanNode will handle it.
+		hasMigrations, err := n.checkForMigrations(sourcePlan.collection)
+		if err != nil {
+			return nil, nil, err
+		}
+		if !hasMigrations {
+			n.filter = nil
+		}
 
 		// If we have a CID, then we need to run a TimeTravel (History-Traversing Versioned)
 		// query, which means we need to propagate the values to the underlying VersionedFetcher
-		if n.selectReq.Cid.HasValue() {
-			c, err := cid.Decode(n.selectReq.Cid.Value())
-			if err != nil {
-				return nil, nil, err
+		if n.selectReq.Cids.HasValue() {
+			prefixes := make([]keys.Walkable, len(n.selectReq.Cids.Value()))
+
+			for i, sCid := range n.selectReq.Cids.Value() {
+				c, err := cid.Decode(sCid)
+				if err != nil {
+					return nil, nil, err
+				}
+
+				prefixes[i] = keys.HeadstoreDocKey{
+					Cid: c,
+				}
 			}
 
 			// This exists because the fetcher interface demands a []Prefixes, yet the versioned
 			// fetcher type (that will be the only one consuming this []Prefixes) does not use it
 			// as a prefix. And with this design limitation this is
 			// currently the least bad way of passing the cid in to the fetcher.
-			origScan.Prefixes(
-				[]keys.Walkable{
-					keys.HeadstoreDocKey{
-						Cid: c,
-					},
-				},
-			)
+			origScan.Prefixes(prefixes)
 		} else if n.selectReq.DocIDs.HasValue() {
 			shortID, err := id.GetShortCollectionID(
 				n.planner.ctx,
@@ -325,7 +344,7 @@ func (n *selectNode) initSource() ([]aggregateNode, []*similarityNode, error) {
 			// if we can not use index for filtering, try to use index for ordering
 			origScan.index = findIndexByOrderingField(origScan)
 		}
-		origScan.initFetcher(n.selectReq.Cid)
+		origScan.initFetcher(n.selectReq.Cids)
 	}
 
 	return aggregates, similarity, nil
@@ -446,18 +465,11 @@ func (n *selectNode) initFields(selectReq *mapper.Select) ([]aggregateNode, []*s
 				commitSlct := &mapper.CommitSelect{
 					Select: *f,
 				}
-				// handle _version sub selection query differently
-				// if we are executing a regular Scan query
-				// or a TimeTravel query.
-				if selectReq.Cid.HasValue() {
-					// for a TimeTravel query, we don't need the Latest
-					// commit. Instead, _version references the CID
-					// of that Target version we are querying.
-					// So instead of a LatestCommit subquery, we need
-					// a commits query with max depth starting from the
-					// target CID version
-					commitSlct.DocID = immutable.Some(selectReq.DocIDs.Value()[0]) // @todo check length
-					commitSlct.Cid = selectReq.Cid
+
+				if selectReq.Cids.HasValue() {
+					commitSlct.Cids = selectReq.Cids
+
+					// We want all the commits, so set the maximum depth
 					commitSlct.Depth = immutable.Some(uint64(math.MaxUint64))
 				}
 
@@ -498,7 +510,7 @@ func isSpecialNoOpField(field *mapper.Select, parentField *mapper.Select) bool {
 	if field.CollectionName != "" {
 		return false
 	}
-	isCommit := parentField.Name == request.CommitsName || parentField.Name == request.LatestCommitsName
+	isCommit := parentField.Name == request.CommitsName
 	return isCommit && (field.Name == request.LinksFieldName || field.Name == request.SignatureFieldName)
 }
 
@@ -522,6 +534,15 @@ func (p *Planner) SelectFromSource(
 	fromCollection bool,
 	collection client.Collection,
 ) (planNode, error) {
+	return p.SelectTopNodeFromSource(selectReq, source, fromCollection, collection)
+}
+
+func (p *Planner) SelectTopNodeFromSource(
+	selectReq *mapper.Select,
+	source planNode,
+	fromCollection bool,
+	collection client.Collection,
+) (*selectTopNode, error) {
 	s := &selectNode{
 		planner:    p,
 		source:     source,
@@ -540,7 +561,11 @@ func (p *Planner) SelectFromSource(
 	}
 
 	if fromCollection {
-		col, err := p.db.GetCollectionByName(p.ctx, selectReq.Name)
+		col, err := p.db.GetCollectionByName(
+			p.ctx,
+			selectReq.Name,
+			options.WithIdentity(options.GetCollectionByName(), p.identity),
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -582,7 +607,11 @@ func (p *Planner) SelectFromSource(
 
 // SelectEncrypted constructs a plan for searchable encryption queries
 func (p *Planner) SelectEncrypted(selectReq *mapper.Select) (planNode, error) {
-	col, err := p.db.GetCollectionByName(p.ctx, selectReq.CollectionName)
+	col, err := p.db.GetCollectionByName(
+		p.ctx,
+		selectReq.CollectionName,
+		options.WithIdentity(options.GetCollectionByName(), p.identity),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -612,7 +641,10 @@ func (p *Planner) Select(selectReq *mapper.Select) (planNode, error) {
 	if selectReq.IsEncrypted {
 		return p.SelectEncrypted(selectReq)
 	}
+	return p.SelectTopNode(selectReq)
+}
 
+func (p *Planner) SelectTopNode(selectReq *mapper.Select) (*selectTopNode, error) {
 	s := &selectNode{
 		planner:   p,
 		filter:    selectReq.Filter,

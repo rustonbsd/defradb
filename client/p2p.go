@@ -18,69 +18,136 @@ import (
 	"github.com/ipfs/go-cid"
 
 	"github.com/sourcenetwork/corekv/blockstore"
+
+	"github.com/sourcenetwork/defradb/client/options"
 )
 
 // P2P is a peer connected database implementation.
 type P2P interface {
 	// PeerInfo returns the p2p host list of addresses.
-	PeerInfo() ([]string, error)
+	PeerInfo(ctx context.Context, opts ...options.Enumerable[options.PeerInfoOptions]) ([]string, error)
+
+	// ActivePeers returns the addresses of peers that are currently connected to.
+	//
+	// Addresses are returned in the multiaddr format (e.g. /ip4/127.0.0.1/tcp/4001/p2p/<PeerID>).
+	ActivePeers(ctx context.Context, opts ...options.Enumerable[options.ActivePeersOptions]) ([]string, error)
 
 	// Connect tries to connect to the peer with the given [PeerInfo].
-	Connect(ctx context.Context, addresses []string) error
+	Connect(ctx context.Context, addresses []string, opts ...options.Enumerable[options.ConnectOptions]) error
 
-	// SetReplicator adds a replicator to the persisted list or adds
-	// schemas if the replicator already exists.
-	SetReplicator(ctx context.Context, addresses []string, collectionNames ...string) error
+	// AddReplicator adds a replicator to the persisted list or adds
+	// collections if the replicator already exists.
+	AddReplicator(
+		ctx context.Context,
+		addresses []string,
+		opts ...options.Enumerable[options.AddReplicatorOptions],
+	) error
+
 	// DeleteReplicator deletes a replicator from the persisted list
-	// or specific schemas if they are specified.
-	DeleteReplicator(ctx context.Context, id string, collectionNames ...string) error
-	// GetAllReplicators returns the full list of replicators with their
-	// subscribed schemas.
-	GetAllReplicators(ctx context.Context) ([]Replicator, error)
+	// or specific collections if they are specified.
+	DeleteReplicator(
+		ctx context.Context,
+		id string,
+		opts ...options.Enumerable[options.DeleteReplicatorOptions],
+	) error
+
+	// ListReplicators returns the full list of replicators with their
+	// subscribed collections.
+	ListReplicators(ctx context.Context, opts ...options.Enumerable[options.ListReplicatorsOptions]) ([]Replicator, error)
 
 	// AddP2PCollections adds the given collections to the P2P system and
 	// subscribes to their topics. It will error if any of the provided
 	// collection names are invalid.
-	AddP2PCollections(ctx context.Context, collectionNames ...string) error
+	AddP2PCollections(
+		ctx context.Context,
+		collectionNames []string,
+		opts ...options.Enumerable[options.AddP2PCollectionsOptions],
+	) error
 
-	// RemoveP2PCollections removes the given collections from the P2P system and
+	// DeleteP2PCollections deletes the given collections from the P2P system and
 	// unsubscribes from their topics. It will error if the provided
 	// collection names are invalid.
-	RemoveP2PCollections(ctx context.Context, collectionNames ...string) error
+	DeleteP2PCollections(
+		ctx context.Context,
+		collectionNames []string,
+		opts ...options.Enumerable[options.DeleteP2PCollectionsOptions],
+	) error
 
-	// GetAllP2PCollections returns the list of persisted collection names that
+	// ListP2PCollections returns the list of persisted collection names that
 	// the P2P system subscribes to.
-	GetAllP2PCollections(ctx context.Context) ([]string, error)
+	ListP2PCollections(
+		ctx context.Context,
+		opts ...options.Enumerable[options.ListP2PCollectionsOptions],
+	) ([]string, error)
 
 	// AddP2PDocuments adds the given docIDs to the P2P system and
 	// subscribes to their topics. It will error if any of the provided
 	// docIDs are invalid.
-	AddP2PDocuments(ctx context.Context, docIDs ...string) error
+	AddP2PDocuments(
+		ctx context.Context,
+		docIDs []string,
+		opts ...options.Enumerable[options.AddP2PDocumentsOptions],
+	) error
 
-	// RemoveP2PDocuments removes the given docIDs from the P2P system and
+	// DeleteP2PDocuments removes the given docIDs from the P2P system and
 	// unsubscribes from their topics. It will error if the provided
 	// docIDs are invalid.
-	RemoveP2PDocuments(ctx context.Context, docIDs ...string) error
+	DeleteP2PDocuments(
+		ctx context.Context,
+		docIDs []string,
+		opts ...options.Enumerable[options.DeleteP2PDocumentsOptions],
+	) error
 
-	// GetAllP2PDocuments returns the list of persisted docIDs that
+	// ListP2PDocuments returns the list of persisted docIDs that
 	// the P2P system subscribes to.
-	GetAllP2PDocuments(ctx context.Context) ([]string, error)
+	ListP2PDocuments(ctx context.Context, opts ...options.Enumerable[options.ListP2PDocumentsOptions]) ([]string, error)
 
 	// SyncDocuments requests the latest versions of specified documents from the network
 	// and synchronizes their DAGs locally. It doesn't automatically subscribe
 	// to the documents or their collection for future updates.
 	// context.WithTimeout can be used to set a timeout for the operation.
-	SyncDocuments(ctx context.Context, collectionName string, docIDs []string) error
+	SyncDocuments(
+		ctx context.Context,
+		collectionName string,
+		docIDs []string,
+		opts ...options.Enumerable[options.SyncDocumentsOptions],
+	) error
 
-	// SyncCollections syncs the given collection versions to the local node.
+	// SyncCollectionVersions synchronizes the given collection versions to local node.
 	//
 	// It will not complete until a version is found, so it is strongly recommended
 	// to set a timeout using `context.WithTimeout`.
-	SyncCollections(ctx context.Context, versionIDs ...string) error
+	SyncCollectionVersions(
+		ctx context.Context,
+		versionIDs []string,
+		opts ...options.Enumerable[options.SyncCollectionVersionsOptions],
+	) error
+
+	// SyncBranchableCollection requests the latest version of the branchable collection's DAG
+	// from the network and synchronizes it locally. This syncs the collection-level history
+	// for branchable collections (collections marked with @branchable directive).
+	// It doesn't automatically subscribe to the collection for future updates.
+	// context.WithTimeout can be used to set a timeout for the operation.
+	SyncBranchableCollection(
+		ctx context.Context,
+		collectionID string,
+		opts ...options.Enumerable[options.SyncBranchableCollectionOptions],
+	) error
 }
 
 type StreamHandler = func(stream io.Reader, peerID string)
 type PubsubMessageHandler = func(from string, topic string, msg []byte) ([]byte, error)
+
+const (
+	// PeerEventTypeJoined indicates that a peer has joined a pubsub topic.
+	PeerEventTypeJoined = "JOINED"
+	// PeerEventTypeLeft indicates that a peer has left a pubsub topic.
+	PeerEventTypeLeft = "LEFT"
+)
+
+// PeerEventHandler is called when a peer joins or leaves a pubsub topic.
+// The joined parameter is true when the peer joins, false when the peer leaves.
+type PeerEventHandler = func(peerID string, topic string, eventType string)
 type BlockAccessFunc = func(ctx context.Context, peerID string, c cid.Cid) bool
 
 type PeerInfo struct {
@@ -109,6 +176,10 @@ type Host interface {
 	ID() string
 	// Addrs returns the host's list of addresses.
 	Addresses() ([]string, error)
+	// ActivePeers returns the addresses of peers that are currently connected to.
+	//
+	// Addresses are returned in the multiaddr format (e.g. /ip4/127.0.0.1/tcp/4001/p2p/<PeerID>).
+	ActivePeers() ([]string, error)
 	// Pubkey return the byte slice representation of the host's public key.
 	Pubkey() ([]byte, error)
 	// Connect tries to connect to the peer with the given addresses.
@@ -123,7 +194,10 @@ type Host interface {
 	// handle them with the given handler.
 	SetStreamHandler(protocolID string, handler StreamHandler)
 	// AddPubSubTopic adds a pubsub topic to the host.
-	AddPubSubTopic(topicName string, subscribe bool, handler PubsubMessageHandler) error
+	// If subscribe is true, the peer will subscribe to the topic and receive messages.
+	// The handler is called for each incoming message on the topic.
+	// The eventHandler, if not nil, is called when peers join or leave the topic.
+	AddPubSubTopic(topicName string, subscribe bool, handler PubsubMessageHandler, eventHandler PeerEventHandler) error
 	// RemovePubSubTopic removes the given topic from the host.
 	RemovePubSubTopic(topic string) error
 	// PublishToTopicAsync sends a new message on the given topic without waiting for a response.

@@ -1,12 +1,13 @@
-// Copyright 2025 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 //go:build !js
 
@@ -17,6 +18,7 @@ import (
 	"fmt"
 
 	cbindings "github.com/sourcenetwork/defradb/cbindings"
+	prodHttp "github.com/sourcenetwork/defradb/http"
 	"github.com/sourcenetwork/defradb/node"
 	"github.com/sourcenetwork/defradb/tests/clients"
 	"github.com/sourcenetwork/defradb/tests/clients/cli"
@@ -39,6 +41,10 @@ func init() {
 // testing state. The client type on the test state is used to
 // select the client implementation to use.
 func setupClient(s *state.State, nodeObj *node.Node) (clients.Client, error) {
+	// The test suite completely bypasses the way production consumes the node options,
+	// including the configuration of IsDevMode, so we have to hard code it here for now.
+	prodHttp.IsDevMode = true
+
 	switch s.ClientType {
 	case state.HTTPClientType:
 		return http.NewWrapper(nodeObj)

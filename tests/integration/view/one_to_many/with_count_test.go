@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package one_to_many
 
@@ -22,8 +23,8 @@ import (
 func TestView_OneToManyWithCount_Errors(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Author {
 						name: String
 						books: [Book]
@@ -34,46 +35,46 @@ func TestView_OneToManyWithCount_Errors(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddView{
 				Query: `
 					Author {
 						name
-						_count(books: {})
+						COUNT(books: {})
 					}
 				`,
 				SDL: `
 					type AuthorView @materialized(if: false) {
 						name: String
-						_count: Int
+						COUNT: Int
 					}
 				`,
 			},
 			// bae-ef9cd756-08e1-5f23-abeb-7b3e6351a68d
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name":	"Harper Lee"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name":	"To Kill a Mockingbird",
-					"author_id": "bae-ef9cd756-08e1-5f23-abeb-7b3e6351a68d"
+					"_authorID": "bae-ef9cd756-08e1-5f23-abeb-7b3e6351a68d"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name":	"Go Set a Watchman",
-					"author_id": "bae-ef9cd756-08e1-5f23-abeb-7b3e6351a68d"
+					"_authorID": "bae-ef9cd756-08e1-5f23-abeb-7b3e6351a68d"
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 							AuthorView {
 								name
-								_count
+								COUNT
 							}
 						}`,
 				ExpectedError: "aggregate must be provided with a property to aggregate",
@@ -87,8 +88,8 @@ func TestView_OneToManyWithCount_Errors(t *testing.T) {
 func TestView_OneToManyWithAliasedCount(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Author {
 						name: String
 						books: [Book]
@@ -99,11 +100,11 @@ func TestView_OneToManyWithAliasedCount(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddView{
 				Query: `
 					Author {
 						name
-						numberOfBooks: _count(books: {})
+						numberOfBooks: COUNT(books: {})
 					}
 				`,
 				SDL: `
@@ -113,27 +114,27 @@ func TestView_OneToManyWithAliasedCount(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name":	"Harper Lee"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "To Kill a Mockingbird",
-					"author_id": testUtils.NewDocIndex(0, 0),
+					"_authorID": testUtils.NewDocIndex(0, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "Go Set a Watchman",
-					"author_id": testUtils.NewDocIndex(0, 0),
+					"_authorID": testUtils.NewDocIndex(0, 0),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						AuthorView {
@@ -160,8 +161,8 @@ func TestView_OneToManyWithAliasedCount(t *testing.T) {
 func TestView_OneToManyWithCountInQueryButNotSDL(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Author {
 						name: String
 						books: [Book]
@@ -172,11 +173,11 @@ func TestView_OneToManyWithCountInQueryButNotSDL(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddView{
 				Query: `
 					Author {
 						name
-						_count(books: {})
+						COUNT(books: {})
 					}
 				`,
 				SDL: `
@@ -185,13 +186,13 @@ func TestView_OneToManyWithCountInQueryButNotSDL(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name":	"Harper Lee"
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						AuthorView {

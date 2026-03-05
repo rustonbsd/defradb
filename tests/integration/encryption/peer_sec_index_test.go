@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package encryption
 
@@ -25,8 +26,8 @@ func TestDocEncryptionPeer_IfEncryptedDocHasIndexedField_ShouldIndexAfterDecrypt
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						age: Int @index
@@ -37,36 +38,36 @@ func TestDocEncryptionPeer_IfEncryptedDocHasIndexedField_ShouldIndexAfterDecrypt
 				SourceNodeID: 1,
 				TargetNodeID: 0,
 			},
-			testUtils.SubscribeToCollection{
+			testUtils.AddCollectionSubscription{
 				NodeID:        1,
 				CollectionIDs: []int{0},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 						"name":	"Shahzad",
 						"age":	25
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID:         immutable.Some(0),
 				Doc:            islam33Doc,
 				IsDocEncrypted: true,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 						"name":	"Andy",
 						"age":	21
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID:         immutable.Some(0),
 				Doc:            john21Doc,
 				IsDocEncrypted: true,
 			},
 			testUtils.WaitForSync{},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query @explain(type: execute) {
 						User(filter: {age: {_eq: 21}}) {
@@ -75,7 +76,7 @@ func TestDocEncryptionPeer_IfEncryptedDocHasIndexedField_ShouldIndexAfterDecrypt
 					}`,
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(2),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						User(filter: {age: {_eq: 21}}) {
@@ -105,8 +106,8 @@ func TestDocEncryptionPeer_IfDocDocHasEncryptedIndexedField_ShouldIndexAfterDecr
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						age: Int @index
@@ -117,36 +118,36 @@ func TestDocEncryptionPeer_IfDocDocHasEncryptedIndexedField_ShouldIndexAfterDecr
 				SourceNodeID: 1,
 				TargetNodeID: 0,
 			},
-			testUtils.SubscribeToCollection{
+			testUtils.AddCollectionSubscription{
 				NodeID:        1,
 				CollectionIDs: []int{0},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 						"name":	"Shahzad",
 						"age":	25
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID:          immutable.Some(0),
 				Doc:             islam33Doc,
 				EncryptedFields: []string{"age"},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 						"name":	"Andy",
 						"age":	21
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID:          immutable.Some(0),
 				Doc:             john21Doc,
 				EncryptedFields: []string{"age"},
 			},
 			testUtils.WaitForSync{},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query @explain(type: execute) {
 						User(filter: {age: {_eq: 21}}) {

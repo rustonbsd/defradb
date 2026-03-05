@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_acp_dac_relationship_doc_actor_delete
 
@@ -26,59 +27,42 @@ func TestACP_DeleteDocActorRelationshipMissingDocID_Error(t *testing.T) {
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: Test Policy
-
-                    description: A Policy
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader + updater + deleter
-
-                          update:
-                            expr: owner + updater
-
-                          delete:
-                            expr: owner + deleter
-
-                          nothing:
-                            expr: dummy
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-
-                          reader:
-                            types:
-                              - actor
-
-                          updater:
-                            types:
-                              - actor
-
-                          deleter:
-                            types:
-                              - actor
-
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-
-                          dummy:
-                            types:
-                              - actor
-                `,
+description: A Policy
+name: Test Policy
+resources:
+- name: users
+  permissions:
+  - expr: deleter
+    name: delete
+  - expr: dummy
+    name: nothing
+  - expr: reader + updater + deleter
+    name: read
+  - expr: updater
+    name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: deleter
+    types:
+    - actor
+  - name: dummy
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+  - name: updater
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 						type Users @policy(
 							id: "{{.Policy0}}",
 							resource: "users"
@@ -89,7 +73,7 @@ func TestACP_DeleteDocActorRelationshipMissingDocID_Error(t *testing.T) {
 					`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Identity: testUtils.ClientIdentity(1),
 
 				CollectionID: 0,
@@ -130,59 +114,42 @@ func TestACP_DeleteDocActorRelationshipMissingCollection_Error(t *testing.T) {
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: Test Policy
-
-                    description: A Policy
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader + updater + deleter
-
-                          update:
-                            expr: owner + updater
-
-                          delete:
-                            expr: owner + deleter
-
-                          nothing:
-                            expr: dummy
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-
-                          reader:
-                            types:
-                              - actor
-
-                          updater:
-                            types:
-                              - actor
-
-                          deleter:
-                            types:
-                              - actor
-
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-
-                          dummy:
-                            types:
-                              - actor
-                `,
+description: A Policy
+name: Test Policy
+resources:
+- name: users
+  permissions:
+  - expr: deleter
+    name: delete
+  - expr: dummy
+    name: nothing
+  - expr: reader + updater + deleter
+    name: read
+  - expr: updater
+    name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: deleter
+    types:
+    - actor
+  - name: dummy
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+  - name: updater
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 						type Users @policy(
 							id: "{{.Policy0}}",
 							resource: "users"
@@ -193,7 +160,7 @@ func TestACP_DeleteDocActorRelationshipMissingCollection_Error(t *testing.T) {
 					`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Identity: testUtils.ClientIdentity(1),
 
 				CollectionID: 0,
@@ -234,59 +201,42 @@ func TestACP_DeleteDocActorRelationshipMissingRelationName_Error(t *testing.T) {
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: Test Policy
-
-                    description: A Policy
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader + updater + deleter
-
-                          update:
-                            expr: owner + updater
-
-                          delete:
-                            expr: owner + deleter
-
-                          nothing:
-                            expr: dummy
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-
-                          reader:
-                            types:
-                              - actor
-
-                          updater:
-                            types:
-                              - actor
-
-                          deleter:
-                            types:
-                              - actor
-
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-
-                          dummy:
-                            types:
-                              - actor
-                `,
+description: A Policy
+name: Test Policy
+resources:
+- name: users
+  permissions:
+  - expr: deleter
+    name: delete
+  - expr: dummy
+    name: nothing
+  - expr: reader + updater + deleter
+    name: read
+  - expr: updater
+    name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: deleter
+    types:
+    - actor
+  - name: dummy
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+  - name: updater
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 						type Users @policy(
 							id: "{{.Policy0}}",
 							resource: "users"
@@ -297,7 +247,7 @@ func TestACP_DeleteDocActorRelationshipMissingRelationName_Error(t *testing.T) {
 					`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Identity: testUtils.ClientIdentity(1),
 
 				CollectionID: 0,
@@ -338,59 +288,42 @@ func TestACP_DeleteDocActorRelationshipMissingTargetActorName_Error(t *testing.T
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: Test Policy
-
-                    description: A Policy
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader + updater + deleter
-
-                          update:
-                            expr: owner + updater
-
-                          delete:
-                            expr: owner + deleter
-
-                          nothing:
-                            expr: dummy
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-
-                          reader:
-                            types:
-                              - actor
-
-                          updater:
-                            types:
-                              - actor
-
-                          deleter:
-                            types:
-                              - actor
-
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-
-                          dummy:
-                            types:
-                              - actor
-                `,
+description: A Policy
+name: Test Policy
+resources:
+- name: users
+  permissions:
+  - expr: deleter
+    name: delete
+  - expr: dummy
+    name: nothing
+  - expr: reader + updater + deleter
+    name: read
+  - expr: updater
+    name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: deleter
+    types:
+    - actor
+  - name: dummy
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+  - name: updater
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 						type Users @policy(
 							id: "{{.Policy0}}",
 							resource: "users"
@@ -401,7 +334,7 @@ func TestACP_DeleteDocActorRelationshipMissingTargetActorName_Error(t *testing.T
 					`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Identity: testUtils.ClientIdentity(1),
 
 				CollectionID: 0,
@@ -442,59 +375,42 @@ func TestACP_DeleteDocActorRelationshipMissingReqestingIdentityName_Error(t *tes
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: Test Policy
-
-                    description: A Policy
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader + updater + deleter
-
-                          update:
-                            expr: owner + updater
-
-                          delete:
-                            expr: owner + deleter
-
-                          nothing:
-                            expr: dummy
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-
-                          reader:
-                            types:
-                              - actor
-
-                          updater:
-                            types:
-                              - actor
-
-                          deleter:
-                            types:
-                              - actor
-
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-
-                          dummy:
-                            types:
-                              - actor
-                `,
+description: A Policy
+name: Test Policy
+resources:
+- name: users
+  permissions:
+  - expr: deleter
+    name: delete
+  - expr: dummy
+    name: nothing
+  - expr: reader + updater + deleter
+    name: read
+  - expr: updater
+    name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: deleter
+    types:
+    - actor
+  - name: dummy
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+  - name: updater
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 						type Users @policy(
 							id: "{{.Policy0}}",
 							resource: "users"
@@ -505,7 +421,7 @@ func TestACP_DeleteDocActorRelationshipMissingReqestingIdentityName_Error(t *tes
 					`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Identity: testUtils.ClientIdentity(1),
 
 				CollectionID: 0,

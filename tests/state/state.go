@@ -1,17 +1,19 @@
-// Copyright 2025 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package state
 
 import (
 	"context"
+	"sync"
 	"testing"
 
 	"github.com/ipfs/go-cid"
@@ -21,9 +23,9 @@ import (
 
 	acpIdentity "github.com/sourcenetwork/defradb/acp/identity"
 	"github.com/sourcenetwork/defradb/client"
+	"github.com/sourcenetwork/defradb/client/options"
 	"github.com/sourcenetwork/defradb/crypto"
 	"github.com/sourcenetwork/defradb/event"
-	"github.com/sourcenetwork/defradb/node"
 	"github.com/sourcenetwork/defradb/tests/clients"
 )
 
@@ -34,7 +36,35 @@ type StatefulMatcher interface {
 	ResetMatcherState()
 }
 
+// TestState is read-only interface for test state. It allows passing the state to custom matchers
+// without allowing them to modify the state.
+type TestState interface {
+	// GetClientType returns the client type of the test.
+	GetClientType() ClientType
+	// GetCurrentAssertingNodeID returns the node id that is currently being asserted.
+	GetCurrentAssertingNodeID() int
+	// GetIdentity returns the identity for the given node index.
+	GetIdentity(Identity) acpIdentity.Identity
+	// GetDocID returns the document ID for the given collection index and document index.
+	GetDocID(collectionIndex, docIndex int) client.DocID
+}
+
+// TestStateMatcher is a matcher that requires access to the test state.
+type TestStateMatcher interface {
+	types.GomegaMatcher
+	// SetTestState sets the test state.
+	SetTestState(s TestState)
+}
+
 type DatabaseType string
+
+// ViewType is the type of view to use.
+type ViewType string
+
+const (
+	CachelessViewType    ViewType = "cacheless"
+	MaterializedViewType ViewType = "materialized"
+)
 
 // KMSType is the type of KMS to use.
 type KMSType string
@@ -100,8 +130,6 @@ type P2PState struct {
 type DocHeadState struct {
 	// The actual document head.
 	CID cid.Cid
-	// Indicates if the document at the given head has been Decrypted.
-	Decrypted bool
 }
 
 // NewP2PState returns a new empty p2p state.
@@ -129,6 +157,9 @@ type EventState struct {
 
 	// SESync is the `event.SEArtifactSyncCompleteName` subscription
 	SESync event.Subscription
+
+	// TopicPeerEvent is the `event.TopicPeerEventName` subscription for peer join/leave events
+	TopicPeerEvent event.Subscription
 }
 
 // NewEventState returns an eventState with all required subscriptions.
@@ -149,11 +180,16 @@ func NewEventState(bus event.Bus) (*EventState, error) {
 	if err != nil {
 		return nil, err
 	}
+	topicPeerEvent, err := bus.Subscribe(event.TopicPeerEventName)
+	if err != nil {
+		return nil, err
+	}
 	return &EventState{
-		Merge:      merge,
-		Update:     update,
-		Replicator: replicator,
-		SESync:     seSync,
+		Merge:          merge,
+		Update:         update,
+		Replicator:     replicator,
+		SESync:         seSync,
+		TopicPeerEvent: topicPeerEvent,
 	}, nil
 }
 
@@ -165,8 +201,8 @@ type NodeState struct {
 	Event *EventState
 	// P2P contains P2P states for the node.
 	P2P *P2PState
-	// The network configurations for the nodes
-	NetOpts []node.Option
+	// The P2P network configurations for the node, cached for restarts.
+	P2POpts options.NodeP2POptions
 	// The path to any file-based databases active in this test.
 	DbPath string
 	// Collections by index present in the test.
@@ -178,7 +214,8 @@ type NodeState struct {
 	// restarted with the same address configuration.
 	CachedAddresses []string
 	// Map of docIDs to their composite CIDs.
-	Composites map[string][]cid.Cid
+	Composites     map[string][]cid.Cid
+	CompositesLock sync.RWMutex
 }
 
 // State contains all testing State.
@@ -198,11 +235,14 @@ type State struct {
 	// The type of client currently being tested.
 	ClientType ClientType
 
+	// The type of view currently being tested.
+	ViewType ViewType
+
 	// The type of Document ACP
 	DocumentACPType DocumentACPType
 
 	// The Document ACP options to share between each node (currently only used for sourcehub).
-	DocumentACPOptions []node.DocumentACPOpt
+	DocumentACPOptions *options.NodeDocumentACPOptions
 
 	// Any explicit transactions active in this test.
 	//
@@ -252,14 +292,15 @@ type State struct {
 	// The VersionIDs of all collection versions created so far by the test.
 	//
 	// WARNING: This does not actually include patch versions yet.  Please add that when
-	// the need arrises.
+	// the need arises.
 	CollectionVersions []string
 
 	// Document IDs by index, by collection index.
 	//
 	// Each index is assumed to be global, and may be expected across multiple
 	// nodes.
-	DocIDs [][]client.DocID
+	DocIDs     [][]client.DocID
+	DocIDsLock sync.RWMutex
 
 	// IsBench indicates wether the test is currently being benchmarked.
 	IsBench bool
@@ -274,12 +315,16 @@ type State struct {
 	// test run. After a single test run, the StatefulMatchers are reset.
 	StatefulMatchers []StatefulMatcher
 
+	// CurrentSetupNodeID is used during setup stage to find specific attributes that are unique to a
+	// node, for example finding a specific node's NodeIdentity inorder to bypass NAC.
+	CurrentSetupNodeID int
+
 	// node id that is currently being asserted. This is used by [StatefulMatcher]s to know for which
 	// node they should be asserting. For example, the [UniqueValue] matcher checks that it is
 	// called with a value that it didn't see before, but the value should be the same for different
 	// nodes, e.g. within the same node Cids should be unique, but across different nodes the same block
 	// should have the same Cid.
-	CurrentNodeID int
+	CurrentAssertingNodeID int
 
 	// LenIDs of lenses added to Defra.
 	LensIDs []string
@@ -289,8 +334,8 @@ func (s *State) GetClientType() ClientType {
 	return s.ClientType
 }
 
-func (s *State) GetCurrentNodeID() int {
-	return s.CurrentNodeID
+func (s *State) GetCurrentAssertingNodeID() int {
+	return s.CurrentAssertingNodeID
 }
 
 func (s *State) GetIdentity(ident Identity) acpIdentity.Identity {
@@ -298,7 +343,11 @@ func (s *State) GetIdentity(ident Identity) acpIdentity.Identity {
 }
 
 func (s *State) GetDocID(collectionIndex, docIndex int) client.DocID {
-	return s.DocIDs[collectionIndex][docIndex]
+	s.DocIDsLock.RLock()
+	docID := s.DocIDs[collectionIndex][docIndex]
+	s.DocIDsLock.RUnlock()
+
+	return docID
 }
 
 // NewState returns a new fresh state for the given testCase.
@@ -310,6 +359,7 @@ func NewState(
 	kms KMSType,
 	dbt DatabaseType,
 	clientType ClientType,
+	viewType ViewType,
 	documentACPType DocumentACPType,
 	collectionNames []string,
 ) *State {
@@ -319,8 +369,8 @@ func NewState(
 		KMS:                             kms,
 		DbType:                          dbt,
 		ClientType:                      clientType,
+		ViewType:                        viewType,
 		DocumentACPType:                 documentACPType,
-		DocumentACPOptions:              []node.DocumentACPOpt{},
 		Txns:                            []client.Txn{},
 		IdentityTypes:                   identityTypes,
 		EnableSearchableEncryption:      enableSearchableEncryption,

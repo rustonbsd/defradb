@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_acp_dac_add_policy
 
@@ -24,46 +25,30 @@ func TestACP_AddPolicy_MultipleResources_ValidID(t *testing.T) {
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: test
-                    description: a policy
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-                          read:
-                            expr: owner + reader
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                      books:
-                        permissions:
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-                          read:
-                            expr: owner + reader
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                `,
+description: a policy
+name: test
+resources:
+- name: books
+  permissions:
+  - name: delete
+  - expr: reader
+    name: read
+  - name: update
+  relations:
+  - name: reader
+    types:
+    - actor
+- name: users
+  permissions:
+  - name: delete
+  - expr: reader
+    name: read
+  - name: update
+  relations:
+  - name: reader
+    types:
+    - actor
+`,
 			},
 		},
 	}
@@ -79,99 +64,28 @@ func TestACP_AddPolicy_MultipleResourcesUsingRelationDefinedInOther_Error(t *tes
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: test
-                    description: a policy
+description: a policy
+name: test
+resources:
+- name: books
+  permissions:
+  - name: delete
+  - expr: reader
+    name: read
+  - name: update
+- name: users
+  permissions:
+  - name: delete
+  - expr: reader
+    name: read
+  - name: update
+  relations:
+  - name: reader
+    types:
+    - actor
+`,
 
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-                          read:
-                            expr: owner + reader
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                      books:
-                        permissions:
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-                          read:
-                            expr: owner + reader
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                `,
-
-				ExpectedError: "resource books missing relation reader",
-			},
-		},
-	}
-
-	testUtils.ExecuteTestCase(t, test)
-}
-
-func TestACP_AddPolicy_SecondResourcesMissingRequiredOwner_Error(t *testing.T) {
-	test := testUtils.TestCase{
-
-		Actions: []any{
-			testUtils.AddDACPolicy{
-				Identity: testUtils.ClientIdentity(1),
-
-				Policy: `
-                    name: test
-                    description: a policy
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-                          read:
-                            expr: owner + reader
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                      books:
-                        permissions:
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-                          read:
-                            expr: owner + reader
-
-                        relations:
-                          reader:
-                            types:
-                              - actor
-                `,
-
-				ExpectedError: "BAD_INPUT",
+				ExpectedError: "resource does not have relation",
 			},
 		},
 	}

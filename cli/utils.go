@@ -16,7 +16,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -27,11 +26,14 @@ import (
 	"github.com/sourcenetwork/immutable"
 
 	acpIdentity "github.com/sourcenetwork/defradb/acp/identity"
+	"github.com/sourcenetwork/defradb/cli/config"
 	"github.com/sourcenetwork/defradb/client"
 	"github.com/sourcenetwork/defradb/crypto"
 	"github.com/sourcenetwork/defradb/http"
 	"github.com/sourcenetwork/defradb/internal/datastore"
+	iIdentity "github.com/sourcenetwork/defradb/internal/identity"
 	"github.com/sourcenetwork/defradb/keyring"
+	"github.com/sourcenetwork/defradb/node"
 )
 
 const (
@@ -105,7 +107,7 @@ func setContextClient(cmd *cobra.Command) error {
 // setContextConfig sets the config for the current command context.
 func setContextConfig(cmd *cobra.Command) error {
 	rootdir := mustGetContextRootDir(cmd)
-	cfg, err := loadConfig(rootdir, cmd.Flags())
+	cfg, err := config.LoadConfig(rootdir, cmd.Flags())
 	if err != nil {
 		return err
 	}
@@ -160,7 +162,7 @@ func setContextIdentity(cmd *cobra.Command, privateKeyHex string) error {
 		return err
 	}
 
-	ctx := acpIdentity.WithContext(cmd.Context(), immutable.Some[acpIdentity.Identity](ident))
+	ctx := iIdentity.WithContext(cmd.Context(), immutable.Some[acpIdentity.Identity](ident))
 	cmd.SetContext(ctx)
 	return nil
 }
@@ -172,11 +174,7 @@ func setContextRootDir(cmd *cobra.Command) error {
 		return err
 	}
 	if rootdir == "" {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return err
-		}
-		rootdir = filepath.Join(home, ".defradb")
+		rootdir = node.GetDefaultStorePath()
 	}
 	ctx := context.WithValue(cmd.Context(), rootDirContextKey, rootdir)
 	cmd.SetContext(ctx)
@@ -187,10 +185,10 @@ func setContextRootDir(cmd *cobra.Command) error {
 func openKeyring(cmd *cobra.Command) (keyring.Keyring, error) {
 	cfg := mustGetContextConfig(cmd)
 	backend := cfg.Get("keyring.backend")
-	if backend == "system" {
+	if backend == keyring.KeyringBackendSystem {
 		return keyring.OpenSystemKeyring(cfg.GetString("keyring.namespace")), nil
 	}
-	if backend != "file" {
+	if backend != keyring.KeyringBackendFile {
 		log.Info("keyring defaulted to file backend")
 	}
 	path := cfg.GetString("keyring.path")

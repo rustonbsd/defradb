@@ -1,12 +1,13 @@
-// Copyright 2025 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package searchable_encryption
 
@@ -17,21 +18,21 @@ import (
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
-// TestPatchCollection_AddEncryptedIndex_ShouldError verifies that encrypted indexes cannot be added via patch.
+// TestPatchCollection_NewEncryptedIndex_ShouldError verifies that encrypted indexes cannot be added via patch.
 // Since EncryptedIndexes is not exposed in the JSON representation, attempting to patch it
 // results in an unmarshaling error, effectively preventing the mutation.
-func TestPatchCollection_AddEncryptedIndex_ShouldError(t *testing.T) {
+func TestPatchCollection_NewEncryptedIndex_ShouldError(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 						email: String
 					}
 				`,
 			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				Patch: `
 					[
 						{
@@ -60,15 +61,15 @@ func TestPatchCollection_AddEncryptedIndex_ShouldError(t *testing.T) {
 func TestPatchCollection_RemoveEncryptedIndex_ShouldError(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 						email: String @encryptedIndex
 					}
 				`,
 			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				Patch: `
 					[
 						{
@@ -91,15 +92,15 @@ func TestPatchCollection_RemoveEncryptedIndex_ShouldError(t *testing.T) {
 func TestPatchCollection_ModifyEncryptedIndex_ShouldError(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 						email: String @encryptedIndex
 					}
 				`,
 			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				Patch: `
 					[
 						{

@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package one_to_many
 
@@ -16,7 +17,9 @@ import (
 
 	"github.com/sourcenetwork/immutable"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
+	"github.com/sourcenetwork/defradb/tests/state"
 )
 
 func TestMutationUpdateOneToMany_AliasRelationNameToLinkFromSingleSide_CollectionApi(t *testing.T) {
@@ -24,24 +27,24 @@ func TestMutationUpdateOneToMany_AliasRelationNameToLinkFromSingleSide_Collectio
 	bookID := "bae-22e0a1c2-d12b-5bfd-b039-0cf72f963991"
 
 	test := testUtils.TestCase{
-		SupportedMutationTypes: immutable.Some([]testUtils.MutationType{
-			testUtils.CollectionSaveMutationType,
-			testUtils.CollectionNamedMutationType,
+		SupportedMutationTypes: immutable.Some([]state.MutationType{
+			state.CollectionSaveMutationType,
+			state.CollectionNamedMutationType,
 		}),
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "John Grisham"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "New Shahzad"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: fmt.Sprintf(
 					`{
@@ -73,23 +76,23 @@ func TestMutationUpdateOneToMany_AliasRelationNameToLinkFromSingleSide_GQL(t *te
 	bookID := "bae-22e0a1c2-d12b-5bfd-b039-0cf72f963991"
 
 	test := testUtils.TestCase{
-		SupportedMutationTypes: immutable.Some([]testUtils.MutationType{
-			testUtils.GQLRequestMutationType,
+		SupportedMutationTypes: immutable.Some([]state.MutationType{
+			state.GQLRequestMutationType,
 		}),
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "John Grisham"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "New Shahzad"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: fmt.Sprintf(
 					`{
@@ -124,13 +127,13 @@ func TestMutationUpdateOneToMany_InvalidAliasRelationNameToLinkFromManySide_GQL(
 
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "John Grisham"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: fmt.Sprintf(
 					`{
@@ -163,13 +166,13 @@ func TestMutationUpdateOneToMany_InvalidAliasRelationNameToLinkFromManySide_Coll
 
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "John Grisham"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: fmt.Sprintf(
 					`{
@@ -201,26 +204,26 @@ func TestMutationUpdateOneToMany_AliasRelationNameToLinkFromManySideWithWrongFie
 	author2ID := "bae-31e97109-6225-5be2-8c86-b16baa2782a3"
 
 	test := testUtils.TestCase{
-		SupportedMutationTypes: immutable.Some([]testUtils.MutationType{
+		SupportedMutationTypes: immutable.Some([]state.MutationType{
 			// GQL mutation will return a different error
 			// when field types do not match
-			testUtils.CollectionNamedMutationType,
-			testUtils.CollectionSaveMutationType,
+			state.CollectionNamedMutationType,
+			state.CollectionSaveMutationType,
 		}),
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "John Grisham"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "New Shahzad"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: fmt.Sprintf(
 					`{
@@ -254,19 +257,19 @@ func TestMutationUpdateOneToMany_AliasRelationNameToLinkFromManySide(t *testing.
 
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "John Grisham"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "New Shahzad"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: fmt.Sprintf(
 					`{
@@ -286,7 +289,7 @@ func TestMutationUpdateOneToMany_AliasRelationNameToLinkFromManySide(t *testing.
 					author2ID,
 				),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
  					Author {
  						name
@@ -313,7 +316,7 @@ func TestMutationUpdateOneToMany_AliasRelationNameToLinkFromManySide(t *testing.
 				},
 				NonOrderedResults: true,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Book {
 						name

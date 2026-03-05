@@ -1,12 +1,13 @@
-// Copyright 2025 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package collection_version
 
@@ -16,25 +17,26 @@ import (
 	"github.com/sourcenetwork/immutable"
 
 	"github.com/sourcenetwork/defradb/client"
+	"github.com/sourcenetwork/defradb/client/options"
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
-func TestColSync_WithPatchVersionOfUnknownCollection(t *testing.T) {
+func TestSyncColVersion_WithPatchVersionOfUnknownCollection(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
+			&action.AddCollection{
 				// Create Users on node 0 only, node 1 has no knowledge of it
 				NodeID: immutable.Some(0),
-				Schema: `
+				SDL: `
 					type Users {
 						name: String
 					}
 				`,
 			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				NodeID: immutable.Some(0),
 				Patch: `
 					[
@@ -46,15 +48,13 @@ func TestColSync_WithPatchVersionOfUnknownCollection(t *testing.T) {
 				SourceNodeID: 0,
 				TargetNodeID: 1,
 			},
-			&action.SyncCollection{
+			&action.SyncCollectionVersions{
 				NodeID:     1,
 				VersionIDs: []string{"bafyreics7adsddesun4kqqotr6g6c6ld2t7djlwcbrm4ftbhru3ayindy4"},
 			},
-			testUtils.GetCollections{
-				FilterOptions: client.CollectionFetchOptions{
-					IncludeInactive: immutable.Some(true),
-				},
-				NodeID: immutable.Some(1),
+			&action.GetCollections{
+				FilterOptions: options.GetCollections().SetGetInactive(true),
+				NodeID:        immutable.Some(1),
 				ExpectedResults: []client.CollectionVersion{
 					{
 						Name:           "Users",
@@ -108,20 +108,20 @@ func TestColSync_WithPatchVersionOfUnknownCollection(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestColSync_WithPatchVersionOfKnownCollection(t *testing.T) {
+func TestSyncColVersion_WithPatchVersionOfKnownCollection(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
+			&action.AddCollection{
 				// Create Users on both nodes, as the active version
-				Schema: `
+				SDL: `
 					type Users {
 						name: String
 					}
 				`,
 			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				NodeID: immutable.Some(0),
 				Patch: `
 					[
@@ -133,15 +133,13 @@ func TestColSync_WithPatchVersionOfKnownCollection(t *testing.T) {
 				SourceNodeID: 0,
 				TargetNodeID: 1,
 			},
-			&action.SyncCollection{
+			&action.SyncCollectionVersions{
 				NodeID:     1,
 				VersionIDs: []string{"bafyreics7adsddesun4kqqotr6g6c6ld2t7djlwcbrm4ftbhru3ayindy4"},
 			},
-			testUtils.GetCollections{
-				FilterOptions: client.CollectionFetchOptions{
-					IncludeInactive: immutable.Some(true),
-				},
-				NodeID: immutable.Some(1),
+			&action.GetCollections{
+				FilterOptions: options.GetCollections().SetGetInactive(true),
+				NodeID:        immutable.Some(1),
 				ExpectedResults: []client.CollectionVersion{
 					{
 						Name:           "Users",

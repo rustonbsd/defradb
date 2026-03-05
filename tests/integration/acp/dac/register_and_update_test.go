@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_acp_dac
 
@@ -17,9 +18,10 @@ import (
 
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
+	"github.com/sourcenetwork/defradb/tests/state"
 )
 
-func TestACP_CreateWithoutIdentityAndUpdateWithoutIdentity_CanUpdate(t *testing.T) {
+func TestACP_AddWithoutIdentityAndUpdateWithoutIdentity_CanUpdate(t *testing.T) {
 	// The same identity that is used to do the registering/creation should be used in the
 	// final read check to see the state of that registered document.
 	// Note: In this test that identity is empty (no identity).
@@ -32,39 +34,29 @@ func TestACP_CreateWithoutIdentityAndUpdateWithoutIdentity_CanUpdate(t *testing.
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: test
-                    description: a test policy which marks a collection in a database as a resource
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-                `,
+description: a test policy which marks a collection in a database as a resource
+name: test
+resources:
+- name: users
+  permissions:
+  - name: delete
+  - expr: reader
+    name: read
+  - name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @policy(
 						id: "{{.Policy0}}",
 						resource: "users"
@@ -75,7 +67,7 @@ func TestACP_CreateWithoutIdentityAndUpdateWithoutIdentity_CanUpdate(t *testing.
 				`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 
 				Doc: `
@@ -98,7 +90,7 @@ func TestACP_CreateWithoutIdentityAndUpdateWithoutIdentity_CanUpdate(t *testing.
 				`,
 			},
 
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						Users {
@@ -125,7 +117,7 @@ func TestACP_CreateWithoutIdentityAndUpdateWithoutIdentity_CanUpdate(t *testing.
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestACP_CreateWithoutIdentityAndUpdateWithIdentity_CanUpdate(t *testing.T) {
+func TestACP_AddWithoutIdentityAndUpdateWithIdentity_CanUpdate(t *testing.T) {
 	// The same identity that is used to do the registering/creation should be used in the
 	// final read check to see the state of that registered document.
 	// Note: In this test that identity is empty (no identity).
@@ -138,39 +130,29 @@ func TestACP_CreateWithoutIdentityAndUpdateWithIdentity_CanUpdate(t *testing.T) 
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: test
-                    description: a test policy which marks a collection in a database as a resource
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-                `,
+description: a test policy which marks a collection in a database as a resource
+name: test
+resources:
+- name: users
+  permissions:
+  - name: delete
+  - expr: reader
+    name: read
+  - name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @policy(
 						id: "{{.Policy0}}",
 						resource: "users"
@@ -181,7 +163,7 @@ func TestACP_CreateWithoutIdentityAndUpdateWithIdentity_CanUpdate(t *testing.T) 
 				`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 
 				Doc: `
@@ -206,7 +188,7 @@ func TestACP_CreateWithoutIdentityAndUpdateWithIdentity_CanUpdate(t *testing.T) 
 				`,
 			},
 
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						Users {
@@ -232,7 +214,7 @@ func TestACP_CreateWithoutIdentityAndUpdateWithIdentity_CanUpdate(t *testing.T) 
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestACP_CreateWithIdentityAndUpdateWithIdentity_CanUpdate(t *testing.T) {
+func TestACP_AddWithIdentityAndUpdateWithIdentity_CanUpdate(t *testing.T) {
 	test := testUtils.TestCase{
 
 		Actions: []any{
@@ -241,39 +223,29 @@ func TestACP_CreateWithIdentityAndUpdateWithIdentity_CanUpdate(t *testing.T) {
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: test
-                    description: a test policy which marks a collection in a database as a resource
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-                `,
+description: a test policy which marks a collection in a database as a resource
+name: test
+resources:
+- name: users
+  permissions:
+  - name: delete
+  - expr: reader
+    name: read
+  - name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @policy(
 						id: "{{.Policy0}}",
 						resource: "users"
@@ -284,7 +256,7 @@ func TestACP_CreateWithIdentityAndUpdateWithIdentity_CanUpdate(t *testing.T) {
 				`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 
 				Identity: testUtils.ClientIdentity(1),
@@ -311,7 +283,7 @@ func TestACP_CreateWithIdentityAndUpdateWithIdentity_CanUpdate(t *testing.T) {
 				`,
 			},
 
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(1),
 
 				Request: `
@@ -339,13 +311,13 @@ func TestACP_CreateWithIdentityAndUpdateWithIdentity_CanUpdate(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestACP_CreateWithIdentityAndUpdateWithoutIdentity_CanNotUpdate(t *testing.T) {
+func TestACP_AddWithIdentityAndUpdateWithoutIdentity_CanNotUpdate(t *testing.T) {
 	test := testUtils.TestCase{
 
-		SupportedMutationTypes: immutable.Some([]testUtils.MutationType{
+		SupportedMutationTypes: immutable.Some([]state.MutationType{
 			// GQL mutation will return no error when wrong identity is used so test that separately.
-			testUtils.CollectionNamedMutationType,
-			testUtils.CollectionSaveMutationType,
+			state.CollectionNamedMutationType,
+			state.CollectionSaveMutationType,
 		}),
 
 		Actions: []any{
@@ -354,39 +326,29 @@ func TestACP_CreateWithIdentityAndUpdateWithoutIdentity_CanNotUpdate(t *testing.
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: test
-                    description: a test policy which marks a collection in a database as a resource
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-                `,
+description: a test policy which marks a collection in a database as a resource
+name: test
+resources:
+- name: users
+  permissions:
+  - name: delete
+  - expr: reader
+    name: read
+  - name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @policy(
 						id: "{{.Policy0}}",
 						resource: "users"
@@ -397,7 +359,7 @@ func TestACP_CreateWithIdentityAndUpdateWithoutIdentity_CanNotUpdate(t *testing.
 				`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 
 				Identity: testUtils.ClientIdentity(1),
@@ -424,7 +386,7 @@ func TestACP_CreateWithIdentityAndUpdateWithoutIdentity_CanNotUpdate(t *testing.
 				ExpectedError: "document not found or not authorized to access",
 			},
 
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(1),
 
 				Request: `
@@ -452,13 +414,13 @@ func TestACP_CreateWithIdentityAndUpdateWithoutIdentity_CanNotUpdate(t *testing.
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestACP_CreateWithIdentityAndUpdateWithWrongIdentity_CanNotUpdate(t *testing.T) {
+func TestACP_AddWithIdentityAndUpdateWithWrongIdentity_CanNotUpdate(t *testing.T) {
 	test := testUtils.TestCase{
 
-		SupportedMutationTypes: immutable.Some([]testUtils.MutationType{
+		SupportedMutationTypes: immutable.Some([]state.MutationType{
 			// GQL mutation will return no error when wrong identity is used so test that separately.
-			testUtils.CollectionNamedMutationType,
-			testUtils.CollectionSaveMutationType,
+			state.CollectionNamedMutationType,
+			state.CollectionSaveMutationType,
 		}),
 
 		Actions: []any{
@@ -467,39 +429,29 @@ func TestACP_CreateWithIdentityAndUpdateWithWrongIdentity_CanNotUpdate(t *testin
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: test
-                    description: a test policy which marks a collection in a database as a resource
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-                `,
+description: a test policy which marks a collection in a database as a resource
+name: test
+resources:
+- name: users
+  permissions:
+  - name: delete
+  - expr: reader
+    name: read
+  - name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @policy(
 						id: "{{.Policy0}}",
 						resource: "users"
@@ -510,7 +462,7 @@ func TestACP_CreateWithIdentityAndUpdateWithWrongIdentity_CanNotUpdate(t *testin
 				`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 
 				Identity: testUtils.ClientIdentity(1),
@@ -539,7 +491,7 @@ func TestACP_CreateWithIdentityAndUpdateWithWrongIdentity_CanNotUpdate(t *testin
 				ExpectedError: "document not found or not authorized to access",
 			},
 
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(1),
 
 				Request: `
@@ -569,12 +521,12 @@ func TestACP_CreateWithIdentityAndUpdateWithWrongIdentity_CanNotUpdate(t *testin
 
 // This separate GQL test should be merged with the ones above when all the clients are fixed
 // to behave the same in: https://github.com/sourcenetwork/defradb/issues/2410
-func TestACP_CreateWithIdentityAndUpdateWithoutIdentityGQL_CanNotUpdate(t *testing.T) {
+func TestACP_AddWithIdentityAndUpdateWithoutIdentityGQL_CanNotUpdate(t *testing.T) {
 	test := testUtils.TestCase{
 
-		SupportedMutationTypes: immutable.Some([]testUtils.MutationType{
+		SupportedMutationTypes: immutable.Some([]state.MutationType{
 			// GQL mutation will return no error when wrong identity is used so test that separately.
-			testUtils.GQLRequestMutationType,
+			state.GQLRequestMutationType,
 		}),
 
 		Actions: []any{
@@ -583,39 +535,29 @@ func TestACP_CreateWithIdentityAndUpdateWithoutIdentityGQL_CanNotUpdate(t *testi
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: test
-                    description: a test policy which marks a collection in a database as a resource
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-                `,
+description: a test policy which marks a collection in a database as a resource
+name: test
+resources:
+- name: users
+  permissions:
+  - name: delete
+  - expr: reader
+    name: read
+  - name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @policy(
 						id: "{{.Policy0}}",
 						resource: "users"
@@ -626,7 +568,7 @@ func TestACP_CreateWithIdentityAndUpdateWithoutIdentityGQL_CanNotUpdate(t *testi
 				`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 
 				Identity: testUtils.ClientIdentity(1),
@@ -653,7 +595,7 @@ func TestACP_CreateWithIdentityAndUpdateWithoutIdentityGQL_CanNotUpdate(t *testi
 				SkipLocalUpdateEvent: true,
 			},
 
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(1),
 
 				Request: `
@@ -683,12 +625,12 @@ func TestACP_CreateWithIdentityAndUpdateWithoutIdentityGQL_CanNotUpdate(t *testi
 
 // This separate GQL test should be merged with the ones above when all the clients are fixed
 // to behave the same in: https://github.com/sourcenetwork/defradb/issues/2410
-func TestACP_CreateWithIdentityAndUpdateWithWrongIdentityGQL_CanNotUpdate(t *testing.T) {
+func TestACP_AddWithIdentityAndUpdateWithWrongIdentityGQL_CanNotUpdate(t *testing.T) {
 	test := testUtils.TestCase{
 
-		SupportedMutationTypes: immutable.Some([]testUtils.MutationType{
+		SupportedMutationTypes: immutable.Some([]state.MutationType{
 			// GQL mutation will return no error when wrong identity is used so test that separately.
-			testUtils.GQLRequestMutationType,
+			state.GQLRequestMutationType,
 		}),
 
 		Actions: []any{
@@ -697,39 +639,29 @@ func TestACP_CreateWithIdentityAndUpdateWithWrongIdentityGQL_CanNotUpdate(t *tes
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: test
-                    description: a test policy which marks a collection in a database as a resource
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-                `,
+description: a test policy which marks a collection in a database as a resource
+name: test
+resources:
+- name: users
+  permissions:
+  - name: delete
+  - expr: reader
+    name: read
+  - name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @policy(
 						id: "{{.Policy0}}",
 						resource: "users"
@@ -740,7 +672,7 @@ func TestACP_CreateWithIdentityAndUpdateWithWrongIdentityGQL_CanNotUpdate(t *tes
 				`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 
 				Identity: testUtils.ClientIdentity(1),
@@ -769,7 +701,7 @@ func TestACP_CreateWithIdentityAndUpdateWithWrongIdentityGQL_CanNotUpdate(t *tes
 				SkipLocalUpdateEvent: true,
 			},
 
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(1),
 
 				Request: `

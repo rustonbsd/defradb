@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package cli
 
@@ -21,11 +22,11 @@ import (
 	"github.com/sourcenetwork/corekv/badger"
 	"github.com/sourcenetwork/corelog"
 
-	"github.com/sourcenetwork/defradb/acp/dac"
 	"github.com/sourcenetwork/defradb/client"
 	"github.com/sourcenetwork/defradb/errors"
 	httpapi "github.com/sourcenetwork/defradb/http"
 	"github.com/sourcenetwork/defradb/internal/db"
+	acpDB "github.com/sourcenetwork/defradb/internal/db/acp"
 )
 
 var log = corelog.NewLogger("cli")
@@ -53,11 +54,11 @@ func start(ctx context.Context) (*defraInstance, error) {
 	if err != nil {
 		return nil, err
 	}
-	adminInfo, err := db.NewNACInfo(ctx, "", false)
+	adminInfo, err := acpDB.NewNACInfo(ctx, "", false)
 	if err != nil {
 		return nil, errors.Wrap("failed to setup node access control info", err)
 	}
-	db, err := db.NewDB(ctx, rootstore, adminInfo, dac.NoDocumentACP)
+	db, err := db.NewDB(ctx, rootstore, adminInfo)
 	if err != nil {
 		return nil, errors.Wrap("failed to create a database", err)
 	}

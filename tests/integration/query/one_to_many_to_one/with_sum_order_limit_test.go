@@ -1,31 +1,36 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package one_to_many_to_one
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
+	"github.com/sourcenetwork/defradb/tests/multiplier"
 )
 
 func TestOneToManyToOneWithSumOfDeepOrderBySubTypeAndDeepOrderBySubtypeDescDirections(t *testing.T) {
 	test := testUtils.TestCase{
+		// TODO: https://github.com/sourcenetwork/defradb/issues/4353
+		MultiplierExcludes: []string{multiplier.SecondaryIndex},
 		Actions: []any{
 			gqlSchemaOneToManyToOne(),
-			createDocsWith6BooksAnd5Publishers(),
-			testUtils.Request{
+			addDocsWith6BooksAnd5Publishers(),
+			&action.Request{
 				Request: `query {
 					Author {
 						name
-						s1: _sum(book: {field: rating, order: {publisher: {yearOpened: DESC}}, limit: 2})
+						s1: SUM(book: {field: rating, order: {publisher: {yearOpened: DESC}}, limit: 2})
 						NewestPublishersBook: book(order: {publisher: {yearOpened: DESC}}, limit: 2) {
 							name
 						}
@@ -69,14 +74,16 @@ func TestOneToManyToOneWithSumOfDeepOrderBySubTypeAndDeepOrderBySubtypeDescDirec
 
 func TestOneToManyToOneWithSumOfDeepOrderBySubTypeAndDeepOrderBySubtypeAscDirections(t *testing.T) {
 	test := testUtils.TestCase{
+		// TODO: https://github.com/sourcenetwork/defradb/issues/4353
+		MultiplierExcludes: []string{multiplier.SecondaryIndex},
 		Actions: []any{
 			gqlSchemaOneToManyToOne(),
-			createDocsWith6BooksAnd5Publishers(),
-			testUtils.Request{
+			addDocsWith6BooksAnd5Publishers(),
+			&action.Request{
 				Request: `query {
 					Author {
 						name
-						s1: _sum(book: {field: rating, order: {publisher: {yearOpened: ASC}}, limit: 2})
+						s1: SUM(book: {field: rating, order: {publisher: {yearOpened: ASC}}, limit: 2})
 						NewestPublishersBook: book(order: {publisher: {yearOpened: ASC}}, limit: 2) {
 							name
 						}
@@ -123,15 +130,17 @@ func TestOneToManyToOneWithSumOfDeepOrderBySubTypeAndDeepOrderBySubtypeAscDirect
 
 func TestOneToManyToOneWithSumOfDeepOrderBySubTypeOfBothDescAndAsc(t *testing.T) {
 	test := testUtils.TestCase{
+		// TODO: https://github.com/sourcenetwork/defradb/issues/4353
+		MultiplierExcludes: []string{multiplier.SecondaryIndex},
 		Actions: []any{
 			gqlSchemaOneToManyToOne(),
-			createDocsWith6BooksAnd5Publishers(),
-			testUtils.Request{
+			addDocsWith6BooksAnd5Publishers(),
+			&action.Request{
 				Request: `query {
 					Author {
 						name
-						s1: _sum(book: {field: rating, order: {publisher: {yearOpened: DESC}}, limit: 2})
-						s2: _sum(book: {field: rating, order: {publisher: {yearOpened: ASC}}, limit: 2})
+						s1: SUM(book: {field: rating, order: {publisher: {yearOpened: DESC}}, limit: 2})
+						s2: SUM(book: {field: rating, order: {publisher: {yearOpened: ASC}}, limit: 2})
 					}
 				}`,
 				Results: map[string]any{
@@ -164,14 +173,16 @@ func TestOneToManyToOneWithSumOfDeepOrderBySubTypeOfBothDescAndAsc(t *testing.T)
 
 func TestOneToManyToOneWithSumOfDeepOrderBySubTypeAndDeepOrderBySubtypeOppositeDirections(t *testing.T) {
 	test := testUtils.TestCase{
+		// TODO: https://github.com/sourcenetwork/defradb/issues/4353
+		MultiplierExcludes: []string{multiplier.SecondaryIndex},
 		Actions: []any{
 			gqlSchemaOneToManyToOne(),
-			createDocsWith6BooksAnd5Publishers(),
-			testUtils.Request{
+			addDocsWith6BooksAnd5Publishers(),
+			&action.Request{
 				Request: `query {
 					Author {
 						name
-						s1: _sum(book: {field: rating, order: {publisher: {yearOpened: DESC}}, limit: 2})
+						s1: SUM(book: {field: rating, order: {publisher: {yearOpened: DESC}}, limit: 2})
 						OldestPublishersBook: book(order: {publisher: {yearOpened: ASC}}, limit: 2) {
 							name
 						}

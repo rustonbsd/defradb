@@ -1,18 +1,20 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_explain_default
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 	explainUtils "github.com/sourcenetwork/defradb/tests/integration/explain"
 )
@@ -39,12 +41,12 @@ func TestDefaultExplainMutationRequest_WithUpsert_Succeeds(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `mutation @explain {
 					upsert_Author(
 						filter: {name: {_eq: "Bob"}},
-						create: {name: "Bob", age: 59},
+						add: {name: "Bob", age: 59},
 						update: {age: 59}
 					) {
 						_docID
@@ -55,12 +57,12 @@ func TestDefaultExplainMutationRequest_WithUpsert_Succeeds(t *testing.T) {
 
 				ExpectedPatterns: upsertPattern,
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName:    "upsertNode",
 						IncludeChildNodes: false,
 						ExpectedAttributes: dataMap{
-							"create": dataMap{
+							"add": dataMap{
 								"name": "Bob",
 								"age":  int32(59),
 							},
@@ -78,7 +80,7 @@ func TestDefaultExplainMutationRequest_WithUpsert_Succeeds(t *testing.T) {
 						TargetNodeName:    "scanNode",
 						IncludeChildNodes: true, // should be last node, so will have no child nodes.
 						ExpectedAttributes: dataMap{
-							"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
+							"collectionID":   "bafyreid73sgzodav5hxhrsypjapj6r2uzo7mhm3vqykjhfehj7i5hhksuu",
 							"collectionName": "Author",
 							"filter": dataMap{
 								"name": dataMap{

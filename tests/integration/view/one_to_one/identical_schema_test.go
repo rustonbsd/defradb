@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package one_to_one
 
@@ -20,8 +21,8 @@ import (
 func TestView_OneToOneSameSchema(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type LeftHand {
 						name: String
 						holding: RightHand @primary @relation(name: "left_right")
@@ -34,7 +35,7 @@ func TestView_OneToOneSameSchema(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddView{
 				Query: `
 					LeftHand {
 						name
@@ -53,20 +54,20 @@ func TestView_OneToOneSameSchema(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name":	"Left hand 1"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":       "Right hand 1",
-					"holding_id": testUtils.NewDocIndex(0, 0),
+					"_holdingID": testUtils.NewDocIndex(0, 0),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						HandView {
@@ -97,8 +98,8 @@ func TestView_OneToOneSameSchema(t *testing.T) {
 func TestView_OneToOneEmbeddedSchemaIsNotLostOnNextUpdate(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Author {
 						name: String
 						books: [Book]
@@ -109,7 +110,7 @@ func TestView_OneToOneEmbeddedSchemaIsNotLostOnNextUpdate(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddView{
 				Query: `
 					Author {
 						name
@@ -132,8 +133,8 @@ func TestView_OneToOneEmbeddedSchemaIsNotLostOnNextUpdate(t *testing.T) {
 			// that `BookView` is not forgotten.  A GQL error would appear if this
 			// was broken as `AuthorView.books` would reference a type that does
 			// not exist.
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 					}

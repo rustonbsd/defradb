@@ -1,12 +1,13 @@
-// Copyright 2025 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package simple
 
@@ -25,8 +26,8 @@ func TestView_SimpleWithSizeConstraint_CacheLessView_DoesNotErrorOnSizeViolation
 			testUtils.CachelessViewType,
 		}),
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						pointsListInt: [Int!]
@@ -35,7 +36,7 @@ func TestView_SimpleWithSizeConstraint_CacheLessView_DoesNotErrorOnSizeViolation
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddView{
 				Query: `
 					User {
 						name
@@ -53,7 +54,7 @@ func TestView_SimpleWithSizeConstraint_CacheLessView_DoesNotErrorOnSizeViolation
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name":	"Alice",
 					"pointsListInt": [1, 2, 3],
@@ -61,7 +62,7 @@ func TestView_SimpleWithSizeConstraint_CacheLessView_DoesNotErrorOnSizeViolation
 					"pointsListFloat64": [1, 2, 3]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						UserView {
@@ -99,8 +100,8 @@ func TestView_SimpleWithSizeConstraint_MaterializedView_DoesNotErrorOnSizeViolat
 			testUtils.MaterializedViewType,
 		}),
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						pointsListInt: [Int!]
@@ -109,7 +110,7 @@ func TestView_SimpleWithSizeConstraint_MaterializedView_DoesNotErrorOnSizeViolat
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddView{
 				Query: `
 					User {
 						name
@@ -127,7 +128,7 @@ func TestView_SimpleWithSizeConstraint_MaterializedView_DoesNotErrorOnSizeViolat
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name":	"Alice",
 					"pointsListInt": [1, 2, 3],
@@ -135,7 +136,7 @@ func TestView_SimpleWithSizeConstraint_MaterializedView_DoesNotErrorOnSizeViolat
 					"pointsListFloat64": [1, 2, 3]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						UserView {

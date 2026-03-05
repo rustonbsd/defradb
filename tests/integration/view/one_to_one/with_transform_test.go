@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package one_to_one
 
@@ -24,8 +25,8 @@ import (
 func TestView_OneToOneWithTransformOnOuter(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Author {
 						name: String
 						book: Book
@@ -36,7 +37,22 @@ func TestView_OneToOneWithTransformOnOuter(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddLens{
+				Lens: model.Lens{
+					// This transform will copy the value from `name` into the `fullName` field,
+					// like an overly-complicated alias
+					Lenses: []model.LensModule{
+						{
+							Path: lenses.CopyModulePath,
+							Arguments: map[string]any{
+								"src": "name",
+								"dst": "fullName",
+							},
+						},
+					},
+				},
+			},
+			&action.AddView{
 				Query: `
 					Author {
 						name
@@ -54,34 +70,22 @@ func TestView_OneToOneWithTransformOnOuter(t *testing.T) {
 						name: String
 					}
 				`,
-				Transform: immutable.Some(model.Lens{
-					// This transform will copy the value from `name` into the `fullName` field,
-					// like an overly-complicated alias
-					Lenses: []model.LensModule{
-						{
-							Path: lenses.CopyModulePath,
-							Arguments: map[string]any{
-								"src": "name",
-								"dst": "fullName",
-							},
-						},
-					},
-				}),
+				TransformCID: immutable.Some("{{.LensID0}}"),
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name":	"Ferdowsi"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":   "Shahnameh",
 					"author": testUtils.NewDocIndex(0, 0),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						AuthorView {

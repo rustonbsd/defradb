@@ -39,15 +39,17 @@ func NewClient(n *node.Node) *Client {
 
 func (c *Client) JSValue() js.Value {
 	return js.ValueOf(map[string]any{
-		"addSchema":                  goji.Async(c.addSchema),
+		"addCollection":              goji.Async(c.addCollection),
 		"patchCollection":            goji.Async(c.patchCollection),
 		"setActiveCollectionVersion": goji.Async(c.setActiveCollectionVersion),
 		"addView":                    goji.Async(c.addView),
 		"refreshViews":               goji.Async(c.refreshViews),
 		"setMigration":               goji.Async(c.setMigration),
+		"addLens":                    goji.Async(c.addLens),
+		"listLenses":                 goji.Async(c.listLenses),
 		"getCollectionByName":        goji.Async(c.getCollectionByName),
 		"getCollections":             goji.Async(c.getCollections),
-		"getAllIndexes":              goji.Async(c.getAllIndexes),
+		"listIndexes":                goji.Async(c.listIndexes),
 		"listAllEncryptedIndexes":    goji.Async(c.listAllEncryptedIndexes),
 		"execRequest":                goji.Async(c.execRequest),
 		"addDACPolicy":               goji.Async(c.addDACPolicy),

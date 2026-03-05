@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package index
 
@@ -25,14 +26,14 @@ import (
 func TestQueryWithCompositeIndexOnManyToOne_WithMultipleIndexedChildNodes_ShouldSucceed(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						devices: [Device]
 					}
 
-					type Device @index(includes: [{field: "owner_id"}, {field: "manufacturer_id"}]) {
+					type Device @index(includes: [{field: "_ownerID"}, {field: "_manufacturerID"}]) {
 						model: String
 						owner: User 
 						manufacturer: Manufacturer 
@@ -44,24 +45,24 @@ func TestQueryWithCompositeIndexOnManyToOne_WithMultipleIndexedChildNodes_Should
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				DocMap: map[string]any{
 					"name": "John",
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name": "Apple",
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name": "Sony",
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"model":        "MacBook Pro",
@@ -69,7 +70,7 @@ func TestQueryWithCompositeIndexOnManyToOne_WithMultipleIndexedChildNodes_Should
 					"manufacturer": testUtils.NewDocIndex(2, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"model":        "PlayStation 5",
@@ -77,7 +78,7 @@ func TestQueryWithCompositeIndexOnManyToOne_WithMultipleIndexedChildNodes_Should
 					"manufacturer": testUtils.NewDocIndex(2, 1),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					User {
 						devices {

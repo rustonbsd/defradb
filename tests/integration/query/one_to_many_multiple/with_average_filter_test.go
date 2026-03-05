@@ -1,12 +1,13 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package one_to_many_multiple
 
@@ -20,8 +21,8 @@ import (
 func TestQueryOneToManyMultipleWithAverageOnMultipleJoinsWithAndWithoutFilter(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Article {
 						name: String
 						author: Author
@@ -43,7 +44,7 @@ func TestQueryOneToManyMultipleWithAverageOnMultipleJoinsWithAndWithoutFilter(t 
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name":     "John Grisham",
@@ -51,7 +52,7 @@ func TestQueryOneToManyMultipleWithAverageOnMultipleJoinsWithAndWithoutFilter(t 
 					"verified": true,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name":     "Cornelia Funke",
@@ -59,78 +60,78 @@ func TestQueryOneToManyMultipleWithAverageOnMultipleJoinsWithAndWithoutFilter(t 
 					"verified": false,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "After Guantánamo, Another Injustice",
-					"author_id": testUtils.NewDocIndex(2, 0),
+					"_authorID": testUtils.NewDocIndex(2, 0),
 					"rating":    3,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "To my dear readers",
-					"author_id": testUtils.NewDocIndex(2, 1),
+					"_authorID": testUtils.NewDocIndex(2, 1),
 					"rating":    2,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "Twinklestar's Favourite Xmas Cookie",
-					"author_id": testUtils.NewDocIndex(2, 1),
+					"_authorID": testUtils.NewDocIndex(2, 1),
 					"rating":    1,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "Painted House",
-					"author_id": testUtils.NewDocIndex(2, 0),
+					"_authorID": testUtils.NewDocIndex(2, 0),
 					"score":     1,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "A Time for Mercy",
-					"author_id": testUtils.NewDocIndex(2, 0),
+					"_authorID": testUtils.NewDocIndex(2, 0),
 					"score":     2,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "Sooley",
-					"author_id": testUtils.NewDocIndex(2, 0),
+					"_authorID": testUtils.NewDocIndex(2, 0),
 					"score":     3,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "Theif Lord",
-					"author_id": testUtils.NewDocIndex(2, 1),
+					"_authorID": testUtils.NewDocIndex(2, 1),
 					"score":     4,
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 						Author {
 							name
-							_avg(books: {field: score, filter: {score: {_gt: 3}}}, articles: {field: rating})
+							AVG(books: {field: score, filter: {score: {_gt: 3}}}, articles: {field: rating})
 						}
 					}`,
 				Results: map[string]any{
 					"Author": []map[string]any{
 						{
 							"name": "John Grisham",
-							"_avg": float64(3),
+							"AVG":  float64(3),
 						},
 						{
 							"name": "Cornelia Funke",
-							"_avg": float64(2.3333333333333335),
+							"AVG":  float64(2.3333333333333335),
 						},
 					},
 				},
@@ -145,8 +146,8 @@ func TestQueryOneToManyMultipleWithAverageOnMultipleJoinsWithAndWithoutFilter(t 
 func TestQueryOneToManyMultipleWithAverageOnMultipleJoinsWithFilters(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Article {
 						name: String
 						author: Author
@@ -168,7 +169,7 @@ func TestQueryOneToManyMultipleWithAverageOnMultipleJoinsWithFilters(t *testing.
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name":     "John Grisham",
@@ -176,7 +177,7 @@ func TestQueryOneToManyMultipleWithAverageOnMultipleJoinsWithFilters(t *testing.
 					"verified": true,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name":     "Cornelia Funke",
@@ -184,78 +185,78 @@ func TestQueryOneToManyMultipleWithAverageOnMultipleJoinsWithFilters(t *testing.
 					"verified": false,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "After Guantánamo, Another Injustice",
-					"author_id": testUtils.NewDocIndex(2, 0),
+					"_authorID": testUtils.NewDocIndex(2, 0),
 					"rating":    3,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "To my dear readers",
-					"author_id": testUtils.NewDocIndex(2, 1),
+					"_authorID": testUtils.NewDocIndex(2, 1),
 					"rating":    2,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "Twinklestar's Favourite Xmas Cookie",
-					"author_id": testUtils.NewDocIndex(2, 1),
+					"_authorID": testUtils.NewDocIndex(2, 1),
 					"rating":    1,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "Painted House",
-					"author_id": testUtils.NewDocIndex(2, 0),
+					"_authorID": testUtils.NewDocIndex(2, 0),
 					"score":     1,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "A Time for Mercy",
-					"author_id": testUtils.NewDocIndex(2, 0),
+					"_authorID": testUtils.NewDocIndex(2, 0),
 					"score":     2,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "Sooley",
-					"author_id": testUtils.NewDocIndex(2, 0),
+					"_authorID": testUtils.NewDocIndex(2, 0),
 					"score":     3,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "Theif Lord",
-					"author_id": testUtils.NewDocIndex(2, 1),
+					"_authorID": testUtils.NewDocIndex(2, 1),
 					"score":     4,
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 						Author {
 							name
-							_avg(books: {field: score, filter: {score: {_gt: 3}}}, articles: {field: rating, filter: {rating: {_lt: 3}}})
+							AVG(books: {field: score, filter: {score: {_gt: 3}}}, articles: {field: rating, filter: {rating: {_lt: 3}}})
 						}
 					}`,
 				Results: map[string]any{
 					"Author": []map[string]any{
 						{
 							"name": "John Grisham",
-							"_avg": float64(0),
+							"AVG":  float64(0),
 						},
 						{
 							"name": "Cornelia Funke",
-							"_avg": float64(2.3333333333333335),
+							"AVG":  float64(2.3333333333333335),
 						},
 					},
 				},

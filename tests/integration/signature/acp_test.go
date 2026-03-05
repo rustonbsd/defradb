@@ -1,12 +1,13 @@
-// Copyright 2025 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package signature
 
@@ -22,34 +23,27 @@ import (
 )
 
 const policy = `
-	name: test
-	description: a test policy which marks a collection in a database as a resource
+name: test
+description: a test policy which marks a collection in a database as a resource
 
-	actor:
-	  name: actor
+resources:
+- name: users
+  permissions:
+  - name: read
+    expr: reader
+  - name: update
+  - name: delete
 
-	resources:
-	  users:
-		permissions:
-		  read:
-			expr: owner + reader
-		  update:
-			expr: owner
-		  delete:
-			expr: owner
+  relations:
+  - name: reader
+    types:
+    - actor
 
-		relations:
-		  owner:
-			types:
-			  - actor
-		  reader:
-			types:
-			  - actor
-		  admin:
-			manages:
-			  - reader
-			types:
-			  - actor
+  - name: admin
+    manages:
+    - reader
+    types:
+    - actor
 `
 
 func TestSignatureACP_IfHasNoAccessToDoc_ShouldError(t *testing.T) {
@@ -65,8 +59,8 @@ func TestSignatureACP_IfHasNoAccessToDoc_ShouldError(t *testing.T) {
 				Identity: testUtils.ClientIdentity(1),
 				Policy:   policy,
 			},
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
  					type Users @policy(
 						id: "{{.Policy0}}",
  						resource: "users"
@@ -76,7 +70,7 @@ func TestSignatureACP_IfHasNoAccessToDoc_ShouldError(t *testing.T) {
  					}
  				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Identity: testUtils.ClientIdentity(1),
 				DocMap: map[string]any{
 					"name": "John",
@@ -86,7 +80,7 @@ func TestSignatureACP_IfHasNoAccessToDoc_ShouldError(t *testing.T) {
 			testUtils.VerifyBlockSignature{
 				Identity:       testUtils.NodeIdentity(1),
 				SignerIdentity: testUtils.ClientIdentity(1).Value(),
-				Cid:            "bafyreidbxkvfkmr3bhfxwvjm5pagkpm3ixtuz4bfmi2pcw5m2uylniptry",
+				Cid:            "bafyreia5uzkhoqvhccljbpiiafrjyvperxphmun264ul6esvuosk6pnf5m",
 				ExpectedError:  db.ErrMissingPermission.Error(),
 			},
 		},
@@ -108,8 +102,8 @@ func TestSignatureACP_IfHasAccessToDoc_ValidateSignature(t *testing.T) {
 				Identity: testUtils.ClientIdentity(1),
 				Policy:   policy,
 			},
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
  					type Users @policy(
 						id: "{{.Policy0}}",
  						resource: "users"
@@ -119,7 +113,7 @@ func TestSignatureACP_IfHasAccessToDoc_ValidateSignature(t *testing.T) {
  					}
  				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Identity: testUtils.ClientIdentity(1),
 				DocMap: map[string]any{
 					"name": "John",
@@ -129,7 +123,7 @@ func TestSignatureACP_IfHasAccessToDoc_ValidateSignature(t *testing.T) {
 			testUtils.VerifyBlockSignature{
 				Identity:       testUtils.ClientIdentity(1),
 				SignerIdentity: testUtils.ClientIdentity(1).Value(),
-				Cid:            "bafyreidbxkvfkmr3bhfxwvjm5pagkpm3ixtuz4bfmi2pcw5m2uylniptry",
+				Cid:            "bafyreia5uzkhoqvhccljbpiiafrjyvperxphmun264ul6esvuosk6pnf5m",
 			},
 		},
 	}

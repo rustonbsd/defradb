@@ -1,18 +1,20 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_explain_default
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 	explainUtils "github.com/sourcenetwork/defradb/tests/integration/explain"
 )
@@ -37,10 +39,13 @@ func TestDefaultExplainCommitsDagScanQueryOp(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain {
-					_commits (docID: "bae-9e70648f-c722-5875-97f5-574ec6f703e9", fieldName: "name") {
+					_commits (
+						docID: "bae-9e70648f-c722-5875-97f5-574ec6f703e9", 
+						filter: {fieldName: {_eq: "name"}}
+					) {
 						links {
 							cid
 						}
@@ -49,13 +54,12 @@ func TestDefaultExplainCommitsDagScanQueryOp(t *testing.T) {
 
 				ExpectedPatterns: dagScanPattern,
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName:    "dagScanNode",
 						IncludeChildNodes: true, // Shouldn't have any as this is the last node in the chain.
 						ExpectedAttributes: dataMap{
-							"cid":       nil,
-							"fieldName": "name",
+							"cid": nil,
 							"prefixes": []string{
 								"/d/bae-9e70648f-c722-5875-97f5-574ec6f703e9",
 							},
@@ -75,7 +79,7 @@ func TestDefaultExplainCommitsDagScanQueryOpWithoutField(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain {
 					_commits (docID: "bae-9e70648f-c722-5875-97f5-574ec6f703e9") {
@@ -87,147 +91,18 @@ func TestDefaultExplainCommitsDagScanQueryOpWithoutField(t *testing.T) {
 
 				ExpectedPatterns: dagScanPattern,
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName:    "dagScanNode",
 						IncludeChildNodes: true, // Shouldn't have any as this is the last node in the chain.
 						ExpectedAttributes: dataMap{
-							"cid":       nil,
-							"fieldName": nil,
+							"cid": nil,
 							"prefixes": []string{
 								"/d/bae-9e70648f-c722-5875-97f5-574ec6f703e9",
 							},
 						},
 					},
 				},
-			},
-		},
-	}
-
-	explainUtils.ExecuteTestCase(t, test)
-}
-
-func TestDefaultExplainLatestCommitsDagScanQueryOp(t *testing.T) {
-	test := testUtils.TestCase{
-
-		Actions: []any{
-			explainUtils.SchemaForExplainTests,
-
-			testUtils.ExplainRequest{
-
-				Request: `query @explain {
-					_latestCommits(docID: "bae-9e70648f-c722-5875-97f5-574ec6f703e9", fieldName: "name") {
-						cid
-						links {
-							cid
-						}
-					}
-				}`,
-
-				ExpectedPatterns: dagScanPattern,
-
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
-					{
-						TargetNodeName:    "dagScanNode",
-						IncludeChildNodes: true, // Shouldn't have any as this is the last node in the chain.
-						ExpectedAttributes: dataMap{
-							"cid":       nil,
-							"fieldName": "name",
-							"prefixes": []string{
-								"/d/bae-9e70648f-c722-5875-97f5-574ec6f703e9",
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	explainUtils.ExecuteTestCase(t, test)
-}
-
-func TestDefaultExplainLatestCommitsDagScanQueryOpWithoutField(t *testing.T) {
-	test := testUtils.TestCase{
-
-		Actions: []any{
-			explainUtils.SchemaForExplainTests,
-
-			testUtils.ExplainRequest{
-
-				Request: `query @explain {
-					_latestCommits(docID: "bae-9e70648f-c722-5875-97f5-574ec6f703e9") {
-						cid
-						links {
-							cid
-						}
-					}
-				}`,
-
-				ExpectedPatterns: dagScanPattern,
-
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
-					{
-						TargetNodeName:    "dagScanNode",
-						IncludeChildNodes: true, // Shouldn't have any as this is the last node in the chain.
-						ExpectedAttributes: dataMap{
-							"cid":       nil,
-							"fieldName": "_C",
-							"prefixes": []string{
-								"/d/bae-9e70648f-c722-5875-97f5-574ec6f703e9/C",
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	explainUtils.ExecuteTestCase(t, test)
-}
-
-func TestDefaultExplainLatestCommitsDagScanWithoutDocID_Failure(t *testing.T) {
-	test := testUtils.TestCase{
-
-		Actions: []any{
-			explainUtils.SchemaForExplainTests,
-
-			testUtils.ExplainRequest{
-
-				Request: `query @explain {
-					_latestCommits(fieldName: "name") {
-						cid
-						links {
-							cid
-						}
-					}
-				}`,
-
-				ExpectedError: "Field \"_latestCommits\" argument \"docID\" of type \"ID!\" is required but not provided.",
-			},
-		},
-	}
-
-	explainUtils.ExecuteTestCase(t, test)
-}
-
-func TestDefaultExplainLatestCommitsDagScanWithoutAnyArguments_Failure(t *testing.T) {
-	test := testUtils.TestCase{
-
-		Actions: []any{
-			explainUtils.SchemaForExplainTests,
-
-			testUtils.ExplainRequest{
-
-				Request: `query @explain {
-					_latestCommits {
-						cid
-						links {
-							cid
-						}
-					}
-				}`,
-
-				ExpectedError: "Field \"_latestCommits\" argument \"docID\" of type \"ID!\" is required but not provided.",
 			},
 		},
 	}

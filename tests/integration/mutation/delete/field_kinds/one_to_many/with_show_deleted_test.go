@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package one_to_many
 
@@ -17,7 +18,7 @@ import (
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
-var schemas = `
+var userCollection = `
 type Book {
 	name: String
 	rating: Float
@@ -33,47 +34,47 @@ type Author {
 func TestDeletionOfADocumentUsingSingleDocIDWithShowDeletedDocumentQuery(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: schemas,
+			&action.AddCollection{
+				SDL: userCollection,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "John",
 					"age": 30
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "John and the philosopher are stoned",
 					"rating":    9.9,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "John has a chamber of secrets",
 					"rating":    9.9,
-					"author_id": testUtils.NewDocIndex(1, 0),
+					"_authorID": testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `mutation {
-					delete_Book(docID: "bae-87bfb5a3-2e27-577d-9012-602b1b8a2cf9") {
+					delete_Book(docID: "bae-227565a8-81b1-5c96-90e2-30dbe75ad5bd") {
 							_docID
 						}
 					}`,
 				Results: map[string]any{
 					"delete_Book": []map[string]any{
 						{
-							"_docID": "bae-87bfb5a3-2e27-577d-9012-602b1b8a2cf9",
+							"_docID": "bae-227565a8-81b1-5c96-90e2-30dbe75ad5bd",
 						},
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 						Author(showDeleted: true) {
 							_deleted

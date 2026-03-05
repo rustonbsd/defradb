@@ -1,18 +1,20 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_explain_default
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 	explainUtils "github.com/sourcenetwork/defradb/tests/integration/explain"
 )
@@ -38,7 +40,7 @@ func TestDefaultExplainRequestWithOnlyLimitOnRelatedChild(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain {
 					Author {
@@ -63,7 +65,7 @@ func TestDefaultExplainRequestWithOnlyLimitOnRelatedChild(t *testing.T) {
 					},
 				},
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName:    "limitNode",
 						IncludeChildNodes: false,
@@ -86,7 +88,7 @@ func TestDefaultExplainRequestWithOnlyOffsetOnRelatedChild(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain {
 					Author {
@@ -111,7 +113,7 @@ func TestDefaultExplainRequestWithOnlyOffsetOnRelatedChild(t *testing.T) {
 					},
 				},
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName:    "limitNode",
 						IncludeChildNodes: false,
@@ -134,7 +136,7 @@ func TestDefaultExplainRequestWithBothLimitAndOffsetOnRelatedChild(t *testing.T)
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain {
 					Author {
@@ -159,7 +161,7 @@ func TestDefaultExplainRequestWithBothLimitAndOffsetOnRelatedChild(t *testing.T)
 					},
 				},
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName:    "limitNode",
 						IncludeChildNodes: false,
@@ -182,7 +184,7 @@ func TestDefaultExplainRequestWithLimitOnRelatedChildAndBothLimitAndOffsetOnPare
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain {
 					Author(limit: 3, offset: 1) {
@@ -209,7 +211,7 @@ func TestDefaultExplainRequestWithLimitOnRelatedChildAndBothLimitAndOffsetOnPare
 					},
 				},
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName:    "limitNode",
 						OccurancesToSkip:  0,

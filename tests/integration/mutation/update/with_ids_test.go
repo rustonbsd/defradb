@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package update
 
@@ -20,35 +21,35 @@ import (
 func TestMutationUpdate_WithIds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 						points: Float
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// bae-9466cfe3-c011-5d44-b1cd-f0c5a46d9202
 				Doc: `{
 					"name": "John",
 					"points": 42.1
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Bob",
 					"points": 66.6
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// bae-b76814bb-7ac8-5430-bac9-fbd7fc86db40
 				Doc: `{
 					"name": "Fred",
 					"points": 33
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `mutation {
 					update_Users(
 						docID: ["bae-9466cfe3-c011-5d44-b1cd-f0c5a46d9202", "bae-b76814bb-7ac8-5430-bac9-fbd7fc86db40"],

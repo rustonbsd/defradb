@@ -27,7 +27,7 @@
             }
         },
         "schemas": {
-            "acp_document_relationship_add_request": {
+            "add_acp_document_relationship_request": {
                 "properties": {
                     "CollectionName": {
                         "type": "string"
@@ -44,24 +44,7 @@
                 },
                 "type": "object"
             },
-            "acp_document_relationship_delete_request": {
-                "properties": {
-                    "CollectionName": {
-                        "type": "string"
-                    },
-                    "DocID": {
-                        "type": "string"
-                    },
-                    "Relation": {
-                        "type": "string"
-                    },
-                    "TargetActor": {
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
-            "acp_node_relationship_add_request": {
+            "add_acp_node_relationship_request": {
                 "properties": {
                     "Relation": {
                         "type": "string"
@@ -72,26 +55,7 @@
                 },
                 "type": "object"
             },
-            "acp_node_relationship_delete_request": {
-                "properties": {
-                    "Relation": {
-                        "type": "string"
-                    },
-                    "TargetActor": {
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
-            "acp_node_status_result": {
-                "properties": {
-                    "Status": {
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
-            "acp_policy_add_result": {
+            "add_acp_policy_result": {
                 "properties": {
                     "PolicyID": {
                         "type": "string"
@@ -99,7 +63,7 @@
                 },
                 "type": "object"
             },
-            "acp_relationship_add_result": {
+            "add_acp_relationship_result": {
                 "properties": {
                     "ExistedAlready": {
                         "type": "boolean"
@@ -107,10 +71,55 @@
                 },
                 "type": "object"
             },
-            "acp_relationship_delete_result": {
+            "add_lens_request": {
                 "properties": {
-                    "RecordFound": {
-                        "type": "boolean"
+                    "lens": {
+                        "properties": {
+                            "Lenses": {
+                                "items": {
+                                    "properties": {
+                                        "Arguments": {
+                                            "additionalProperties": {},
+                                            "type": "object"
+                                        },
+                                        "Inverse": {
+                                            "type": "boolean"
+                                        },
+                                        "Path": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
+                                "type": "array"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "add_lens_response": {
+                "properties": {
+                    "lensId": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "add_replicator_params": {
+                "properties": {
+                    "Addresses": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "Collections": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
                     }
                 },
                 "type": "object"
@@ -123,7 +132,7 @@
                     "SDL": {
                         "type": "string"
                     },
-                    "Transform": {}
+                    "TransformCID": {}
                 },
                 "type": "object"
             },
@@ -303,21 +312,6 @@
                 },
                 "type": "object"
             },
-            "collection_delete": {
-                "properties": {
-                    "filter": {}
-                },
-                "type": "object"
-            },
-            "collection_update": {
-                "properties": {
-                    "filter": {},
-                    "updater": {
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
             "create_tx": {
                 "properties": {
                     "id": {
@@ -325,6 +319,48 @@
                         "minimum": 0,
                         "type": "integer"
                     }
+                },
+                "type": "object"
+            },
+            "delete_acp_document_relationship_request": {
+                "properties": {
+                    "CollectionName": {
+                        "type": "string"
+                    },
+                    "DocID": {
+                        "type": "string"
+                    },
+                    "Relation": {
+                        "type": "string"
+                    },
+                    "TargetActor": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "delete_acp_node_relationship_request": {
+                "properties": {
+                    "Relation": {
+                        "type": "string"
+                    },
+                    "TargetActor": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "delete_acp_relationship_result": {
+                "properties": {
+                    "RecordFound": {
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "delete_collection": {
+                "properties": {
+                    "filter": {}
                 },
                 "type": "object"
             },
@@ -372,34 +408,30 @@
                 },
                 "type": "object"
             },
-            "encrypted_index_create": {
-                "properties": {
-                    "FieldName": {
-                        "type": "string"
-                    },
-                    "Type": {
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
             "error": {
                 "properties": {
                     "error": {}
                 },
                 "type": "object"
             },
-            "graphql_request": {
+            "get_acp_node_status_result": {
                 "properties": {
-                    "operationName": {
+                    "Status": {
                         "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "get_peer_info": {
+                "properties": {
+                    "Addresses": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
                     },
-                    "query": {
+                    "ID": {
                         "type": "string"
-                    },
-                    "variables": {
-                        "additionalProperties": {},
-                        "type": "object"
                     }
                 },
                 "type": "object"
@@ -445,7 +477,47 @@
                 },
                 "type": "object"
             },
-            "index_create": {
+            "lens_config": {
+                "properties": {
+                    "DestinationCollectionVersionID": {
+                        "type": "string"
+                    },
+                    "Lenses": {
+                        "items": {
+                            "properties": {
+                                "Arguments": {
+                                    "additionalProperties": {},
+                                    "type": "object"
+                                },
+                                "Inverse": {
+                                    "type": "boolean"
+                                },
+                                "Path": {
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        "type": "array"
+                    },
+                    "SourceCollectionVersionID": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "new_encrypted_index": {
+                "properties": {
+                    "FieldName": {
+                        "type": "string"
+                    },
+                    "Type": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "new_index": {
                 "properties": {
                     "Fields": {
                         "items": {
@@ -470,53 +542,10 @@
                 },
                 "type": "object"
             },
-            "lens_config": {
-                "properties": {
-                    "DestinationSchemaVersionID": {
-                        "type": "string"
-                    },
-                    "Lenses": {
-                        "items": {
-                            "properties": {
-                                "Arguments": {
-                                    "additionalProperties": {},
-                                    "type": "object"
-                                },
-                                "Inverse": {
-                                    "type": "boolean"
-                                },
-                                "Path": {
-                                    "type": "string"
-                                }
-                            },
-                            "type": "object"
-                        },
-                        "type": "array"
-                    },
-                    "SourceSchemaVersionID": {
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
             "patch_collection_request": {
                 "properties": {
                     "Migration": {},
                     "Patch": {
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
-            "peer_info": {
-                "properties": {
-                    "Addresses": {
-                        "items": {
-                            "type": "string"
-                        },
-                        "type": "array"
-                    },
-                    "ID": {
                         "type": "string"
                     }
                 },
@@ -551,6 +580,21 @@
                 },
                 "type": "object"
             },
+            "request_graphql": {
+                "properties": {
+                    "operationName": {
+                        "type": "string"
+                    },
+                    "query": {
+                        "type": "string"
+                    },
+                    "variables": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
             "set_migration": {
                 "properties": {
                     "lensId": {
@@ -559,19 +603,11 @@
                 },
                 "type": "object"
             },
-            "set_replicator_params": {
+            "update_collection": {
                 "properties": {
-                    "Addresses": {
-                        "items": {
-                            "type": "string"
-                        },
-                        "type": "array"
-                    },
-                    "Collections": {
-                        "items": {
-                            "type": "string"
-                        },
-                        "type": "array"
+                    "filter": {},
+                    "updater": {
+                        "type": "string"
                     }
                 },
                 "type": "object"
@@ -629,7 +665,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/acp_policy_add_result"
+                                    "$ref": "#/components/schemas/add_acp_policy_result"
                                 }
                             }
                         },
@@ -655,7 +691,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/acp_document_relationship_delete_request"
+                                "$ref": "#/components/schemas/delete_acp_document_relationship_request"
                             }
                         }
                     },
@@ -666,7 +702,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/acp_relationship_delete_result"
+                                    "$ref": "#/components/schemas/delete_acp_relationship_result"
                                 }
                             }
                         },
@@ -690,7 +726,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/acp_document_relationship_add_request"
+                                "$ref": "#/components/schemas/add_acp_document_relationship_request"
                             }
                         }
                     },
@@ -701,7 +737,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/acp_relationship_add_result"
+                                    "$ref": "#/components/schemas/add_acp_relationship_result"
                                 }
                             }
                         },
@@ -767,7 +803,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/acp_node_relationship_delete_request"
+                                "$ref": "#/components/schemas/delete_acp_node_relationship_request"
                             }
                         }
                     },
@@ -778,7 +814,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/acp_relationship_delete_result"
+                                    "$ref": "#/components/schemas/delete_acp_relationship_result"
                                 }
                             }
                         },
@@ -802,7 +838,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/acp_node_relationship_add_request"
+                                "$ref": "#/components/schemas/add_acp_node_relationship_request"
                             }
                         }
                     },
@@ -813,7 +849,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/acp_relationship_add_result"
+                                    "$ref": "#/components/schemas/add_acp_relationship_result"
                                 }
                             }
                         },
@@ -840,7 +876,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/acp_node_status_result"
+                                    "$ref": "#/components/schemas/get_acp_node_status_result"
                                 }
                             }
                         },
@@ -861,7 +897,7 @@
         "/backup/export": {
             "post": {
                 "description": "Export a database backup to file",
-                "operationId": "backup_export",
+                "operationId": "export_backup",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -891,7 +927,7 @@
         "/backup/import": {
             "post": {
                 "description": "Import a database backup from file",
-                "operationId": "backup_import",
+                "operationId": "import_backup",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -969,7 +1005,7 @@
         "/ccip": {
             "post": {
                 "description": "CCIP POST endpoint",
-                "operationId": "ccip_post",
+                "operationId": "post_ccip",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1005,7 +1041,7 @@
         "/ccip/{sender}/{data}": {
             "get": {
                 "description": "CCIP GET endpoint",
-                "operationId": "ccip_get",
+                "operationId": "get_ccip",
                 "parameters": [
                     {
                         "description": "Hex encoded request data",
@@ -1051,8 +1087,8 @@
         },
         "/collections": {
             "get": {
-                "description": "Introspect collection(s) by name, schema id, or version id.",
-                "operationId": "collection_describe",
+                "description": "Introspect collection(s) by name, collection id, or version id.",
+                "operationId": "describe_collection",
                 "parameters": [
                     {
                         "description": "Collection name",
@@ -1063,7 +1099,7 @@
                         }
                     },
                     {
-                        "description": "Collection schema root",
+                        "description": "Collection ID",
                         "in": "query",
                         "name": "collection_id",
                         "schema": {
@@ -1071,7 +1107,7 @@
                         }
                     },
                     {
-                        "description": "Collection schema version id",
+                        "description": "Collection version ID",
                         "in": "query",
                         "name": "version_id",
                         "schema": {
@@ -1106,7 +1142,7 @@
                                 }
                             }
                         },
-                        "description": "Collection(s) with matching name, schema id, or version id."
+                        "description": "Collection(s) with matching name, collection id, or version id."
                     },
                     "400": {
                         "$ref": "#/components/responses/error"
@@ -1134,6 +1170,43 @@
                 "responses": {
                     "200": {
                         "$ref": "#/components/responses/success"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/error"
+                    },
+                    "default": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "collection"
+                ]
+            },
+            "post": {
+                "description": "Add a new collection",
+                "operationId": "add_collection",
+                "requestBody": {
+                    "content": {
+                        "text/plain": {
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/collection"
+                                    },
+                                    "type": "array"
+                                }
+                            }
+                        },
+                        "description": "Collection(s)"
                     },
                     "400": {
                         "$ref": "#/components/responses/error"
@@ -1179,7 +1252,7 @@
         "/collections/indexes": {
             "get": {
                 "description": "List all indexes for all collections",
-                "operationId": "indexes_list_all",
+                "operationId": "list_all_indexes",
                 "responses": {
                     "200": {
                         "content": {
@@ -1209,10 +1282,47 @@
                 ]
             }
         },
+        "/collections/migrations": {
+            "post": {
+                "description": "Set a lens migration between collection versions",
+                "operationId": "set_collection_migration",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/lens_config"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/set_migration"
+                                }
+                            }
+                        },
+                        "description": "Lens info"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/error"
+                    },
+                    "default": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "collection"
+                ]
+            }
+        },
         "/collections/{name}": {
             "delete": {
                 "description": "Delete document(s) from a collection",
-                "operationId": "collection_delete_with_filter",
+                "operationId": "delete_collection_with_filter",
                 "parameters": [
                     {
                         "description": "Collection name",
@@ -1228,7 +1338,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/collection_delete"
+                                "$ref": "#/components/schemas/delete_collection"
                             }
                         }
                     },
@@ -1256,38 +1366,9 @@
                     "collection"
                 ]
             },
-            "get": {
-                "description": "Get all document IDs",
-                "operationId": "collection_keys",
-                "parameters": [
-                    {
-                        "description": "Collection name",
-                        "in": "path",
-                        "name": "name",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/success"
-                    },
-                    "400": {
-                        "$ref": "#/components/responses/error"
-                    },
-                    "default": {
-                        "description": ""
-                    }
-                },
-                "tags": [
-                    "collection"
-                ]
-            },
             "patch": {
                 "description": "Update document(s) in a collection",
-                "operationId": "collection_update_with_filter",
+                "operationId": "update_collection_with_filter",
                 "parameters": [
                     {
                         "description": "Collection name",
@@ -1303,7 +1384,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/collection_update"
+                                "$ref": "#/components/schemas/update_collection"
                             }
                         }
                     },
@@ -1332,8 +1413,8 @@
                 ]
             },
             "post": {
-                "description": "Create document(s) in a collection",
-                "operationId": "collection_create",
+                "description": "Add document(s) to a collection",
+                "operationId": "add_document",
                 "parameters": [
                     {
                         "description": "Collection name",
@@ -1377,14 +1458,134 @@
                     }
                 },
                 "tags": [
-                    "collection"
+                    "document"
+                ]
+            }
+        },
+        "/collections/{name}/document/{docID}": {
+            "delete": {
+                "description": "Delete a document by docID",
+                "operationId": "delete_document",
+                "parameters": [
+                    {
+                        "description": "Collection name",
+                        "in": "path",
+                        "name": "name",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "docID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/success"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/error"
+                    },
+                    "default": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "document"
+                ]
+            },
+            "get": {
+                "description": "Get a document by docID",
+                "operationId": "get_document",
+                "parameters": [
+                    {
+                        "description": "Collection name",
+                        "in": "path",
+                        "name": "name",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "docID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/document"
+                                }
+                            }
+                        },
+                        "description": "Document value"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/error"
+                    },
+                    "default": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "document"
+                ]
+            },
+            "patch": {
+                "description": "Update a document by docID",
+                "operationId": "update_document",
+                "parameters": [
+                    {
+                        "description": "Collection name",
+                        "in": "path",
+                        "name": "name",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "docID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/success"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/error"
+                    },
+                    "default": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "document"
                 ]
             }
         },
         "/collections/{name}/encrypted-indexes": {
             "get": {
                 "description": "List encrypted indexes",
-                "operationId": "encrypted_index_list",
+                "operationId": "list_encrypted_indexes",
                 "parameters": [
                     {
                         "description": "Collection name",
@@ -1422,8 +1623,8 @@
                 ]
             },
             "post": {
-                "description": "Create an encrypted index",
-                "operationId": "encrypted_index_create",
+                "description": "Make a new encrypted index",
+                "operationId": "new_encrypted_index",
                 "parameters": [
                     {
                         "description": "Collection name",
@@ -1439,7 +1640,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/encrypted_index_create"
+                                "$ref": "#/components/schemas/new_encrypted_index"
                             }
                         }
                     },
@@ -1471,7 +1672,7 @@
         "/collections/{name}/encrypted-indexes/{field}": {
             "delete": {
                 "description": "Delete an encrypted index",
-                "operationId": "encrypted_index_delete",
+                "operationId": "delete_encrypted_index",
                 "parameters": [
                     {
                         "description": "Collection name",
@@ -1511,7 +1712,7 @@
         "/collections/{name}/indexes": {
             "get": {
                 "description": "List secondary indexes",
-                "operationId": "index_list",
+                "operationId": "list_indexes",
                 "parameters": [
                     {
                         "description": "Collection name",
@@ -1549,8 +1750,8 @@
                 ]
             },
             "post": {
-                "description": "Create a secondary index",
-                "operationId": "index_create",
+                "description": "Make a new secondary index",
+                "operationId": "new_index",
                 "parameters": [
                     {
                         "description": "Collection name",
@@ -1566,7 +1767,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/index_create"
+                                "$ref": "#/components/schemas/new_index"
                             }
                         }
                     },
@@ -1598,7 +1799,7 @@
         "/collections/{name}/indexes/{index}": {
             "delete": {
                 "description": "Delete a secondary index",
-                "operationId": "index_drop",
+                "operationId": "delete_index",
                 "parameters": [
                     {
                         "description": "Collection name",
@@ -1634,23 +1835,15 @@
                 ]
             }
         },
-        "/collections/{name}/{docID}": {
+        "/collections/{name}/truncate": {
             "delete": {
-                "description": "Delete a document by docID",
-                "operationId": "collection_delete",
+                "description": "Truncate a collection, removing all document data within it from the server. Does not propagate the deletion to other Defra nodes in the network.",
+                "operationId": "truncate",
                 "parameters": [
                     {
                         "description": "Collection name",
                         "in": "path",
                         "name": "name",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "in": "path",
-                        "name": "docID",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -1669,95 +1862,14 @@
                     }
                 },
                 "tags": [
-                    "collection"
-                ]
-            },
-            "get": {
-                "description": "Get a document by docID",
-                "operationId": "collection_get",
-                "parameters": [
-                    {
-                        "description": "Collection name",
-                        "in": "path",
-                        "name": "name",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "in": "path",
-                        "name": "docID",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/document"
-                                }
-                            }
-                        },
-                        "description": "Document value"
-                    },
-                    "400": {
-                        "$ref": "#/components/responses/error"
-                    },
-                    "default": {
-                        "description": ""
-                    }
-                },
-                "tags": [
-                    "collection"
-                ]
-            },
-            "patch": {
-                "description": "Update a document by docID",
-                "operationId": "collection_update",
-                "parameters": [
-                    {
-                        "description": "Collection name",
-                        "in": "path",
-                        "name": "name",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "in": "path",
-                        "name": "docID",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/success"
-                    },
-                    "400": {
-                        "$ref": "#/components/responses/error"
-                    },
-                    "default": {
-                        "description": ""
-                    }
-                },
-                "tags": [
-                    "collection"
+                    "truncate"
                 ]
             }
         },
         "/debug/dump": {
             "get": {
                 "description": "Dump database",
-                "operationId": "debug_dump",
+                "operationId": "dump_debug",
                 "responses": {
                     "200": {
                         "$ref": "#/components/responses/success"
@@ -1777,7 +1889,7 @@
         "/encrypted-indexes": {
             "get": {
                 "description": "List all encrypted indexes for all collections",
-                "operationId": "encrypted_indexes_list_all",
+                "operationId": "list_all_encrypted_indexes",
                 "responses": {
                     "200": {
                         "content": {
@@ -1810,7 +1922,7 @@
         "/graphql": {
             "get": {
                 "description": "GraphQL GET endpoint",
-                "operationId": "graphql_get",
+                "operationId": "get_graphql",
                 "parameters": [
                     {
                         "in": "query",
@@ -1861,12 +1973,12 @@
             },
             "post": {
                 "description": "GraphQL POST endpoint",
-                "operationId": "graphql_post",
+                "operationId": "post_graphql",
                 "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/graphql_request"
+                                "$ref": "#/components/schemas/request_graphql"
                             }
                         }
                     }
@@ -1912,14 +2024,44 @@
             }
         },
         "/lens": {
+            "get": {
+                "description": "List all stored lenses",
+                "operationId": "list_lenses",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "lenses": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "description": "List of stored lenses"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/error"
+                    },
+                    "default": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "lens"
+                ]
+            },
             "post": {
-                "description": "Add a new lens migration",
-                "operationId": "lens_set_migration",
+                "description": "Add a lens to the lens store",
+                "operationId": "add_lens",
                 "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/lens_config"
+                                "$ref": "#/components/schemas/add_lens_request"
                             }
                         }
                     },
@@ -1930,11 +2072,11 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/set_migration"
+                                    "$ref": "#/components/schemas/add_lens_response"
                                 }
                             }
                         },
-                        "description": "Lens info"
+                        "description": "Lens CID"
                     },
                     "400": {
                         "$ref": "#/components/responses/error"
@@ -1951,7 +2093,7 @@
         "/node/identity": {
             "get": {
                 "description": "Get node's public identity",
-                "operationId": "node_identity",
+                "operationId": "get_node_identity",
                 "responses": {
                     "200": {
                         "content": {
@@ -1976,10 +2118,39 @@
                 ]
             }
         },
+        "/p2p/active-peers": {
+            "get": {
+                "operationId": "active_peers",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "type": "array"
+                                }
+                            }
+                        },
+                        "description": "Connected peers"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/error"
+                    },
+                    "default": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "p2p"
+                ]
+            }
+        },
         "/p2p/collections": {
             "delete": {
-                "description": "Remove peer collections",
-                "operationId": "peer_collections_remove",
+                "description": "Delete peer collections",
+                "operationId": "delete_peer_collections",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -2010,7 +2181,7 @@
             },
             "get": {
                 "description": "List peer collections",
-                "operationId": "peer_collections_list",
+                "operationId": "list_peer_collections",
                 "responses": {
                     "200": {
                         "content": {
@@ -2038,7 +2209,7 @@
             },
             "post": {
                 "description": "Add peer collections",
-                "operationId": "peer_collections_add",
+                "operationId": "add_peer_collections",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -2068,10 +2239,51 @@
                 ]
             }
         },
-        "/p2p/collections/sync": {
+        "/p2p/collections/sync-branchable": {
             "post": {
-                "description": "Synchronize collection versions from the network",
-                "operationId": "peer_sync_collections",
+                "description": "Synchronize a branchable collection's DAG from the network",
+                "operationId": "sync_peer_branchable_collection",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "collectionName": {
+                                        "type": "string"
+                                    },
+                                    "timeout": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Branchable collection sync completed successfully"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/error"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/error"
+                    },
+                    "default": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "p2p"
+                ]
+            }
+        },
+        "/p2p/collections/sync-versions": {
+            "post": {
+                "description": "Synchronize collection versions to the local node",
+                "operationId": "sync_peer_collection_versions",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -2095,7 +2307,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Document sync completed successfully"
+                        "description": "Collection synchronization completed successfully"
                     },
                     "400": {
                         "$ref": "#/components/responses/error"
@@ -2133,8 +2345,8 @@
         },
         "/p2p/documents": {
             "delete": {
-                "description": "Remove peer documents",
-                "operationId": "peer_documents_remove",
+                "description": "Delete peer documents",
+                "operationId": "delete_peer_documents",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -2165,7 +2377,7 @@
             },
             "get": {
                 "description": "List peer documents",
-                "operationId": "peer_documents_list",
+                "operationId": "list_peer_documents",
                 "responses": {
                     "200": {
                         "content": {
@@ -2193,7 +2405,7 @@
             },
             "post": {
                 "description": "Add peer documents",
-                "operationId": "peer_documents_add",
+                "operationId": "add_peer_documents",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -2226,7 +2438,7 @@
         "/p2p/documents/sync": {
             "post": {
                 "description": "Synchronize documents from the network",
-                "operationId": "peer_sync_documents",
+                "operationId": "sync_peer_documents",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -2272,13 +2484,13 @@
         },
         "/p2p/info": {
             "get": {
-                "operationId": "peer_info",
+                "operationId": "get_peer_info",
                 "responses": {
                     "200": {
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/peer_info"
+                                    "$ref": "#/components/schemas/get_peer_info"
                                 }
                             }
                         },
@@ -2299,7 +2511,7 @@
         "/p2p/replicators": {
             "delete": {
                 "description": "Delete peer replicators",
-                "operationId": "peer_replicator_delete",
+                "operationId": "delete_peer_replicator",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -2327,7 +2539,7 @@
             },
             "get": {
                 "description": "List peer replicators",
-                "operationId": "peer_replicator_list",
+                "operationId": "list_peer_replicators",
                 "responses": {
                     "200": {
                         "content": {
@@ -2355,12 +2567,12 @@
             },
             "post": {
                 "description": "Add peer replicators",
-                "operationId": "peer_replicator_set",
+                "operationId": "add_peer_replicator",
                 "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/set_replicator_params"
+                                "$ref": "#/components/schemas/add_replicator_params"
                             }
                         }
                     },
@@ -2397,45 +2609,6 @@
                         "description": ""
                     }
                 }
-            }
-        },
-        "/schema": {
-            "post": {
-                "description": "Add a new schema definition",
-                "operationId": "add_schema",
-                "requestBody": {
-                    "content": {
-                        "text/plain": {
-                            "schema": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "items": {
-                                        "$ref": "#/components/schemas/collection"
-                                    },
-                                    "type": "array"
-                                }
-                            }
-                        },
-                        "description": "Collection(s)"
-                    },
-                    "400": {
-                        "$ref": "#/components/responses/error"
-                    },
-                    "default": {
-                        "description": ""
-                    }
-                },
-                "tags": [
-                    "schema"
-                ]
             }
         },
         "/tx": {
@@ -2517,7 +2690,7 @@
         "/tx/{id}": {
             "delete": {
                 "description": "Discard a transaction",
-                "operationId": "transaction_discard",
+                "operationId": "discard_transaction",
                 "parameters": [
                     {
                         "in": "path",
@@ -2546,7 +2719,7 @@
             },
             "post": {
                 "description": "Commit a transaction",
-                "operationId": "transaction_commit",
+                "operationId": "commit_transaction",
                 "parameters": [
                     {
                         "in": "path",
@@ -2607,7 +2780,7 @@
                                 }
                             }
                         },
-                        "description": "The created collection and embedded schemas for the added view."
+                        "description": "The added collection and embedded schemas for the added view."
                     },
                     "400": {
                         "$ref": "#/components/responses/error"
@@ -2623,8 +2796,8 @@
         },
         "/view/refresh": {
             "post": {
-                "description": "Refresh view(s) by name, schema id, or version id.",
-                "operationId": "view_refresh",
+                "description": "Refresh view(s) by name, collection id, or version id.",
+                "operationId": "refresh_view",
                 "parameters": [
                     {
                         "description": "Collection name",
@@ -2635,7 +2808,7 @@
                         }
                     },
                     {
-                        "description": "Collection schema root",
+                        "description": "Collection ID",
                         "in": "query",
                         "name": "collection_id",
                         "schema": {
@@ -2643,7 +2816,7 @@
                         }
                     },
                     {
-                        "description": "Collection schema version id",
+                        "description": "Collection version ID",
                         "in": "query",
                         "name": "version_id",
                         "schema": {
@@ -2684,19 +2857,19 @@
     ],
     "tags": [
         {
-            "description": "Upload GQL schemas to create collections",
-            "name": "schema"
+            "description": "Add, describe, patch, and manage collections",
+            "name": "collection"
         },
         {
-            "description": "Add, remove, or update documents",
-            "name": "collection"
+            "description": "Add, get, update, or delete documents",
+            "name": "document"
         },
         {
             "description": "Add views",
             "name": "view"
         },
         {
-            "description": "Add, update, or remove indexes",
+            "description": "Make, update, or remove indexes",
             "name": "index"
         },
         {

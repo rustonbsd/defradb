@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package simple
 
@@ -24,25 +25,15 @@ import (
 func TestView_SimpleWithTransform(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateView{
-				Query: `
-					User {
-						name
-					}
-				`,
-				SDL: `
-					type UserView @materialized(if: false) {
-						fullName: String
-					}
-				`,
-				Transform: immutable.Some(model.Lens{
+			&action.AddLens{
+				Lens: model.Lens{
 					// This transform will copy the value from `name` into the `fullName` field,
 					// like an overly-complicated alias
 					Lenses: []model.LensModule{
@@ -54,21 +45,34 @@ func TestView_SimpleWithTransform(t *testing.T) {
 							},
 						},
 					},
-				}),
+				},
 			},
-			testUtils.CreateDoc{
+			&action.AddView{
+				Query: `
+					User {
+						name
+					}
+				`,
+				SDL: `
+					type UserView @materialized(if: false) {
+						fullName: String
+					}
+				`,
+				TransformCID: immutable.Some("{{.LensID0}}"),
+			},
+			&action.AddDoc{
 				// Set the `name` field only
 				Doc: `{
 					"name":	"John"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// Set the `name` field only
 				Doc: `{
 					"name":	"Fred"
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						UserView {
@@ -97,26 +101,15 @@ func TestView_SimpleWithTransform(t *testing.T) {
 func TestView_SimpleWithMultipleTransforms(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateView{
-				Query: `
-					User {
-						name
-					}
-				`,
-				SDL: `
-					type UserView @materialized(if: false) {
-						fullName: String
-						age: Int
-					}
-				`,
-				Transform: immutable.Some(model.Lens{
+			&action.AddLens{
+				Lens: model.Lens{
 					// This transform will copy the value from `name` into the `fullName` field,
 					// like an overly-complicated alias.  It will then set `age` to 23.
 					//
@@ -138,19 +131,33 @@ func TestView_SimpleWithMultipleTransforms(t *testing.T) {
 							},
 						},
 					},
-				}),
+				},
 			},
-			testUtils.CreateDoc{
+			&action.AddView{
+				Query: `
+					User {
+						name
+					}
+				`,
+				SDL: `
+					type UserView @materialized(if: false) {
+						fullName: String
+						age: Int
+					}
+				`,
+				TransformCID: immutable.Some("{{.LensID0}}"),
+			},
+			&action.AddDoc{
 				Doc: `{
 					"name":	"John"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name":	"Fred"
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						UserView {
@@ -182,25 +189,15 @@ func TestView_SimpleWithMultipleTransforms(t *testing.T) {
 func TestView_SimpleWithTransformReturningMoreDocsThanInput(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateView{
-				Query: `
-					User {
-						name
-					}
-				`,
-				SDL: `
-					type UserView @materialized(if: false) {
-						name: String
-					}
-				`,
-				Transform: immutable.Some(model.Lens{
+			&action.AddLens{
+				Lens: model.Lens{
 					Lenses: []model.LensModule{
 						{
 							Path: lenses.PrependModulePath,
@@ -216,14 +213,27 @@ func TestView_SimpleWithTransformReturningMoreDocsThanInput(t *testing.T) {
 							},
 						},
 					},
-				}),
+				},
 			},
-			testUtils.CreateDoc{
+			&action.AddView{
+				Query: `
+					User {
+						name
+					}
+				`,
+				SDL: `
+					type UserView @materialized(if: false) {
+						name: String
+					}
+				`,
+				TransformCID: immutable.Some("{{.LensID0}}"),
+			},
+			&action.AddDoc{
 				Doc: `{
 					"name":	"John"
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						UserView {
@@ -254,15 +264,28 @@ func TestView_SimpleWithTransformReturningMoreDocsThanInput(t *testing.T) {
 func TestView_SimpleWithTransformReturningFewerDocsThanInput(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						valid: Boolean
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddLens{
+				Lens: model.Lens{
+					Lenses: []model.LensModule{
+						{
+							Path: lenses.FilterModulePath,
+							Arguments: map[string]any{
+								"src":   "valid",
+								"value": true,
+							},
+						},
+					},
+				},
+			},
+			&action.AddView{
 				Query: `
 					User {
 						name
@@ -274,37 +297,27 @@ func TestView_SimpleWithTransformReturningFewerDocsThanInput(t *testing.T) {
 						name: String
 					}
 				`,
-				Transform: immutable.Some(model.Lens{
-					Lenses: []model.LensModule{
-						{
-							Path: lenses.FilterModulePath,
-							Arguments: map[string]any{
-								"src":   "valid",
-								"value": true,
-							},
-						},
-					},
-				}),
+				TransformCID: immutable.Some("{{.LensID0}}"),
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name":	"John",
 					"valid": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name":	"Fred",
 					"valid": false
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name":	"Shahzad",
 					"valid": true
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						UserView {

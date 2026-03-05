@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package simple
 
@@ -14,6 +15,7 @@ import (
 	"math"
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 	"github.com/sourcenetwork/defradb/tests/state"
 
@@ -23,9 +25,9 @@ import (
 func TestQuerySimple_WithMinOnUndefinedObject_ReturnsError(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-					_min
+					MIN
 				}`,
 				ExpectedError: "aggregate must be provided with a property to aggregate",
 			},
@@ -38,9 +40,9 @@ func TestQuerySimple_WithMinOnUndefinedObject_ReturnsError(t *testing.T) {
 func TestQuerySimple_WithMinOnUndefinedField_ReturnsError(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-					_min(Users: {})
+					MIN(Users: {})
 				}`,
 				ExpectedError: "Argument \"Users\" has invalid value {}.\nIn field \"field\": Expected \"UsersNumericFieldsArg!\", found null.",
 			},
@@ -53,12 +55,12 @@ func TestQuerySimple_WithMinOnUndefinedField_ReturnsError(t *testing.T) {
 func TestQuerySimple_WithMinOnEmptyCollection_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-					_min(Users: {field: Age})
+					MIN(Users: {field: Age})
 				}`,
 				Results: map[string]any{
-					"_min": nil,
+					"MIN": nil,
 				},
 			},
 		},
@@ -70,24 +72,24 @@ func TestQuerySimple_WithMinOnEmptyCollection_Succeeds(t *testing.T) {
 func TestQuerySimple_WithMin_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "John",
 					"Age": 21
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Bob",
 					"Age": 30
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-					_min(Users: {field: Age})
+					MIN(Users: {field: Age})
 				}`,
 				Results: map[string]any{
-					"_min": int64(21),
+					"MIN": int64(21),
 				},
 			},
 		},
@@ -104,24 +106,24 @@ func TestQuerySimple_WithMinAndMaxValueInt_Succeeds(t *testing.T) {
 			state.CLIClientType,
 			state.HTTPClientType,
 		}),
-		SupportedMutationTypes: immutable.Some([]testUtils.MutationType{
+		SupportedMutationTypes: immutable.Some([]state.MutationType{
 			// GraphQL does not support 64 bit int
-			testUtils.CollectionSaveMutationType,
-			testUtils.CollectionNamedMutationType,
+			state.CollectionSaveMutationType,
+			state.CollectionNamedMutationType,
 		}),
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				DocMap: map[string]any{
 					"Name": "John",
 					"Age":  int64(math.MaxInt64),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-					_max(Users: {field: Age})
+					MAX(Users: {field: Age})
 				}`,
 				Results: map[string]any{
-					"_max": int64(math.MaxInt64),
+					"MAX": int64(math.MaxInt64),
 				},
 			},
 		},
@@ -133,9 +135,9 @@ func TestQuerySimple_WithMinAndMaxValueInt_Succeeds(t *testing.T) {
 func TestQuerySimple_WithAliasedMinOnEmptyCollection_Succeeds(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-					minimum: _min(Users: {field: Age})
+					minimum: MIN(Users: {field: Age})
 				}`,
 				Results: map[string]any{
 					"minimum": nil,

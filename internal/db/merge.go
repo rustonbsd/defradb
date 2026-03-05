@@ -17,16 +17,15 @@ import (
 	"sync"
 
 	"github.com/ipfs/go-cid"
-	ipld "github.com/ipfs/go-ipld-format"
 	"github.com/ipld/go-ipld-prime/linking"
 	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
 
 	"github.com/sourcenetwork/corekv"
 	"github.com/sourcenetwork/corekv/blockstore"
 	"github.com/sourcenetwork/corelog"
-	"github.com/sourcenetwork/immutable"
 
 	"github.com/sourcenetwork/defradb/client"
+	"github.com/sourcenetwork/defradb/client/options"
 	"github.com/sourcenetwork/defradb/errors"
 	"github.com/sourcenetwork/defradb/event"
 	"github.com/sourcenetwork/defradb/internal/core"
@@ -36,6 +35,7 @@ import (
 	"github.com/sourcenetwork/defradb/internal/db/id"
 	"github.com/sourcenetwork/defradb/internal/encryption"
 	"github.com/sourcenetwork/defradb/internal/keys"
+	"github.com/sourcenetwork/defradb/internal/utils"
 )
 
 func (db *DB) Merge(ctx context.Context, evt event.Merge) error {
@@ -73,6 +73,7 @@ func (db *DB) Merge(ctx context.Context, evt event.Merge) error {
 		if err != nil {
 			return err
 		}
+		return nil
 	}
 	return nil
 }
@@ -119,12 +120,8 @@ func (db *DB) executeMerge(ctx context.Context, col *collection, dagMerge event.
 		return err
 	}
 
-	for docID := range mp.docIDs {
-		docID, err := client.NewDocIDFromString(docID)
-		if err != nil {
-			return err
-		}
-		err = syncIndexedDoc(ctx, docID, col)
+	for docID, oldDoc := range mp.docIDs {
+		err = syncIndexedDoc(ctx, docID, mp.col, oldDoc)
 		if err != nil {
 			return err
 		}
@@ -137,8 +134,7 @@ func (db *DB) executeMerge(ctx context.Context, col *collection, dagMerge event.
 
 	// send a complete event so we can track merges in the integration tests
 	db.events.Publish(event.NewMessage(event.MergeCompleteName, event.MergeComplete{
-		Merge:     dagMerge,
-		Decrypted: len(mp.missingEncryptionBlocks) == 0,
+		Merge: dagMerge,
 	}))
 	return nil
 }
@@ -188,15 +184,13 @@ type mergeProcessor struct {
 	encBlockLS linking.LinkSystem
 	col        *collection
 
-	// docIDs contains all docIDs that have been merged so far by the mergeProcessor
-	docIDs map[string]struct{}
+	// docIDs contains all docIDs and their original values
+	// that have been merged so far by the mergeProcessor
+	// the original values are used to update indexes
+	docIDs map[client.DocID]*client.Document
 
 	// composites is a list of composites that need to be merged.
 	composites *list.List
-	// missingEncryptionBlocks is a list of blocks that we failed to fetch
-	missingEncryptionBlocks map[cidlink.Link]struct{}
-	// availableEncryptionBlocks is a list of blocks that we have successfully fetched
-	availableEncryptionBlocks map[cidlink.Link]*coreblock.Encryption
 }
 
 func (db *DB) newMergeProcessor(
@@ -212,13 +206,11 @@ func (db *DB) newMergeProcessor(
 	encBlockLS.SetReadStorage(blockstore.NewIPLDStore(txn.Encstore()))
 
 	return &mergeProcessor{
-		blockLS:                   blockLS,
-		encBlockLS:                encBlockLS,
-		col:                       col,
-		docIDs:                    make(map[string]struct{}),
-		composites:                list.New(),
-		missingEncryptionBlocks:   make(map[cidlink.Link]struct{}),
-		availableEncryptionBlocks: make(map[cidlink.Link]*coreblock.Encryption),
+		blockLS:    blockLS,
+		encBlockLS: encBlockLS,
+		col:        col,
+		docIDs:     make(map[client.DocID]*client.Document),
+		composites: list.New(),
 	}, nil
 }
 
@@ -302,48 +294,6 @@ func (mp *mergeProcessor) mergeComposites(ctx context.Context) error {
 		}
 	}
 
-	return mp.tryFetchMissingBlocksAndMerge(ctx)
-}
-
-func (mp *mergeProcessor) tryFetchMissingBlocksAndMerge(ctx context.Context) error {
-	for len(mp.missingEncryptionBlocks) > 0 {
-		links := make([]cidlink.Link, 0, len(mp.missingEncryptionBlocks))
-		for link := range mp.missingEncryptionBlocks {
-			links = append(links, link)
-		}
-		msg, results := encryption.NewRequestKeysMessage(links)
-		mp.col.db.events.Publish(msg)
-
-		res := <-results.Get()
-		if res.Error != nil {
-			return res.Error
-		}
-
-		if len(res.Items) == 0 {
-			return nil
-		}
-
-		for i := range res.Items {
-			_, link, err := cid.CidFromBytes(res.Items[i].Link)
-			if err != nil {
-				return err
-			}
-			var encBlock coreblock.Encryption
-			err = encBlock.Unmarshal(res.Items[i].Block)
-			if err != nil {
-				return err
-			}
-
-			mp.availableEncryptionBlocks[cidlink.Link{Cid: link}] = &encBlock
-		}
-
-		clear(mp.missingEncryptionBlocks)
-
-		err := mp.mergeComposites(ctx)
-		if err != nil {
-			return err
-		}
-	}
 	return nil
 }
 
@@ -353,37 +303,10 @@ func (mp *mergeProcessor) loadEncryptionBlock(
 ) (*coreblock.Encryption, error) {
 	nd, err := mp.encBlockLS.Load(linking.LinkContext{Ctx: ctx}, encLink, coreblock.EncryptionSchemaPrototype)
 	if err != nil {
-		if errors.Is(err, ipld.ErrNotFound{}) {
-			mp.missingEncryptionBlocks[encLink] = struct{}{}
-			return nil, nil
-		}
 		return nil, err
 	}
 
 	return coreblock.GetEncryptionBlockFromNode(nd)
-}
-
-func (mp *mergeProcessor) tryGetEncryptionBlock(
-	ctx context.Context,
-	encLink cidlink.Link,
-) (*coreblock.Encryption, error) {
-	if encBlock, ok := mp.availableEncryptionBlocks[encLink]; ok {
-		return encBlock, nil
-	}
-	if _, ok := mp.missingEncryptionBlocks[encLink]; ok {
-		return nil, nil
-	}
-
-	encBlock, err := mp.loadEncryptionBlock(ctx, encLink)
-	if err != nil {
-		return nil, err
-	}
-
-	if encBlock != nil {
-		mp.availableEncryptionBlocks[encLink] = encBlock
-	}
-
-	return encBlock, nil
 }
 
 // processEncryptedBlock decrypts the block if it is encrypted and returns the decrypted block.
@@ -395,7 +318,7 @@ func (mp *mergeProcessor) processEncryptedBlock(
 	dagBlock *coreblock.Block,
 ) (*coreblock.Block, bool, error) {
 	if dagBlock.IsEncrypted() {
-		encBlock, err := mp.tryGetEncryptionBlock(ctx, *dagBlock.Encryption)
+		encBlock, err := mp.loadEncryptionBlock(ctx, *dagBlock.Encryption)
 		if err != nil {
 			return nil, false, err
 		}
@@ -433,7 +356,7 @@ func (mp *mergeProcessor) processBlock(
 		}
 
 		// If the CRDT is nil, it means the field is not part
-		// of the schema and we can safely ignore it.
+		// of the collection definition and we can safely ignore it.
 		if crdt == nil {
 			return nil
 		}
@@ -497,15 +420,20 @@ func (mp *mergeProcessor) initCRDTForType(ctx context.Context, crdtUnion crdt.CR
 
 	switch {
 	case crdtUnion.IsComposite():
-		docID := string(crdtUnion.GetDocID())
-		mp.docIDs[docID] = struct{}{}
-
+		docID, err := client.NewDocIDFromString(string(crdtUnion.GetDocID()))
+		if err != nil {
+			return nil, err
+		}
+		err = mp.trackMergedDocument(ctx, docID)
+		if err != nil {
+			return nil, err
+		}
 		return crdt.NewDocComposite(
 			txn.Datastore(),
 			mp.col.Version().VersionID,
 			keys.DataStoreKey{
 				CollectionShortID: shortID,
-				DocID:             docID,
+				DocID:             docID.String(),
 			}.WithFieldID(core.COMPOSITE_NAMESPACE),
 		), nil
 
@@ -516,13 +444,19 @@ func (mp *mergeProcessor) initCRDTForType(ctx context.Context, crdtUnion crdt.CR
 		), nil
 
 	default:
-		docID := string(crdtUnion.GetDocID())
-		mp.docIDs[docID] = struct{}{}
+		docID, err := client.NewDocIDFromString(string(crdtUnion.GetDocID()))
+		if err != nil {
+			return nil, err
+		}
+		err = mp.trackMergedDocument(ctx, docID)
+		if err != nil {
+			return nil, err
+		}
 
 		field := crdtUnion.GetFieldName()
 		fd, ok := mp.col.Version().GetFieldByName(field)
 		if !ok {
-			// If the field is not part of the schema, we can safely ignore it.
+			// If the field is not part of the collection definition, we can safely ignore it.
 			return nil, nil
 		}
 
@@ -538,11 +472,26 @@ func (mp *mergeProcessor) initCRDTForType(ctx context.Context, crdtUnion crdt.CR
 			fd.Kind,
 			keys.DataStoreKey{
 				CollectionShortID: shortID,
-				DocID:             docID,
+				DocID:             docID.String(),
 			}.WithFieldID(fmt.Sprint(fieldShortID)),
 			field,
 		)
 	}
+}
+
+// trackMergedDocument tracks the current version of the document so we
+// can correctly sync indexes after a merge.
+func (mp *mergeProcessor) trackMergedDocument(ctx context.Context, docID client.DocID) error {
+	_, exists := mp.docIDs[docID]
+	if exists {
+		return nil
+	}
+	doc, err := mp.col.GetDocument(ctx, docID)
+	if err != nil && !errors.Is(err, client.ErrDocumentNotFoundOrNotAuthorized) {
+		return nil
+	}
+	mp.docIDs[docID] = doc
+	return nil
 }
 
 func getCollectionFromCollectionID(ctx context.Context, db *DB, collectionID string) (*collection, error) {
@@ -554,17 +503,15 @@ func getCollectionFromCollectionID(ctx context.Context, db *DB, collectionID str
 
 	cols, err := db.getCollections(
 		ctx,
-		client.CollectionFetchOptions{
-			CollectionID: immutable.Some(collectionID),
-		},
+		utils.NewOptions(options.GetCollections().SetCollectionID(collectionID)),
 	)
 	if err != nil {
 		return nil, err
 	}
 	if len(cols) == 0 {
-		return nil, client.NewErrCollectionNotFoundForSchema(collectionID)
+		return nil, client.NewErrCollectionNotFoundForRoot(collectionID)
 	}
-	// We currently only support one active collection per root schema
+	// We currently only support one active collection per collection root
 	// so it is safe to return the first one.
 	return cols[0].(*collection), nil
 }
@@ -625,27 +572,17 @@ func syncIndexedDoc(
 	ctx context.Context,
 	docID client.DocID,
 	col *collection,
+	oldDoc *client.Document,
 ) error {
-	// remove transaction from old context
-	oldCtx := InitContext(ctx, nil)
-
-	oldDoc, err := col.Get(oldCtx, docID, false)
-	isNewDoc := errors.Is(err, client.ErrDocumentNotFoundOrNotAuthorized)
-	if !isNewDoc && err != nil {
+	newDoc, err := col.GetDocument(ctx, docID)
+	if err != nil && !errors.Is(err, client.ErrDocumentNotFoundOrNotAuthorized) {
 		return err
 	}
-
-	doc, err := col.Get(ctx, docID, false)
-	isDeletedDoc := errors.Is(err, client.ErrDocumentNotFoundOrNotAuthorized)
-	if !isDeletedDoc && err != nil {
-		return err
-	}
-
-	if isNewDoc {
-		return col.indexNewDoc(ctx, doc)
-	} else if isDeletedDoc {
-		return col.deleteIndexedDoc(ctx, oldDoc)
+	if oldDoc != nil && newDoc != nil {
+		return col.updateDocIndex(ctx, oldDoc, newDoc)
+	} else if oldDoc == nil {
+		return col.addDocToIndex(ctx, newDoc)
 	} else {
-		return col.updateDocIndex(ctx, oldDoc, doc)
+		return col.deleteIndexedDoc(ctx, oldDoc)
 	}
 }

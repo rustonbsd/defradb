@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package field_kinds
 
@@ -20,15 +21,15 @@ import (
 func TestMutationUpdate_WithArrayOfIntsToNil(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 						favouriteIntegers: [Int!]
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"favouriteIntegers": [1, 2, 3, 5, 8]
@@ -39,7 +40,7 @@ func TestMutationUpdate_WithArrayOfIntsToNil(t *testing.T) {
 					"favouriteIntegers": null
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						Users {
@@ -64,15 +65,15 @@ func TestMutationUpdate_WithArrayOfIntsToNil(t *testing.T) {
 func TestMutationUpdate_WithArrayOfIntsToEmpty(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 						favouriteIntegers: [Int!]
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"favouriteIntegers": [1, 2, 3, 5, 8]
@@ -83,7 +84,7 @@ func TestMutationUpdate_WithArrayOfIntsToEmpty(t *testing.T) {
 					"favouriteIntegers": []
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						Users {
@@ -108,15 +109,15 @@ func TestMutationUpdate_WithArrayOfIntsToEmpty(t *testing.T) {
 func TestMutationUpdate_WithArrayOfIntsToSameSizePositiveValues(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 						favouriteIntegers: [Int!]
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"favouriteIntegers": [1, 2, 3, 5, 8]
@@ -127,7 +128,7 @@ func TestMutationUpdate_WithArrayOfIntsToSameSizePositiveValues(t *testing.T) {
 					"favouriteIntegers": [8, 5, 3, 2, 1]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						Users {
@@ -152,15 +153,15 @@ func TestMutationUpdate_WithArrayOfIntsToSameSizePositiveValues(t *testing.T) {
 func TestMutationUpdate_WithArrayOfIntsToSameSizeMixedValues(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 						favouriteIntegers: [Int!]
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"favouriteIntegers": [1, 2, 3, 5, 8]
@@ -171,7 +172,7 @@ func TestMutationUpdate_WithArrayOfIntsToSameSizeMixedValues(t *testing.T) {
 					"favouriteIntegers": [-1, 2, -3, 5, -8]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						Users {
@@ -196,15 +197,15 @@ func TestMutationUpdate_WithArrayOfIntsToSameSizeMixedValues(t *testing.T) {
 func TestMutationUpdate_WithArrayOfIntsToSmallerSizePositiveValues(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 						favouriteIntegers: [Int!]
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"favouriteIntegers": [1, 2, 3, 5, 8]
@@ -215,7 +216,7 @@ func TestMutationUpdate_WithArrayOfIntsToSmallerSizePositiveValues(t *testing.T)
 					"favouriteIntegers": [1, 2, 3]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						Users {
@@ -240,15 +241,15 @@ func TestMutationUpdate_WithArrayOfIntsToSmallerSizePositiveValues(t *testing.T)
 func TestMutationUpdate_WithArrayOfIntsToLargerSizePositiveValues(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 						favouriteIntegers: [Int!]
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"favouriteIntegers": [1, 2, 3, 5, 8]
@@ -259,7 +260,7 @@ func TestMutationUpdate_WithArrayOfIntsToLargerSizePositiveValues(t *testing.T) 
 					"favouriteIntegers": [1, 2, 3, 5, 8, 13, 21]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						Users {

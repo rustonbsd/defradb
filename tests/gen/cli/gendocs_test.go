@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package cli
 
@@ -28,7 +29,7 @@ func TestGendocsCmd_IfNoErrors_ReturnGenerationOutput(t *testing.T) {
 	defer close()
 
 	ctx := context.Background()
-	defra.db.AddSchema(ctx, `
+	_, err := defra.db.AddCollection(ctx, `
 	type User { 
 		name: String 
 		devices: [Device]
@@ -37,6 +38,7 @@ func TestGendocsCmd_IfNoErrors_ReturnGenerationOutput(t *testing.T) {
 		model: String
 		owner: User
 	}`)
+	require.NoError(t, err)
 
 	genDocsCmd := MakeGenDocCommand(ctx)
 	outputBuf := bytes.NewBufferString("")
@@ -47,7 +49,7 @@ func TestGendocsCmd_IfNoErrors_ReturnGenerationOutput(t *testing.T) {
 		"--url", strings.TrimPrefix(defra.server.URL, "http://"),
 	})
 
-	err := genDocsCmd.Execute()
+	err = genDocsCmd.Execute()
 	require.NoError(t, err)
 
 	out, err := io.ReadAll(outputBuf)
@@ -68,10 +70,11 @@ func TestGendocsCmd_IfInvalidDemandValue_ReturnError(t *testing.T) {
 	defer close()
 
 	ctx := context.Background()
-	defra.db.AddSchema(ctx, `
+	_, err := defra.db.AddCollection(ctx, `
         type User { 
             name: String 
         }`)
+	require.NoError(t, err)
 
 	genDocsCmd := MakeGenDocCommand(ctx)
 	genDocsCmd.SetArgs([]string{
@@ -79,7 +82,7 @@ func TestGendocsCmd_IfInvalidDemandValue_ReturnError(t *testing.T) {
 		"--url", strings.TrimPrefix(defra.server.URL, "http://"),
 	})
 
-	err := genDocsCmd.Execute()
+	err = genDocsCmd.Execute()
 	require.ErrorContains(t, err, errInvalidDemandValue)
 }
 
@@ -88,10 +91,11 @@ func TestGendocsCmd_IfInvalidConfig_ReturnError(t *testing.T) {
 	defer close()
 
 	ctx := context.Background()
-	defra.db.AddSchema(ctx, `
+	_, err := defra.db.AddCollection(ctx, `
         type User { 
             name: String 
         }`)
+	require.NoError(t, err)
 
 	genDocsCmd := MakeGenDocCommand(ctx)
 	genDocsCmd.SetArgs([]string{
@@ -99,6 +103,6 @@ func TestGendocsCmd_IfInvalidConfig_ReturnError(t *testing.T) {
 		"--url", strings.TrimPrefix(defra.server.URL, "http://"),
 	})
 
-	err := genDocsCmd.Execute()
+	err = genDocsCmd.Execute()
 	require.Error(t, err, gen.NewErrInvalidConfiguration(""))
 }

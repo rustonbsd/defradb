@@ -14,27 +14,29 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sourcenetwork/corekv"
-	"github.com/sourcenetwork/immutable"
-	"github.com/sourcenetwork/lens/host-go/config/model"
+	"github.com/ipfs/go-cid"
 
-	"github.com/sourcenetwork/defradb/acp/identity"
+	"github.com/sourcenetwork/immutable"
+
 	"github.com/sourcenetwork/defradb/client"
+	"github.com/sourcenetwork/defradb/client/options"
 	"github.com/sourcenetwork/defradb/client/request"
 	"github.com/sourcenetwork/defradb/errors"
 	"github.com/sourcenetwork/defradb/internal/core"
 	"github.com/sourcenetwork/defradb/internal/datastore"
 	"github.com/sourcenetwork/defradb/internal/db/description"
 	"github.com/sourcenetwork/defradb/internal/db/id"
+	"github.com/sourcenetwork/defradb/internal/identity"
 	"github.com/sourcenetwork/defradb/internal/keys"
 	"github.com/sourcenetwork/defradb/internal/planner"
+	"github.com/sourcenetwork/defradb/internal/utils"
 )
 
 func (db *DB) addView(
 	ctx context.Context,
 	inputQuery string,
 	sdl string,
-	transform immutable.Option[model.Lens],
+	transformCID immutable.Option[string],
 ) ([]client.CollectionVersion, error) {
 	// Wrap the given query as part of the GQL query object - this simplifies the syntax for users
 	// and ensures that we can't be given mutations.  In the future this line should disappear along
@@ -67,12 +69,15 @@ func (db *DB) addView(
 
 	for i := range parseResults {
 		var lensID immutable.Option[string]
-		if transform.HasValue() {
-			cid, err := db.getLensStore(ctx).Add(ctx, transform.Value())
+		if transformCID.HasValue() {
+			exists, err := db.lensCIDExists(ctx, transformCID.Value())
 			if err != nil {
 				return nil, err
 			}
-			lensID = immutable.Some(cid.String())
+			if !exists {
+				return nil, NewErrLensCIDNotFound(transformCID.Value())
+			}
+			lensID = transformCID
 		}
 
 		source := client.QuerySource{
@@ -82,20 +87,29 @@ func (db *DB) addView(
 		parseResults[i].Definition.Query = immutable.Some(source)
 	}
 
-	returnDescriptions, err := db.createCollections(ctx, parseResults)
+	returnDescriptions, err := db.addCollections(ctx, parseResults)
 	if err != nil {
 		return nil, err
 	}
 
-	err = db.loadSchema(ctx)
+	err = db.loadCollectionDefinitions(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	for _, view := range returnDescriptions {
+		if view.Query.HasValue() && view.IsMaterialized {
+			err := db.refreshViews(ctx, utils.NewOptions(options.GetCollections().SetVersionID(view.VersionID)))
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	return returnDescriptions, nil
 }
 
-func (db *DB) refreshViews(ctx context.Context, opts client.CollectionFetchOptions) error {
+func (db *DB) refreshViews(ctx context.Context, opts *options.GetCollectionsOptions) error {
 	// For now, we only support user-cache management of views, not all collections
 	cols, err := db.getViews(ctx, opts)
 	if err != nil {
@@ -125,7 +139,7 @@ func (db *DB) refreshViews(ctx context.Context, opts client.CollectionFetchOptio
 	return nil
 }
 
-func (db *DB) getViews(ctx context.Context, opts client.CollectionFetchOptions) ([]client.CollectionVersion, error) {
+func (db *DB) getViews(ctx context.Context, opts *options.GetCollectionsOptions) ([]client.CollectionVersion, error) {
 	cols, err := db.getCollections(ctx, opts)
 	if err != nil {
 		return nil, err
@@ -149,6 +163,7 @@ func (db *DB) buildViewCache(ctx context.Context, col client.CollectionVersion) 
 	p := planner.New(
 		ctx,
 		identity.FromContext(ctx),
+		db.nodeACP,
 		db.documentACP,
 		db,
 		db.p2p,
@@ -223,7 +238,7 @@ func (db *DB) buildViewCache(ctx context.Context, col client.CollectionVersion) 
 		}
 
 		itemKey := keys.NewViewCacheKey(shortID, itemID)
-		err = txn.Datastore().Set(ctx, itemKey.Bytes(), serializedItem)
+		err = txn.Datastore().Set(ctx, itemKey, serializedItem)
 		if err != nil {
 			return err
 		}
@@ -245,8 +260,8 @@ func (db *DB) clearViewCache(ctx context.Context, col client.CollectionVersion) 
 		return err
 	}
 
-	iter, err := txn.Datastore().Iterator(ctx, corekv.IterOptions{
-		Prefix:   keys.NewViewCacheColPrefix(shortID).Bytes(),
+	iter, err := txn.Datastore().Iterator(ctx, datastore.IterOptions{
+		Prefix:   keys.NewViewCacheColPrefix(shortID),
 		KeysOnly: true,
 	})
 	if err != nil {
@@ -262,7 +277,12 @@ func (db *DB) clearViewCache(ctx context.Context, col client.CollectionVersion) 
 			break
 		}
 
-		err = txn.Datastore().Delete(ctx, iter.Key())
+		key, err := keys.NewViewCacheKeyFromRaw(iter.Key())
+		if err != nil {
+			return errors.Join(err, iter.Close())
+		}
+
+		err = txn.Datastore().Delete(ctx, key)
 		if err != nil {
 			return errors.Join(err, iter.Close())
 		}
@@ -281,7 +301,7 @@ func (db *DB) generateMaximalSelectFromCollection(
 	// of collision.
 	identifier := col.Name + "__-" + fieldName.Value()
 	if _, ok := typesHit[identifier]; ok {
-		// If this identifier is already in the set, the schema must be circular and we should return
+		// If this identifier is already in the set, the collection type must be circular and we should return
 		return nil, nil
 	}
 	typesHit[identifier] = struct{}{}
@@ -305,7 +325,7 @@ func (db *DB) generateMaximalSelectFromCollection(
 			}
 
 			if innerSelect != nil {
-				// innerSelect may be nil if a circular relationship is defined in the schema and we have already
+				// innerSelect may be nil if a circular relationship is defined in the collection type and we have already
 				// added this field
 				childRequests = append(childRequests, innerSelect)
 			}
@@ -327,4 +347,24 @@ func (db *DB) generateMaximalSelectFromCollection(
 			Fields: childRequests,
 		},
 	}, nil
+}
+
+// lensCIDExists checks if a lens with the given CID exists in the lens store.
+func (db *DB) lensCIDExists(ctx context.Context, cidStr string) (bool, error) {
+	_, err := cid.Decode(cidStr)
+	if err != nil {
+		return false, err
+	}
+
+	lenses, err := db.getLensStore(ctx).List(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	for storedCID := range lenses {
+		if storedCID == cidStr {
+			return true, nil
+		}
+	}
+	return false, nil
 }

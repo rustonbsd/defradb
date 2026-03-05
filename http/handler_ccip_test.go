@@ -28,10 +28,9 @@ import (
 
 	"github.com/sourcenetwork/corekv/badger"
 
-	"github.com/sourcenetwork/defradb/acp/dac"
-
 	"github.com/sourcenetwork/defradb/client"
 	"github.com/sourcenetwork/defradb/internal/db"
+	acpDB "github.com/sourcenetwork/defradb/internal/db/acp"
 )
 
 func TestCCIPGet_WithValidData(t *testing.T) {
@@ -198,13 +197,13 @@ func setupDatabase(t *testing.T) DB {
 	store, err := badger.NewDatastore("", badgerds.DefaultOptions("").WithInMemory(true))
 	require.NoError(t, err)
 
-	adminInfo, err := db.NewNACInfo(ctx, "", false)
+	adminInfo, err := acpDB.NewNACInfo(ctx, "", false)
 	require.NoError(t, err)
 
-	cdb, err := db.NewDB(ctx, store, adminInfo, dac.NoDocumentACP)
+	cdb, err := db.NewDB(ctx, store, adminInfo)
 	require.NoError(t, err)
 
-	_, err = cdb.AddSchema(ctx, `type User {
+	_, err = cdb.AddCollection(ctx, `type User {
 		name: String
 	}`)
 	require.NoError(t, err)
@@ -212,16 +211,16 @@ func setupDatabase(t *testing.T) DB {
 	col, err := cdb.GetCollectionByName(ctx, "User")
 	require.NoError(t, err)
 
-	doc, err := client.NewDocFromJSON([]byte(`{"name": "bob"}`), col.Version())
+	doc, err := client.NewDocFromJSON(ctx, []byte(`{"name": "bob"}`), col.Version())
 	require.NoError(t, err)
 
-	err = col.Create(ctx, doc)
+	err = col.AddDocument(ctx, doc)
 	require.NoError(t, err)
 
-	doc2, err := client.NewDocFromJSON([]byte(`{"name": "adam"}`), col.Version())
+	doc2, err := client.NewDocFromJSON(ctx, []byte(`{"name": "adam"}`), col.Version())
 	require.NoError(t, err)
 
-	err = col.Create(ctx, doc2)
+	err = col.AddDocument(ctx, doc2)
 	require.NoError(t, err)
 
 	return cdb

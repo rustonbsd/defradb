@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package replace
 
@@ -29,8 +30,8 @@ func TestColVersionUpdateReplaceCollectionSourceTransform(t *testing.T) {
 			// the test.  The ID is passed into the next PatchCollection action.
 			testUtils.ConfigureMigration{
 				LensConfig: client.LensConfig{
-					SourceSchemaVersionID:      "bafyreigbatez5rnojqa4ccfqsbguh4ckquxr76elgqij7ckftbxpwqniv4",
-					DestinationSchemaVersionID: "bafyreihiiez4vcgh4rys2zfs74macgwyybchutjslyw2oin747enuywn54",
+					SourceCollectionVersionID:      "bafyreigbatez5rnojqa4ccfqsbguh4ckquxr76elgqij7ckftbxpwqniv4",
+					DestinationCollectionVersionID: "bafyreihiiez4vcgh4rys2zfs74macgwyybchutjslyw2oin747enuywn54",
 					Lens: model.Lens{
 						Lenses: []model.LensModule{
 							{
@@ -44,26 +45,26 @@ func TestColVersionUpdateReplaceCollectionSourceTransform(t *testing.T) {
 					},
 				},
 			},
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad"
 				}`,
 			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				Patch: `
 					[
 						{ "op": "add", "path": "/Users/Fields/-", "value": {"Name": "email", "Kind": 11} }
 					]
 				`,
 			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				Patch: `
 					[
 						{
@@ -74,7 +75,7 @@ func TestColVersionUpdateReplaceCollectionSourceTransform(t *testing.T) {
 					]
 				`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users {
 						name

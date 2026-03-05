@@ -1,12 +1,13 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package mix
 
@@ -17,35 +18,36 @@ import (
 
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
+	"github.com/sourcenetwork/defradb/tests/state"
 )
 
 func TestMutationWithTxnDeletesUserGivenSameTransaction(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						age: Int
 					}
 				`,
 			},
-			testUtils.Request{
+			&action.Request{
 				TransactionID: immutable.Some(0),
 				Request: `mutation {
-					create_User(input: {name: "John", age: 27}) {
+					add_User(input: {name: "John", age: 27}) {
 						_docID
 					}
 				}`,
 				Results: map[string]any{
-					"create_User": []map[string]any{
+					"add_User": []map[string]any{
 						{
 							"_docID": "bae-bb8ed746-4570-5651-ac69-39a21f733211",
 						},
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				TransactionID: immutable.Some(0),
 				Request: `mutation {
 					delete_User(docID: "bae-bb8ed746-4570-5651-ac69-39a21f733211") {
@@ -68,31 +70,38 @@ func TestMutationWithTxnDeletesUserGivenSameTransaction(t *testing.T) {
 
 func TestMutationWithTxnDoesNotDeletesUserGivenDifferentTransactions(t *testing.T) {
 	test := testUtils.TestCase{
+		// LevelDB does not support concurrent transactions
+		// TODO https://github.com/sourcenetwork/defradb/issues/4442
+		SupportedDatabaseTypes: immutable.Some([]state.DatabaseType{
+			testUtils.BadgerFileType,
+			testUtils.BadgerIMType,
+			testUtils.DefraIMType,
+		}),
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						age: Int
 					}
 				`,
 			},
-			testUtils.Request{
+			&action.Request{
 				TransactionID: immutable.Some(0),
 				Request: `mutation {
-					create_User(input: {name: "John", age: 27}) {
+					add_User(input: {name: "John", age: 27}) {
 						_docID
 					}
 				}`,
 				Results: map[string]any{
-					"create_User": []map[string]any{
+					"add_User": []map[string]any{
 						{
 							"_docID": "bae-bb8ed746-4570-5651-ac69-39a21f733211",
 						},
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				TransactionID: immutable.Some(1),
 				Request: `mutation {
 					delete_User(docID: "bae-bb8ed746-4570-5651-ac69-39a21f733211") {
@@ -103,7 +112,7 @@ func TestMutationWithTxnDoesNotDeletesUserGivenDifferentTransactions(t *testing.
 					"delete_User": []map[string]any{},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				TransactionID: immutable.Some(0),
 				Request: `query {
 					User {
@@ -122,7 +131,7 @@ func TestMutationWithTxnDoesNotDeletesUserGivenDifferentTransactions(t *testing.
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				TransactionID: immutable.Some(1),
 				Request: `query {
 					User {
@@ -144,21 +153,21 @@ func TestMutationWithTxnDoesNotDeletesUserGivenDifferentTransactions(t *testing.
 func TestMutationWithTxnDoesUpdateUserGivenSameTransactions(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						age: Int
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"age": 27
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				TransactionID: immutable.Some(0),
 				Request: `mutation {
 					update_User(input: {age: 28}) {
@@ -173,7 +182,7 @@ func TestMutationWithTxnDoesUpdateUserGivenSameTransactions(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				TransactionID: immutable.Some(0),
 				Request: `query {
 					User {
@@ -200,22 +209,29 @@ func TestMutationWithTxnDoesUpdateUserGivenSameTransactions(t *testing.T) {
 
 func TestMutationWithTxnDoesNotUpdateUserGivenDifferentTransactions(t *testing.T) {
 	test := testUtils.TestCase{
+		// LevelDB does not support concurrent transactions
+		// TODO https://github.com/sourcenetwork/defradb/issues/4442
+		SupportedDatabaseTypes: immutable.Some([]state.DatabaseType{
+			testUtils.BadgerFileType,
+			testUtils.BadgerIMType,
+			testUtils.DefraIMType,
+		}),
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						age: Int
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"age": 27
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				TransactionID: immutable.Some(0),
 				Request: `mutation {
 					update_User(input: {age: 28}) {
@@ -234,7 +250,7 @@ func TestMutationWithTxnDoesNotUpdateUserGivenDifferentTransactions(t *testing.T
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				TransactionID: immutable.Some(1),
 				Request: `query {
 					User {
@@ -261,23 +277,30 @@ func TestMutationWithTxnDoesNotUpdateUserGivenDifferentTransactions(t *testing.T
 
 func TestMutationWithTxnDoesNotAllowUpdateInSecondTransactionUser(t *testing.T) {
 	test := testUtils.TestCase{
+		// LevelDB does not support concurrent transactions
+		// TODO https://github.com/sourcenetwork/defradb/issues/4442
+		SupportedDatabaseTypes: immutable.Some([]state.DatabaseType{
+			testUtils.BadgerFileType,
+			testUtils.BadgerIMType,
+			testUtils.DefraIMType,
+		}),
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						age: Int
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "John",
 					"age": 27
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				TransactionID: immutable.Some(0),
 				Request: `mutation {
 					update_User(input: {age: 28}) {
@@ -296,7 +319,7 @@ func TestMutationWithTxnDoesNotAllowUpdateInSecondTransactionUser(t *testing.T) 
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				TransactionID: immutable.Some(1),
 				Request: `mutation {
 					update_User(input: {age: 29}) {
@@ -315,14 +338,14 @@ func TestMutationWithTxnDoesNotAllowUpdateInSecondTransactionUser(t *testing.T) 
 					},
 				},
 			},
-			testUtils.TransactionCommit{
+			testUtils.CommitTransaction{
 				TransactionID: 0,
 			},
-			testUtils.TransactionCommit{
+			testUtils.CommitTransaction{
 				TransactionID: 1,
 				ExpectedError: "transaction conflict. Please retry",
 			},
-			testUtils.Request{
+			&action.Request{
 				// Query after transactions have been commited:
 				Request: `query {
 					User {

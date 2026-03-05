@@ -31,7 +31,7 @@ func parseQueryOperationDefinition(
 	for _, fields := range collectedFields {
 		for _, field := range fields {
 			var parsedSelection request.Selection
-			if _, isCommitQuery := request.CommitQueries[field.Name.Value]; isCommitQuery {
+			if field.Name.Value == request.CommitsName {
 				parsed, err := parseCommitSelect(exe, exe.Schema.QueryType(), field)
 				if err != nil {
 					return nil, []error{err}
@@ -127,9 +127,22 @@ func parseSelect(
 			slct.DocIDs = immutable.Some(docIDs)
 
 		case request.CidFieldName: // parse single CID query field
-			if v, ok := value.(string); ok {
-				slct.CID = immutable.Some(v)
+			v, ok := value.([]any)
+			if !ok {
+				continue // value is nil
 			}
+
+			if len(v) > 1 {
+				// todo - This limitiation is temporary and should be removed in
+				// https://github.com/sourcenetwork/defradb/issues/4304
+				return nil, ErrMultipleCidsNotSupported
+			}
+
+			cids := make([]string, len(v))
+			for i, value := range v {
+				cids[i] = value.(string)
+			}
+			slct.CIDs = immutable.Some(cids)
 
 		case request.LimitClause: // parse limit/offset
 			if v, ok := value.(int32); ok {

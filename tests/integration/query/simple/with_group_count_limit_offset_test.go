@@ -1,58 +1,60 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package simple
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
 func TestQuerySimpleWithGroupByNumberWithoutRenderedGroupAndChildCountWithLimitAndOffset(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "John",
 					"Age": 32
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Bob",
 					"Age": 32
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Alice",
 					"Age": 19
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(groupBy: [Age]) {
 						Age
-						_count(_group: {offset: 1, limit: 1})
+						COUNT(GROUP: {offset: 1, limit: 1})
 					}
 				}`,
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"Age":    int64(32),
-							"_count": 1,
+							"Age":   int64(32),
+							"COUNT": 1,
 						},
 						{
-							"Age":    int64(19),
-							"_count": 0,
+							"Age":   int64(19),
+							"COUNT": 0,
 						},
 					},
 				},
@@ -66,36 +68,36 @@ func TestQuerySimpleWithGroupByNumberWithoutRenderedGroupAndChildCountWithLimitA
 func TestQuerySimpleWithGroupByNumberWithRenderedGroupWithLimitAndChildCountWithLimitAndOffset(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "John",
 					"Age": 32
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Bob",
 					"Age": 32
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Shahzad",
 					"Age": 32
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Alice",
 					"Age": 19
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(groupBy: [Age]) {
 						Age
-						_count(_group: {offset: 1, limit: 1})
-						_group (limit: 2) {
+						COUNT(GROUP: {offset: 1, limit: 1})
+						GROUP (limit: 2) {
 							Name
 						}
 					}
@@ -103,9 +105,9 @@ func TestQuerySimpleWithGroupByNumberWithRenderedGroupWithLimitAndChildCountWith
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"Age":    int64(32),
-							"_count": 1,
-							"_group": []map[string]any{
+							"Age":   int64(32),
+							"COUNT": 1,
+							"GROUP": []map[string]any{
 								{
 									"Name": "Bob",
 								},
@@ -115,9 +117,9 @@ func TestQuerySimpleWithGroupByNumberWithRenderedGroupWithLimitAndChildCountWith
 							},
 						},
 						{
-							"Age":    int64(19),
-							"_count": 0,
-							"_group": []map[string]any{
+							"Age":   int64(19),
+							"COUNT": 0,
+							"GROUP": []map[string]any{
 								{
 									"Name": "Alice",
 								},

@@ -1,12 +1,13 @@
-// Copyright 2025 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package subscribe_test
 
@@ -24,8 +25,8 @@ func TestP2PCollectionAddAndRemoveSingle(t *testing.T) {
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 					}
@@ -35,28 +36,28 @@ func TestP2PCollectionAddAndRemoveSingle(t *testing.T) {
 				SourceNodeID: 1,
 				TargetNodeID: 0,
 			},
-			testUtils.SubscribeToCollection{
+			testUtils.AddCollectionSubscription{
 				NodeID:        1,
 				CollectionIDs: []int{0},
 			},
-			testUtils.UnsubscribeToCollection{
+			testUtils.DeleteCollectionSubscription{
 				NodeID:        1,
 				CollectionIDs: []int{0},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 					"name": "John"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(1),
 				Doc: `{
 					"name": "Fred"
 				}`,
 			},
 			testUtils.WaitForSync{},
-			testUtils.Request{
+			&action.Request{
 				// John has not been synced, as it was removed from the subscription set
 				NodeID: immutable.Some(1),
 				Request: `query {
@@ -83,8 +84,8 @@ func TestP2PCollectionAddAndRemoveMultiple(t *testing.T) {
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 					}
@@ -97,22 +98,22 @@ func TestP2PCollectionAddAndRemoveMultiple(t *testing.T) {
 				SourceNodeID: 1,
 				TargetNodeID: 0,
 			},
-			testUtils.SubscribeToCollection{
+			testUtils.AddCollectionSubscription{
 				NodeID:        1,
 				CollectionIDs: []int{0, 1},
 			},
-			testUtils.UnsubscribeToCollection{
+			testUtils.DeleteCollectionSubscription{
 				NodeID: 1,
 				// Unsubscribe from Users, but remain subscribed to Giraffes
 				CollectionIDs: []int{0},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 					"name": "John"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID:       immutable.Some(0),
 				CollectionID: 1,
 				Doc: `{
@@ -120,7 +121,7 @@ func TestP2PCollectionAddAndRemoveMultiple(t *testing.T) {
 				}`,
 			},
 			testUtils.WaitForSync{},
-			testUtils.Request{
+			&action.Request{
 				// John the User has not been synced, as Users was removed from the subscription set.
 				NodeID: immutable.Some(1),
 				Request: `query {
@@ -132,7 +133,7 @@ func TestP2PCollectionAddAndRemoveMultiple(t *testing.T) {
 					"Users": []map[string]any{},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				// Gillian the Giraffe has still been synced, as it was not removed from the subscription set.
 				NodeID: immutable.Some(1),
 				Request: `query {
@@ -159,8 +160,8 @@ func TestP2PCollectionAddSingleAndRemoveErroneous(t *testing.T) {
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 					}
@@ -170,23 +171,23 @@ func TestP2PCollectionAddSingleAndRemoveErroneous(t *testing.T) {
 				SourceNodeID: 1,
 				TargetNodeID: 0,
 			},
-			testUtils.SubscribeToCollection{
+			testUtils.AddCollectionSubscription{
 				NodeID:        1,
 				CollectionIDs: []int{0},
 			},
-			testUtils.UnsubscribeToCollection{
+			testUtils.DeleteCollectionSubscription{
 				NodeID:        1,
 				CollectionIDs: []int{0, testUtils.NonExistentCollectionID},
 				ExpectedError: "collection not found",
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 					"name": "John"
 				}`,
 			},
 			testUtils.WaitForSync{},
-			testUtils.Request{
+			&action.Request{
 				// John has been synced, as the unsubscribe errored and should not have affected
 				// the subscription to collection 0.
 				Request: `query {
@@ -213,8 +214,8 @@ func TestP2PCollectionAddSingleAndRemoveNone(t *testing.T) {
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 					}
@@ -224,22 +225,22 @@ func TestP2PCollectionAddSingleAndRemoveNone(t *testing.T) {
 				SourceNodeID: 1,
 				TargetNodeID: 0,
 			},
-			testUtils.SubscribeToCollection{
+			testUtils.AddCollectionSubscription{
 				NodeID:        1,
 				CollectionIDs: []int{0},
 			},
-			testUtils.UnsubscribeToCollection{
+			testUtils.DeleteCollectionSubscription{
 				NodeID:        1,
 				CollectionIDs: []int{},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 					"name": "John"
 				}`,
 			},
 			testUtils.WaitForSync{},
-			testUtils.Request{
+			&action.Request{
 				// John has been synced, as nothing was removed from the subscription set
 				Request: `query {
 					Users {

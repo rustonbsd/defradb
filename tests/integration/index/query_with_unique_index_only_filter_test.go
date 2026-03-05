@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package index
 
@@ -25,16 +26,16 @@ func TestQueryWithUniqueIndex_WithEqualFilter_ShouldFetch(t *testing.T) {
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String @index(unique: true)
 					}`,
 			},
-			testUtils.CreatePredefinedDocs{
+			testUtils.AddPredefinedDocs{
 				Docs: getUserDocs(),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -42,7 +43,7 @@ func TestQueryWithUniqueIndex_WithEqualFilter_ShouldFetch(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(1),
 			},
@@ -60,17 +61,17 @@ func TestQueryWithUniqueIndex_WithGreaterThanFilter_ShouldFetch(t *testing.T) {
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						age: Int @index(unique: true)
 					}`,
 			},
-			testUtils.CreatePredefinedDocs{
+			testUtils.AddPredefinedDocs{
 				Docs: getUserDocs(),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -78,7 +79,7 @@ func TestQueryWithUniqueIndex_WithGreaterThanFilter_ShouldFetch(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(1),
 			},
@@ -90,23 +91,23 @@ func TestQueryWithUniqueIndex_WithGreaterThanFilter_ShouldFetch(t *testing.T) {
 
 func TestQueryWithUniqueIndex_WithGreaterOrEqualFilter_ShouldFetch(t *testing.T) {
 	req := `query {
-		User(filter: {age: {_ge: 48}}) {
+		User(filter: {age: {_geq: 48}}) {
 			name
 		}
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						age: Int @index(unique: true)
 					}`,
 			},
-			testUtils.CreatePredefinedDocs{
+			testUtils.AddPredefinedDocs{
 				Docs: getUserDocs(),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -115,7 +116,7 @@ func TestQueryWithUniqueIndex_WithGreaterOrEqualFilter_ShouldFetch(t *testing.T)
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(2),
 			},
@@ -133,17 +134,17 @@ func TestQueryWithUniqueIndex_WithLessThanFilter_ShouldFetch(t *testing.T) {
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						age: Int @index(unique: true)
 					}`,
 			},
-			testUtils.CreatePredefinedDocs{
+			testUtils.AddPredefinedDocs{
 				Docs: getUserDocs(),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -151,7 +152,7 @@ func TestQueryWithUniqueIndex_WithLessThanFilter_ShouldFetch(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(1),
 			},
@@ -163,23 +164,23 @@ func TestQueryWithUniqueIndex_WithLessThanFilter_ShouldFetch(t *testing.T) {
 
 func TestQueryWithUniqueIndex_WithLessOrEqualFilter_ShouldFetch(t *testing.T) {
 	req := `query {
-		User(filter: {age: {_le: 23}}) {
+		User(filter: {age: {_leq: 23}}) {
 			name
 		}
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						age: Int @index(unique: true)
 					}`,
 			},
-			testUtils.CreatePredefinedDocs{
+			testUtils.AddPredefinedDocs{
 				Docs: getUserDocs(),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -188,7 +189,7 @@ func TestQueryWithUniqueIndex_WithLessOrEqualFilter_ShouldFetch(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(2),
 			},
@@ -200,23 +201,23 @@ func TestQueryWithUniqueIndex_WithLessOrEqualFilter_ShouldFetch(t *testing.T) {
 
 func TestQueryWithUniqueIndex_WithNotEqualFilter_ShouldFetch(t *testing.T) {
 	req := `query {
-		User(filter: {name: {_ne: "Islam"}}) {
+		User(filter: {name: {_neq: "Islam"}}) {
 			name
 		}
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String @index(unique: true)
 						age: Int 
 					}`,
 			},
-			testUtils.CreatePredefinedDocs{
+			testUtils.AddPredefinedDocs{
 				Docs: getUserDocs(),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -232,7 +233,7 @@ func TestQueryWithUniqueIndex_WithNotEqualFilter_ShouldFetch(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(10),
 			},
@@ -250,17 +251,17 @@ func TestQueryWithUniqueIndex_WithInFilter_ShouldFetch(t *testing.T) {
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						age: Int @index(unique: true)
 					}`,
 			},
-			testUtils.CreatePredefinedDocs{
+			testUtils.AddPredefinedDocs{
 				Docs: getUserDocs(),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -269,7 +270,7 @@ func TestQueryWithUniqueIndex_WithInFilter_ShouldFetch(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(2),
 			},
@@ -287,17 +288,17 @@ func TestQueryWithUniqueIndex_WithNotInFilter_ShouldFetch(t *testing.T) {
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						age: Int @index(unique: true)
 					}`,
 			},
-			testUtils.CreatePredefinedDocs{
+			testUtils.AddPredefinedDocs{
 				Docs: getUserDocs(),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -308,7 +309,7 @@ func TestQueryWithUniqueIndex_WithNotInFilter_ShouldFetch(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(10),
 			},
@@ -351,17 +352,17 @@ func TestQueryWithUniqueIndex_WithLikeFilter_ShouldFetch(t *testing.T) {
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						email: String @index(unique: true)
 					}`,
 			},
-			testUtils.CreatePredefinedDocs{
+			testUtils.AddPredefinedDocs{
 				Docs: getUserDocs(),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req1,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -370,11 +371,11 @@ func TestQueryWithUniqueIndex_WithLikeFilter_ShouldFetch(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req1),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(10),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req2,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -383,11 +384,11 @@ func TestQueryWithUniqueIndex_WithLikeFilter_ShouldFetch(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req2),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(10),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req3,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -396,11 +397,11 @@ func TestQueryWithUniqueIndex_WithLikeFilter_ShouldFetch(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req3),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(10),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req4,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -408,11 +409,11 @@ func TestQueryWithUniqueIndex_WithLikeFilter_ShouldFetch(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req4),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(10),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req5,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -421,17 +422,17 @@ func TestQueryWithUniqueIndex_WithLikeFilter_ShouldFetch(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req5),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(10),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req6,
 				Results: map[string]any{
 					"User": []map[string]any{},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req6),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(10),
 			},
@@ -449,17 +450,17 @@ func TestQueryWithUniqueIndex_WithNotLikeFilter_ShouldFetch(t *testing.T) {
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String @index(unique: true)
 						age: Int 
 					}`,
 			},
-			testUtils.CreatePredefinedDocs{
+			testUtils.AddPredefinedDocs{
 				Docs: getUserDocs(),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -473,7 +474,7 @@ func TestQueryWithUniqueIndex_WithNotLikeFilter_ShouldFetch(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(10),
 			},
@@ -491,17 +492,17 @@ func TestQueryWithUniqueIndex_WithNotCaseInsensitiveLikeFilter_ShouldFetch(t *te
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String @index(unique: true)
 						age: Int 
 					}`,
 			},
-			testUtils.CreatePredefinedDocs{
+			testUtils.AddPredefinedDocs{
 				Docs: getUserDocs(),
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -516,7 +517,7 @@ func TestQueryWithUniqueIndex_WithNotCaseInsensitiveLikeFilter_ShouldFetch(t *te
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(10),
 			},
@@ -529,22 +530,22 @@ func TestQueryWithUniqueIndex_WithNotCaseInsensitiveLikeFilter_ShouldFetch(t *te
 func TestQueryWithUniqueIndex_IfNoMatch_ReturnEmptyResult(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						age: Int @index(unique: true)
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: ` {
 						"name":	"Shahzad",
 						"age":	23
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					User(filter: {age: {_eq: 20}}) {
 						name
@@ -563,24 +564,24 @@ func TestQueryWithUniqueIndex_IfNoMatch_ReturnEmptyResult(t *testing.T) {
 func TestQueryWithUniqueIndex_WithEqualFilterOnNilValue_ShouldFetch(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						age: Int @index(unique: true)
 					}`,
 			},
-			testUtils.CreatePredefinedDocs{
+			testUtils.AddPredefinedDocs{
 				Docs: getUserDocs(),
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
 						"name":	"Alice"
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -588,7 +589,7 @@ func TestQueryWithUniqueIndex_WithEqualFilterOnNilValue_ShouldFetch(t *testing.T
 						"age": 0
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						User(filter: {age: {_eq: null}}) {
@@ -610,21 +611,21 @@ func TestQueryWithUniqueIndex_WithEqualFilterOnNilValue_ShouldFetch(t *testing.T
 func TestQueryWithUniqueIndex_WithEqualFilterOnZero_ShouldNotFetchNil(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						age: Int @index(unique: true)
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
 						"name":	"Alice"
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -632,7 +633,7 @@ func TestQueryWithUniqueIndex_WithEqualFilterOnZero_ShouldNotFetchNil(t *testing
 						"age": 0
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -640,7 +641,7 @@ func TestQueryWithUniqueIndex_WithEqualFilterOnZero_ShouldNotFetchNil(t *testing
 						"age": 33
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						User(filter: {age: {_eq: 0}}) {
@@ -662,21 +663,21 @@ func TestQueryWithUniqueIndex_WithEqualFilterOnZero_ShouldNotFetchNil(t *testing
 func TestQueryWithUniqueIndex_WithNotEqualFilterOnNilValue_ShouldFetch(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						age: Int @index(unique: true)
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
 						"name":	"Alice"
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -684,7 +685,7 @@ func TestQueryWithUniqueIndex_WithNotEqualFilterOnNilValue_ShouldFetch(t *testin
 						"age":	0
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -692,10 +693,10 @@ func TestQueryWithUniqueIndex_WithNotEqualFilterOnNilValue_ShouldFetch(t *testin
 						"age":	23
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
-						User(filter: {age: {_ne: null}}) {
+						User(filter: {age: {_neq: null}}) {
 							name
 						}
 					}`,
@@ -715,14 +716,14 @@ func TestQueryWithUniqueIndex_WithNotEqualFilterOnNilValue_ShouldFetch(t *testin
 func TestQueryWithUniqueIndex_WithMultipleNilValuesAndEqualFilter_ShouldFetch(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						age: Int @index(unique: true)
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
@@ -730,21 +731,21 @@ func TestQueryWithUniqueIndex_WithMultipleNilValuesAndEqualFilter_ShouldFetch(t 
 						"age":	44
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
 						"name":	"Alice"
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `
 					{
 						"name":	"Bob"
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						User(filter: {age: {_eq: null}}) {
@@ -772,26 +773,26 @@ func TestQueryWithUniqueIndex_WithDateTimeField_ShouldIndex(t *testing.T) {
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						birthday: DateTime @index(unique: true)
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 						"name":	"Fred",
 						"birthday": "2000-07-23T03:00:00-00:00"
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 						"name":	"Andy",
 						"birthday": "2001-08-23T03:00:00-00:00"
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -801,7 +802,7 @@ func TestQueryWithUniqueIndex_WithDateTimeField_ShouldIndex(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(1),
 			},

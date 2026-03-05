@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package collection_version
 
@@ -21,11 +22,11 @@ import (
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
-func TestSchemaOneMany_Primary(t *testing.T) {
+func TestCollectionVersionOneMany_Primary(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						dogs: [Dog]
@@ -47,7 +48,7 @@ func TestSchemaOneMany_Primary(t *testing.T) {
 							},
 							{
 								Name:         "dogs",
-								Kind:         client.NewCollectionKind("bafyreih2kr3b6xijzkyv7yvjsg32selni5qehaejehf5vig7hpynjnbl5q", true),
+								Kind:         client.NewCollectionKind("bafyreicdzapaezl3xg22wjg5mu3in7wooqpn52jzazrigsayuan7eqlccq", true),
 								RelationName: immutable.Some("dog_user"),
 							},
 							{
@@ -67,6 +68,13 @@ func TestSchemaOneMany_Primary(t *testing.T) {
 								Kind: client.FieldKind_DocID,
 							},
 							{
+								Name:         "_ownerID",
+								Kind:         client.FieldKind_DocID,
+								RelationName: immutable.Some("dog_user"),
+								Typ:          client.LWW_REGISTER,
+								IsPrimary:    true,
+							},
+							{
 								Name: "name",
 								Kind: client.FieldKind_NILLABLE_STRING,
 								Typ:  client.LWW_REGISTER,
@@ -75,13 +83,6 @@ func TestSchemaOneMany_Primary(t *testing.T) {
 								Name:         "owner",
 								Kind:         client.NewCollectionKind("bafyreibhpgygzsmki22sql5ejzcojrrxbc5iuhpydhdzxul5w2znc7zrgu", false),
 								RelationName: immutable.Some("dog_user"),
-								IsPrimary:    true,
-							},
-							{
-								Name:         "owner_id",
-								Kind:         client.FieldKind_DocID,
-								RelationName: immutable.Some("dog_user"),
-								Typ:          client.LWW_REGISTER,
 								IsPrimary:    true,
 							},
 						},
@@ -94,11 +95,11 @@ func TestSchemaOneMany_Primary(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaOneMany_SelfReferenceOneFieldLexographicallyFirst(t *testing.T) {
+func TestCollectionVersionOneMany_SelfReferenceOneFieldLexographicallyFirst(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						a: User
 						b: [User]
@@ -116,16 +117,16 @@ func TestSchemaOneMany_SelfReferenceOneFieldLexographicallyFirst(t *testing.T) {
 								Kind:    client.FieldKind_DocID,
 							},
 							{
-								Name:         "a",
-								Kind:         client.NewSelfKind("", false),
+								Name:         "_aID",
+								FieldID:      "bafyreibvvrhhuptmxjfzdk4glmw7aj2w6kv4cybrvg25ynrg6evas4j3ha",
+								Kind:         client.FieldKind_DocID,
+								Typ:          client.LWW_REGISTER,
 								RelationName: immutable.Some("user_user"),
 								IsPrimary:    true,
 							},
 							{
-								Name:         "a_id",
-								FieldID:      "bafyreieroxmzvqikc6mclepkm5tunroq6yuamr76f2tzu4nkwfy5au6lvi",
-								Kind:         client.FieldKind_DocID,
-								Typ:          client.LWW_REGISTER,
+								Name:         "a",
+								Kind:         client.NewSelfKind("", false),
 								RelationName: immutable.Some("user_user"),
 								IsPrimary:    true,
 							},
@@ -144,11 +145,11 @@ func TestSchemaOneMany_SelfReferenceOneFieldLexographicallyFirst(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaOneMany_SelfReferenceManyFieldLexographicallyFirst(t *testing.T) {
+func TestCollectionVersionOneMany_SelfReferenceManyFieldLexographicallyFirst(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						b: User
 						a: [User]
@@ -165,6 +166,13 @@ func TestSchemaOneMany_SelfReferenceManyFieldLexographicallyFirst(t *testing.T) 
 								Kind: client.FieldKind_DocID,
 							},
 							{
+								Name:         "_bID",
+								Kind:         client.FieldKind_DocID,
+								Typ:          client.LWW_REGISTER,
+								RelationName: immutable.Some("user_user"),
+								IsPrimary:    true,
+							},
+							{
 								Name:         "a",
 								Kind:         client.NewSelfKind("", true),
 								RelationName: immutable.Some("user_user"),
@@ -172,13 +180,6 @@ func TestSchemaOneMany_SelfReferenceManyFieldLexographicallyFirst(t *testing.T) 
 							{
 								Name:         "b",
 								Kind:         client.NewSelfKind("", false),
-								RelationName: immutable.Some("user_user"),
-								IsPrimary:    true,
-							},
-							{
-								Name:         "b_id",
-								Kind:         client.FieldKind_DocID,
-								Typ:          client.LWW_REGISTER,
 								RelationName: immutable.Some("user_user"),
 								IsPrimary:    true,
 							},
@@ -192,14 +193,14 @@ func TestSchemaOneMany_SelfReferenceManyFieldLexographicallyFirst(t *testing.T) 
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaOneMany_SelfUsingActualName(t *testing.T) {
+func TestCollectionVersionOneMany_SelfUsingActualName(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
+			&action.AddCollection{
 				// Note: The @primary directive is required due to
 				// https://github.com/sourcenetwork/defradb/issues/2620
 				// it should be removed when that ticket is closed.
-				Schema: `
+				SDL: `
 					type User {
 						boss: User @primary
 						minions: [User]
@@ -216,15 +217,15 @@ func TestSchemaOneMany_SelfUsingActualName(t *testing.T) {
 								Kind: client.FieldKind_DocID,
 							},
 							{
-								Name:         "boss",
-								Kind:         client.NewSelfKind("", false),
+								Name:         "_bossID",
+								Kind:         client.FieldKind_DocID,
+								Typ:          client.LWW_REGISTER,
 								RelationName: immutable.Some("user_user"),
 								IsPrimary:    true,
 							},
 							{
-								Name:         "boss_id",
-								Kind:         client.FieldKind_DocID,
-								Typ:          client.LWW_REGISTER,
+								Name:         "boss",
+								Kind:         client.NewSelfKind("", false),
 								RelationName: immutable.Some("user_user"),
 								IsPrimary:    true,
 							},
@@ -264,7 +265,7 @@ func TestSchemaOneMany_SelfUsingActualName(t *testing.T) {
 								},
 							},
 							Field{
-								"name": "boss_id",
+								"name": "_bossID",
 								"type": map[string]any{
 									"kind": "SCALAR",
 									"name": "ID",

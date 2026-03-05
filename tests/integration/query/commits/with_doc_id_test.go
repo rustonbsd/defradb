@@ -1,18 +1,20 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package commits
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
@@ -20,14 +22,14 @@ func TestQueryCommitsWithUnknownDocID(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			updateUserCollectionSchema(),
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 						"name":	"John",
 						"age":	21
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 						_commits(docID: "unknown document ID") {
 							cid
@@ -47,14 +49,14 @@ func TestQueryCommitsWithDocID(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			updateUserCollectionSchema(),
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 						"name":	"John",
 						"age":	21
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 						_commits(docID: "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738") {
 							cid
@@ -63,13 +65,13 @@ func TestQueryCommitsWithDocID(t *testing.T) {
 				Results: map[string]any{
 					"_commits": []map[string]any{
 						{
-							"cid": "bafyreihakk5jjukb4fw7klfejdmniwhuscnckcjo677p3mtcxrdpiahuea",
+							"cid": "bafyreiajq6jmyblg2b6vupjdapzkaodbt7kkwqp4fijekdvydnyxvr4y7q",
 						},
 						{
-							"cid": "bafyreihx4lnknvruc6vonsg3dvb3nnlsycwzbbkeulcutnzgidkzfvea64",
+							"cid": "bafyreigonvri5vfdosfgp4qxtq46snjxm7cnjlzizrod2wy3l53jbxiysm",
 						},
 						{
-							"cid": "bafyreihpq4duzngkledmxkxx3jevlp2q4aimhmbjygpv5chmgbf6u2fsqm",
+							"cid": "bafyreiejjfevlp5wrfl5o7bxbdtjj4th36lbdjov5gdkmy5n5jzs6dcmpu",
 						},
 					},
 				},
@@ -85,45 +87,51 @@ func TestQueryCommitsWithDocIDAndLinks(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			updateUserCollectionSchema(),
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 						"name":	"John",
 						"age":	21
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 						_commits(docID: "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738") {
 							cid
 							links {
 								cid
-								name
+								fieldName
+							}
+							heads {
+								cid
 							}
 						}
 					}`,
 				Results: map[string]any{
 					"_commits": []map[string]any{
 						{
-							"cid":   "bafyreihakk5jjukb4fw7klfejdmniwhuscnckcjo677p3mtcxrdpiahuea",
+							"cid":   "bafyreiajq6jmyblg2b6vupjdapzkaodbt7kkwqp4fijekdvydnyxvr4y7q",
 							"links": []map[string]any{},
+							"heads": []map[string]any{},
 						},
 						{
-							"cid":   "bafyreihx4lnknvruc6vonsg3dvb3nnlsycwzbbkeulcutnzgidkzfvea64",
+							"cid":   "bafyreigonvri5vfdosfgp4qxtq46snjxm7cnjlzizrod2wy3l53jbxiysm",
 							"links": []map[string]any{},
+							"heads": []map[string]any{},
 						},
 						{
-							"cid": "bafyreihpq4duzngkledmxkxx3jevlp2q4aimhmbjygpv5chmgbf6u2fsqm",
+							"cid": "bafyreiejjfevlp5wrfl5o7bxbdtjj4th36lbdjov5gdkmy5n5jzs6dcmpu",
 							"links": []map[string]any{
 								{
-									"cid":  "bafyreihakk5jjukb4fw7klfejdmniwhuscnckcjo677p3mtcxrdpiahuea",
-									"name": "age",
+									"cid":       "bafyreiajq6jmyblg2b6vupjdapzkaodbt7kkwqp4fijekdvydnyxvr4y7q",
+									"fieldName": "age",
 								},
 								{
-									"cid":  "bafyreihx4lnknvruc6vonsg3dvb3nnlsycwzbbkeulcutnzgidkzfvea64",
-									"name": "name",
+									"cid":       "bafyreigonvri5vfdosfgp4qxtq46snjxm7cnjlzizrod2wy3l53jbxiysm",
+									"fieldName": "name",
 								},
 							},
+							"heads": []map[string]any{},
 						},
 					},
 				},
@@ -139,7 +147,7 @@ func TestQueryCommitsWithDocIDAndUpdate(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			updateUserCollectionSchema(),
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 						"name":	"John",
@@ -153,7 +161,7 @@ func TestQueryCommitsWithDocIDAndUpdate(t *testing.T) {
 					"age":	22
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 						_commits(docID: "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738") {
 							cid
@@ -163,23 +171,23 @@ func TestQueryCommitsWithDocIDAndUpdate(t *testing.T) {
 				Results: map[string]any{
 					"_commits": []map[string]any{
 						{
-							"cid":    "bafyreia5jhb6ughpzd2rjszl4qbdd4w5zrdjfoseyrvnmhm2xiyrudvja4",
+							"cid":    "bafyreihht6jz3vxk3fvr4sp3kqnvuplmva36hivbjtpdum7zydvb2yztwu",
 							"height": int64(2),
 						},
 						{
-							"cid":    "bafyreihakk5jjukb4fw7klfejdmniwhuscnckcjo677p3mtcxrdpiahuea",
+							"cid":    "bafyreiajq6jmyblg2b6vupjdapzkaodbt7kkwqp4fijekdvydnyxvr4y7q",
 							"height": int64(1),
 						},
 						{
-							"cid":    "bafyreihx4lnknvruc6vonsg3dvb3nnlsycwzbbkeulcutnzgidkzfvea64",
+							"cid":    "bafyreigonvri5vfdosfgp4qxtq46snjxm7cnjlzizrod2wy3l53jbxiysm",
 							"height": int64(1),
 						},
 						{
-							"cid":    "bafyreieira5p74wdicqhelwbjsin7jtnnvvlplngrrcqfapleq2phexqga",
+							"cid":    "bafyreia4x5ju33jenbimdqbtnuqc7pby4lydpa7efyk5iu4nl6urm6ofla",
 							"height": int64(2),
 						},
 						{
-							"cid":    "bafyreihpq4duzngkledmxkxx3jevlp2q4aimhmbjygpv5chmgbf6u2fsqm",
+							"cid":    "bafyreiejjfevlp5wrfl5o7bxbdtjj4th36lbdjov5gdkmy5n5jzs6dcmpu",
 							"height": int64(1),
 						},
 					},
@@ -199,7 +207,7 @@ func TestQueryCommitsWithDocIDAndUpdateAndLinks(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			updateUserCollectionSchema(),
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 						"name":	"John",
@@ -213,64 +221,166 @@ func TestQueryCommitsWithDocIDAndUpdateAndLinks(t *testing.T) {
 					"age":	22
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 						_commits(docID: "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738") {
 							cid
 							links {
 								cid
-								name
+								fieldName
+							}
+							heads {
+								cid
 							}
 						}
 					}`,
 				Results: map[string]any{
 					"_commits": []map[string]any{
 						{
-							"cid": "bafyreia5jhb6ughpzd2rjszl4qbdd4w5zrdjfoseyrvnmhm2xiyrudvja4",
-							"links": []map[string]any{
-								{
-									"cid":  "bafyreihakk5jjukb4fw7klfejdmniwhuscnckcjo677p3mtcxrdpiahuea",
-									"name": "_head",
-								},
-							},
-						},
-						{
-							"cid":   "bafyreihakk5jjukb4fw7klfejdmniwhuscnckcjo677p3mtcxrdpiahuea",
+							"cid":   "bafyreihht6jz3vxk3fvr4sp3kqnvuplmva36hivbjtpdum7zydvb2yztwu",
 							"links": []map[string]any{},
+							"heads": []map[string]any{
+								{
+									"cid": "bafyreiajq6jmyblg2b6vupjdapzkaodbt7kkwqp4fijekdvydnyxvr4y7q",
+								},
+							},
 						},
 						{
-							"cid":   "bafyreihx4lnknvruc6vonsg3dvb3nnlsycwzbbkeulcutnzgidkzfvea64",
+							"cid":   "bafyreiajq6jmyblg2b6vupjdapzkaodbt7kkwqp4fijekdvydnyxvr4y7q",
 							"links": []map[string]any{},
+							"heads": []map[string]any{},
 						},
 						{
-							"cid": "bafyreieira5p74wdicqhelwbjsin7jtnnvvlplngrrcqfapleq2phexqga",
+							"cid":   "bafyreigonvri5vfdosfgp4qxtq46snjxm7cnjlzizrod2wy3l53jbxiysm",
+							"links": []map[string]any{},
+							"heads": []map[string]any{},
+						},
+						{
+							"cid": "bafyreia4x5ju33jenbimdqbtnuqc7pby4lydpa7efyk5iu4nl6urm6ofla",
 							"links": []map[string]any{
 								{
-									"cid":  "bafyreihpq4duzngkledmxkxx3jevlp2q4aimhmbjygpv5chmgbf6u2fsqm",
-									"name": "_head",
+									"cid":       "bafyreihht6jz3vxk3fvr4sp3kqnvuplmva36hivbjtpdum7zydvb2yztwu",
+									"fieldName": "age",
 								},
+							},
+							"heads": []map[string]any{
 								{
-									"cid":  "bafyreia5jhb6ughpzd2rjszl4qbdd4w5zrdjfoseyrvnmhm2xiyrudvja4",
-									"name": "age",
+									"cid": "bafyreiejjfevlp5wrfl5o7bxbdtjj4th36lbdjov5gdkmy5n5jzs6dcmpu",
 								},
 							},
 						},
 						{
-							"cid": "bafyreihpq4duzngkledmxkxx3jevlp2q4aimhmbjygpv5chmgbf6u2fsqm",
+							"cid": "bafyreiejjfevlp5wrfl5o7bxbdtjj4th36lbdjov5gdkmy5n5jzs6dcmpu",
 							"links": []map[string]any{
 								{
-									"cid":  "bafyreihakk5jjukb4fw7klfejdmniwhuscnckcjo677p3mtcxrdpiahuea",
-									"name": "age",
+									"cid":       "bafyreiajq6jmyblg2b6vupjdapzkaodbt7kkwqp4fijekdvydnyxvr4y7q",
+									"fieldName": "age",
 								},
 								{
-									"cid":  "bafyreihx4lnknvruc6vonsg3dvb3nnlsycwzbbkeulcutnzgidkzfvea64",
-									"name": "name",
+									"cid":       "bafyreigonvri5vfdosfgp4qxtq46snjxm7cnjlzizrod2wy3l53jbxiysm",
+									"fieldName": "name",
 								},
 							},
+							"heads": []map[string]any{},
 						},
 					},
 				},
 				NonOrderedResults: true,
+			},
+		},
+	}
+
+	testUtils.ExecuteTestCase(t, test)
+}
+
+func TestQueryCommits_DocIDEmptyList(t *testing.T) {
+	test := testUtils.TestCase{
+		Actions: []any{
+			updateUserCollectionSchema(),
+			&action.AddDoc{
+				DocMap: map[string]any{
+					"name": "John",
+				},
+			},
+			&action.AddDoc{
+				DocMap: map[string]any{
+					"name": "Fred",
+				},
+			},
+			&action.Request{
+				Request: `query {
+						_commits(docID: []) {
+							cid
+						}
+					}`,
+				Results: map[string]any{
+					"_commits": []map[string]any{},
+				},
+			},
+		},
+	}
+
+	testUtils.ExecuteTestCase(t, test)
+}
+
+func TestQueryCommits_DocIDListOfOne(t *testing.T) {
+	test := testUtils.TestCase{
+		Actions: []any{
+			updateUserCollectionSchema(),
+			&action.AddDoc{
+				DocMap: map[string]any{
+					"name": "John",
+				},
+			},
+			&action.AddDoc{
+				DocMap: map[string]any{
+					"name": "Fred",
+				},
+			},
+			&action.Request{
+				Request: `query {
+						_commits(docID: ["bae-0fcd42bc-f8ab-510b-9b71-f42b72d75d53"]) {
+							cid
+						}
+					}`,
+				Results: map[string]any{
+					"_commits": []map[string]any{
+						{
+							"cid": testUtils.NewUniqueValue(),
+						},
+						{
+							"cid": testUtils.NewUniqueValue(),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	testUtils.ExecuteTestCase(t, test)
+}
+
+func TestQueryCommits_DocIDListOfMany(t *testing.T) {
+	test := testUtils.TestCase{
+		Actions: []any{
+			updateUserCollectionSchema(),
+			&action.AddDoc{
+				DocMap: map[string]any{
+					"name": "John",
+				},
+			},
+			&action.AddDoc{
+				DocMap: map[string]any{
+					"name": "Fred",
+				},
+			},
+			&action.Request{
+				Request: `query {
+						_commits(docID: ["bae-0fcd42bc-f8ab-510b-9b71-f42b72d75d53", "bae-234fd13b-a9ea-59b5-9830-7e903a72bd24"]) {
+							cid
+						}
+					}`,
+				ExpectedError: "querying by multiple docIDs is not yet supported",
 			},
 		},
 	}

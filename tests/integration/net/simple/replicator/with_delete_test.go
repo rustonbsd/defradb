@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package replicator
 
@@ -19,21 +20,21 @@ import (
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
-func TestP2POneToOneReplicatorDeletesDocCreatedBeforeReplicatorConfig(t *testing.T) {
+func TestP2POneToOneReplicatorDeletesDocAddedBeforeReplicatorConfig(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						Name: String
 						Age: Int
 					}
 				`,
 			},
-			testUtils.CreateDoc{
-				// This document is created in first node before the replicator is set up.
+			&action.AddDoc{
+				// This document is added in first node before the replicator is set up.
 				// Updates should be synced across nodes.
 				NodeID: immutable.Some(0),
 				Doc: `{
@@ -41,7 +42,7 @@ func TestP2POneToOneReplicatorDeletesDocCreatedBeforeReplicatorConfig(t *testing
 					"Age": 21
 				}`,
 			},
-			testUtils.ConfigureReplicator{
+			testUtils.AddReplicator{
 				SourceNodeID: 0,
 				TargetNodeID: 1,
 			},
@@ -51,7 +52,7 @@ func TestP2POneToOneReplicatorDeletesDocCreatedBeforeReplicatorConfig(t *testing
 				DocID:  0,
 			},
 			testUtils.WaitForSync{},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(showDeleted: true) {
 						_deleted
@@ -75,21 +76,21 @@ func TestP2POneToOneReplicatorDeletesDocCreatedBeforeReplicatorConfig(t *testing
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestP2POneToOneReplicatorDeletesDocCreatedBeforeReplicatorConfigWithNodesInversed(t *testing.T) {
+func TestP2POneToOneReplicatorDeletesDocAddedBeforeReplicatorConfigWithNodesInversed(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						Name: String
 						Age: Int
 					}
 				`,
 			},
-			testUtils.CreateDoc{
-				// This document is created in second node before the replicator is set up.
+			&action.AddDoc{
+				// This document is added in second node before the replicator is set up.
 				// Updates should be synced across nodes.
 				NodeID: immutable.Some(1),
 				Doc: `{
@@ -97,7 +98,7 @@ func TestP2POneToOneReplicatorDeletesDocCreatedBeforeReplicatorConfigWithNodesIn
 					"Age": 21
 				}`,
 			},
-			testUtils.ConfigureReplicator{
+			testUtils.AddReplicator{
 				SourceNodeID: 1,
 				TargetNodeID: 0,
 			},
@@ -107,7 +108,7 @@ func TestP2POneToOneReplicatorDeletesDocCreatedBeforeReplicatorConfigWithNodesIn
 				DocID:  0,
 			},
 			testUtils.WaitForSync{},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(showDeleted: true) {
 						_deleted

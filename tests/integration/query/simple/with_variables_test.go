@@ -1,18 +1,20 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package simple
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 
 	"github.com/sourcenetwork/immutable"
@@ -21,19 +23,19 @@ import (
 func TestQuerySimpleWithNonNullVariable(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Alice",
 					"Age": 40
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Bob",
 					"Age": 21
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Variables: immutable.Some(map[string]any{
 					"age": 50,
 					"ord": "ASC",
@@ -63,19 +65,19 @@ func TestQuerySimpleWithNonNullVariable(t *testing.T) {
 func TestQuerySimpleWithVariableDefaultValue(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Alice",
 					"Age": 40
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Bob",
 					"Age": 21
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query($age: Int = 50, $ord: Ordering = ASC) {
 					Users(filter: {Age: {_lt: $age}}, order: {Age: $ord}) {
 						Name
@@ -101,19 +103,19 @@ func TestQuerySimpleWithVariableDefaultValue(t *testing.T) {
 func TestQuerySimpleWithNonNullVariable_ReturnsErrorWhenNull(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Alice",
 					"Age": 40
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Bob",
 					"Age": 21
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query($age: Int!) {
 					Users(filter: {Age: {_lt: $age}}) {
 						Name
@@ -130,19 +132,19 @@ func TestQuerySimpleWithNonNullVariable_ReturnsErrorWhenNull(t *testing.T) {
 func TestQuerySimpleWithVariableDefaultValueOverride(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Alice",
 					"Age": 40
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Bob",
 					"Age": 21
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Variables: immutable.Some(map[string]any{
 					"age": int64(30),
 				}),
@@ -168,19 +170,19 @@ func TestQuerySimpleWithVariableDefaultValueOverride(t *testing.T) {
 func TestQuerySimpleWithOrderVariable(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Alice",
 					"Age": 40
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Bob",
 					"Age": 21
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Variables: immutable.Some(map[string]any{
 					"order": []map[string]any{
 						{"Name": "DESC"},
@@ -212,19 +214,19 @@ func TestQuerySimpleWithOrderVariable(t *testing.T) {
 func TestQuerySimpleWithAggregateCountVariable(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Alice",
 					"Age": 40
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Bob",
 					"Age": 21
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Variables: immutable.Some(map[string]any{
 					"usersCount": map[string]any{
 						"filter": map[string]any{
@@ -235,10 +237,10 @@ func TestQuerySimpleWithAggregateCountVariable(t *testing.T) {
 					},
 				}),
 				Request: `query($usersCount: Users__CountSelector) {
-					_count(Users: $usersCount)
+					COUNT(Users: $usersCount)
 				}`,
 				Results: map[string]any{
-					"_count": 1,
+					"COUNT": 1,
 				},
 			},
 		},

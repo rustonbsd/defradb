@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package move
 
@@ -17,25 +18,25 @@ import (
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
-func TestSchemaUpdatesMoveCollectionDoesNothing(t *testing.T) {
-	schemaVersionID := "bafyreiciz2hrrmt7ritk5gf5fyruw46v2tfhq5dc7qto4wgpzluben2smu"
+func TestCollectionVersionUpdatesMoveCollectionDoesNothing(t *testing.T) {
+	collectionVersionID := "bafyreiciz2hrrmt7ritk5gf5fyruw46v2tfhq5dc7qto4wgpzluben2smu"
 
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "John"
 				}`,
 			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				// This just moves an object to a new key in a temporary dictionary, it doesn't actually do
 				// anything
 				Patch: `
@@ -51,7 +52,7 @@ func TestSchemaUpdatesMoveCollectionDoesNothing(t *testing.T) {
 					"name": "Johnnn"
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				// Assert that Users is still Users
 				Request: `query {
 					Users {
@@ -66,22 +67,22 @@ func TestSchemaUpdatesMoveCollectionDoesNothing(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				// Assert that the version ID remains the same
 				Request: `query {
-					_commits (fieldName: "_C") {
-						schemaVersionId
+					_commits (filter: {fieldName: {_eq: "_C"}}) {
+						collectionVersionId
 					}
 				}`,
 				Results: map[string]any{
 					"_commits": []map[string]any{
 						{
 							// Update commit
-							"schemaVersionId": schemaVersionID,
+							"collectionVersionId": collectionVersionID,
 						},
 						{
 							// Create commit
-							"schemaVersionId": schemaVersionID,
+							"collectionVersionId": collectionVersionID,
 						},
 					},
 				},

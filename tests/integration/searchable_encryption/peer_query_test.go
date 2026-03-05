@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package searchable_encryption
 
@@ -28,19 +29,19 @@ func TestDocEncryptionPeer_WithSimpleRequest_ShouldFetchSuccessfully(t *testing.
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						age: Int @encryptedIndex
 						verified: Boolean
 					}`,
 			},
-			testUtils.ConfigureReplicator{
+			testUtils.AddReplicator{
 				SourceNodeID: 0,
 				TargetNodeID: 1,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 					"name":	"John",
@@ -49,7 +50,7 @@ func TestDocEncryptionPeer_WithSimpleRequest_ShouldFetchSuccessfully(t *testing.
 				IsDocEncrypted: true,
 			},
 			testUtils.WaitForSESync{},
-			testUtils.Request{
+			&action.Request{
 				NodeID: immutable.Some(0),
 				Request: `
 					query {
@@ -78,8 +79,8 @@ func TestDocEncryptionPeer_WithMultipleEncryptedFields_QueryShouldSucceed(t *tes
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String @encryptedIndex
 						age: Int @encryptedIndex
@@ -87,11 +88,11 @@ func TestDocEncryptionPeer_WithMultipleEncryptedFields_QueryShouldSucceed(t *tes
 						verified: Boolean
 					}`,
 			},
-			testUtils.ConfigureReplicator{
+			testUtils.AddReplicator{
 				SourceNodeID: 0,
 				TargetNodeID: 1,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 					"name": "John",
@@ -102,7 +103,7 @@ func TestDocEncryptionPeer_WithMultipleEncryptedFields_QueryShouldSucceed(t *tes
 				IsDocEncrypted: true,
 			},
 			testUtils.WaitForSESync{},
-			testUtils.Request{
+			&action.Request{
 				NodeID: immutable.Some(0),
 				Request: `
 					query {
@@ -118,7 +119,7 @@ func TestDocEncryptionPeer_WithMultipleEncryptedFields_QueryShouldSucceed(t *tes
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				NodeID: immutable.Some(0),
 				Request: `
 					query {
@@ -134,7 +135,7 @@ func TestDocEncryptionPeer_WithMultipleEncryptedFields_QueryShouldSucceed(t *tes
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				NodeID: immutable.Some(0),
 				Request: `
 					query {
@@ -163,19 +164,19 @@ func TestDocEncryptionPeer_WithMultipleDocs_ShouldFilterCorrectly(t *testing.T) 
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						age: Int @encryptedIndex
 						verified: Boolean
 					}`,
 			},
-			testUtils.ConfigureReplicator{
+			testUtils.AddReplicator{
 				SourceNodeID: 0,
 				TargetNodeID: 1,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 					"name":	"John",
@@ -183,7 +184,7 @@ func TestDocEncryptionPeer_WithMultipleDocs_ShouldFilterCorrectly(t *testing.T) 
 				}`,
 				IsDocEncrypted: true,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 					"name": "Alice",
@@ -191,7 +192,7 @@ func TestDocEncryptionPeer_WithMultipleDocs_ShouldFilterCorrectly(t *testing.T) 
 				}`,
 				IsDocEncrypted: true,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 					"name": "Bob",
@@ -200,7 +201,7 @@ func TestDocEncryptionPeer_WithMultipleDocs_ShouldFilterCorrectly(t *testing.T) 
 				IsDocEncrypted: true,
 			},
 			testUtils.WaitForSESync{},
-			testUtils.Request{
+			&action.Request{
 				NodeID: immutable.Some(0),
 				Request: `
 					query {
@@ -216,7 +217,7 @@ func TestDocEncryptionPeer_WithMultipleDocs_ShouldFilterCorrectly(t *testing.T) 
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				NodeID: immutable.Some(0),
 				Request: `
 					query {
@@ -235,7 +236,7 @@ func TestDocEncryptionPeer_WithMultipleDocs_ShouldFilterCorrectly(t *testing.T) 
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				NodeID: immutable.Some(0),
 				Request: `
 					query {
@@ -264,14 +265,14 @@ func TestDocEncryption_IfThereIsNoIndex_EncryptedQueryShouldError(t *testing.T) 
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						age: Int 
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 					"name":	"John",
@@ -279,7 +280,7 @@ func TestDocEncryption_IfThereIsNoIndex_EncryptedQueryShouldError(t *testing.T) 
 				}`,
 				IsDocEncrypted: true,
 			},
-			testUtils.Request{
+			&action.Request{
 				NodeID: immutable.Some(0),
 				Request: `
 					query {
@@ -302,14 +303,14 @@ func TestDocEncryption_IfThereIsIndexButOnAnotherField_EncryptedQueryShouldError
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String @encryptedIndex
 						age: Int 
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 					"name":	"John",
@@ -317,7 +318,7 @@ func TestDocEncryption_IfThereIsIndexButOnAnotherField_EncryptedQueryShouldError
 				}`,
 				IsDocEncrypted: true,
 			},
-			testUtils.Request{
+			&action.Request{
 				NodeID: immutable.Some(0),
 				Request: `
 					query {
@@ -340,8 +341,8 @@ func TestDocEncryptionPeer_WithQueryOnMultipleFields_ShouldReturnIntersection(t 
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String @encryptedIndex
 						age: Int @encryptedIndex
@@ -349,11 +350,11 @@ func TestDocEncryptionPeer_WithQueryOnMultipleFields_ShouldReturnIntersection(t 
 						verified: Boolean
 					}`,
 			},
-			testUtils.ConfigureReplicator{
+			testUtils.AddReplicator{
 				SourceNodeID: 0,
 				TargetNodeID: 1,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 					"name":	"John",
@@ -361,7 +362,7 @@ func TestDocEncryptionPeer_WithQueryOnMultipleFields_ShouldReturnIntersection(t 
 				}`,
 				IsDocEncrypted: true,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 					"name": "John",
@@ -369,7 +370,7 @@ func TestDocEncryptionPeer_WithQueryOnMultipleFields_ShouldReturnIntersection(t 
 				}`,
 				IsDocEncrypted: true,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 					"name": "Bob",
@@ -378,7 +379,7 @@ func TestDocEncryptionPeer_WithQueryOnMultipleFields_ShouldReturnIntersection(t 
 				IsDocEncrypted: true,
 			},
 			testUtils.WaitForSESync{},
-			testUtils.Request{
+			&action.Request{
 				NodeID: immutable.Some(0),
 				Request: `
 					query {
@@ -394,7 +395,7 @@ func TestDocEncryptionPeer_WithQueryOnMultipleFields_ShouldReturnIntersection(t 
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				NodeID: immutable.Some(0),
 				Request: `
 					query {

@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package branchables
 
@@ -17,29 +18,29 @@ import (
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
-func TestQueryCommitsBranchables_WithFieldName(t *testing.T) {
+func TestQueryCommitsBranchables_WithFieldNameFilter(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @branchable {
 						name: String
 						age: Int
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name":	"John",
 					"age":	21
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 						_commits(
-							fieldName: null
+							filter: {fieldName: {_eq: null}}
 						) {
-							schemaVersionId
+							collectionVersionId
 							docID
 							fieldName
 						}
@@ -47,10 +48,9 @@ func TestQueryCommitsBranchables_WithFieldName(t *testing.T) {
 				Results: map[string]any{
 					"_commits": []map[string]any{
 						{
-							// Extra params are used to verify this is a collection level cid
-							"schemaVersionId": "bafyreihsneodeja4lfer5puptim3lkwvketyckrmkhfpgxm67ch5wenjwq",
-							"docID":           nil,
-							"fieldName":       nil,
+							"collectionVersionId": "bafyreihsneodeja4lfer5puptim3lkwvketyckrmkhfpgxm67ch5wenjwq",
+							"docID":               nil,
+							"fieldName":           nil,
 						},
 					},
 				},

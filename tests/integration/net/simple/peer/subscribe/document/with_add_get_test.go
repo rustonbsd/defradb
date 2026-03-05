@@ -1,12 +1,13 @@
-// Copyright 2025 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package subscribe_test
 
@@ -23,14 +24,14 @@ func TestP2PDocumentAddGetSingle(t *testing.T) {
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				DocMap: map[string]any{
 					"name": "John",
 				},
@@ -39,13 +40,13 @@ func TestP2PDocumentAddGetSingle(t *testing.T) {
 				SourceNodeID: 1,
 				TargetNodeID: 0,
 			},
-			testUtils.SubscribeToDocument{
+			testUtils.AddDocumentSubscription{
 				NodeID: 1,
 				DocIDs: []state.ColDocIndex{
 					state.NewColDocIndex(0, 0),
 				},
 			},
-			testUtils.GetAllP2PDocuments{
+			testUtils.ListP2PDocuments{
 				NodeID: 1,
 				ExpectedDocIDs: []state.ColDocIndex{
 					state.NewColDocIndex(0, 0),
@@ -62,26 +63,26 @@ func TestP2PDocumentAddGetMultiple(t *testing.T) {
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
+			&action.AddCollection{
 				// Note: If a test is failing here in the error trace, you likely need to change the
-				// order of these schema types declared below (some renaming can cause this).
-				Schema: `
+				// order of these collection types declared below (some renaming can cause this).
+				SDL: `
 					type Users {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				DocMap: map[string]any{
 					"name": "John",
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				DocMap: map[string]any{
 					"name": "Andy",
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				DocMap: map[string]any{
 					"name": "Shahzad",
 				},
@@ -90,14 +91,14 @@ func TestP2PDocumentAddGetMultiple(t *testing.T) {
 				SourceNodeID: 1,
 				TargetNodeID: 0,
 			},
-			testUtils.SubscribeToDocument{
+			testUtils.AddDocumentSubscription{
 				NodeID: 1,
 				DocIDs: []state.ColDocIndex{
 					state.NewColDocIndex(0, 0),
 					state.NewColDocIndex(0, 1),
 				},
 			},
-			testUtils.GetAllP2PDocuments{
+			testUtils.ListP2PDocuments{
 				NodeID: 1,
 				ExpectedDocIDs: []state.ColDocIndex{
 					state.NewColDocIndex(0, 1),

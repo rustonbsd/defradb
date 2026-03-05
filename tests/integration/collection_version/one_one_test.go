@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package collection_version
 
@@ -21,11 +22,11 @@ import (
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
-func TestSchemaOneOne_NoPrimary_Errors(t *testing.T) {
+func TestCollectionVersionOneOne_NoPrimary_Errors(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						dog: Dog
@@ -45,11 +46,11 @@ func TestSchemaOneOne_NoPrimary_Errors(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaOneOne_TwoPrimaries_Errors(t *testing.T) {
+func TestCollectionVersionOneOne_TwoPrimaries_Errors(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						dog: Dog @primary
@@ -67,11 +68,11 @@ func TestSchemaOneOne_TwoPrimaries_Errors(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaOneOne_SelfUsingActualName(t *testing.T) {
+func TestCollectionVersionOneOne_SelfUsingActualName(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						boss: User @primary
 						minion: User
@@ -88,15 +89,21 @@ func TestSchemaOneOne_SelfUsingActualName(t *testing.T) {
 								Kind: client.FieldKind_DocID,
 							},
 							{
-								Name:         "boss",
-								Kind:         client.NewSelfKind("", false),
+								Name:         "_bossID",
+								Kind:         client.FieldKind_DocID,
+								Typ:          client.LWW_REGISTER,
 								RelationName: immutable.Some("user_user"),
 								IsPrimary:    true,
 							},
 							{
-								Name:         "boss_id",
+								Name:         "_minionID",
 								Kind:         client.FieldKind_DocID,
 								Typ:          client.LWW_REGISTER,
+								RelationName: immutable.Some("user_user"),
+							},
+							{
+								Name:         "boss",
+								Kind:         client.NewSelfKind("", false),
 								RelationName: immutable.Some("user_user"),
 								IsPrimary:    true,
 							},
@@ -105,11 +112,15 @@ func TestSchemaOneOne_SelfUsingActualName(t *testing.T) {
 								Kind:         client.NewSelfKind("", false),
 								RelationName: immutable.Some("user_user"),
 							},
+						},
+						Indexes: []client.IndexDescription{
 							{
-								Name:         "minion_id",
-								Kind:         client.FieldKind_DocID,
-								Typ:          client.LWW_REGISTER,
-								RelationName: immutable.Some("user_user"),
+								Name:   "User__bossID_ASC",
+								ID:     1,
+								Unique: true,
+								Fields: []client.IndexedFieldDescription{
+									{Name: "_bossID"},
+								},
 							},
 						},
 					},
@@ -142,7 +153,7 @@ func TestSchemaOneOne_SelfUsingActualName(t *testing.T) {
 								},
 							},
 							Field{
-								"name": "boss_id",
+								"name": "_bossID",
 								"type": map[string]any{
 									"kind": "SCALAR",
 									"name": "ID",
@@ -156,7 +167,7 @@ func TestSchemaOneOne_SelfUsingActualName(t *testing.T) {
 								},
 							},
 							Field{
-								"name": "minion_id",
+								"name": "_minionID",
 								"type": map[string]any{
 									"kind": "SCALAR",
 									"name": "ID",

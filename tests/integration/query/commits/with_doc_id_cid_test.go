@@ -1,18 +1,20 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package commits
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
@@ -20,14 +22,14 @@ func TestQueryCommitsWithDocIDAndCidForDifferentDoc(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			updateUserCollectionSchema(),
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 						"name":	"John",
 						"age":	21
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: ` {
 						_commits(
 							docID: "bae-not-this-doc",
@@ -51,7 +53,7 @@ func TestQueryCommitsWithDocIDAndCidForDifferentDocWithUpdate(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			updateUserCollectionSchema(),
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 						"name":	"John",
@@ -65,11 +67,11 @@ func TestQueryCommitsWithDocIDAndCidForDifferentDocWithUpdate(t *testing.T) {
 					"age":	22
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: ` {
 						_commits(
 							docID: "bae-not-this-doc",
-							cid: "bafyreieira5p74wdicqhelwbjsin7jtnnvvlplngrrcqfapleq2phexqga"
+							cid: "bafyreia4x5ju33jenbimdqbtnuqc7pby4lydpa7efyk5iu4nl6urm6ofla"
 						) {
 							cid
 						}
@@ -89,7 +91,7 @@ func TestQueryCommits_WithDocIDAndCidWithUpdate(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			updateUserCollectionSchema(),
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 						"name":	"John",
@@ -103,11 +105,11 @@ func TestQueryCommits_WithDocIDAndCidWithUpdate(t *testing.T) {
 					"age":	22
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: ` {
 						_commits(
 							docID: "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738",
-							cid: "bafyreieira5p74wdicqhelwbjsin7jtnnvvlplngrrcqfapleq2phexqga"
+							cid: "bafyreia4x5ju33jenbimdqbtnuqc7pby4lydpa7efyk5iu4nl6urm6ofla"
 						) {
 							cid
 						}
@@ -115,7 +117,7 @@ func TestQueryCommits_WithDocIDAndCidWithUpdate(t *testing.T) {
 				Results: map[string]any{
 					"_commits": []map[string]any{
 						{
-							"cid": "bafyreieira5p74wdicqhelwbjsin7jtnnvvlplngrrcqfapleq2phexqga",
+							"cid": "bafyreia4x5ju33jenbimdqbtnuqc7pby4lydpa7efyk5iu4nl6urm6ofla",
 						},
 					},
 				},
@@ -130,7 +132,7 @@ func TestQueryCommitsWithDocIDAndCidWithUpdateAndDepth(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			updateUserCollectionSchema(),
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 						"name":	"John",
@@ -146,11 +148,11 @@ func TestQueryCommitsWithDocIDAndCidWithUpdateAndDepth(t *testing.T) {
 			},
 			// depth is pretty arbitrary here, as long as its big enough to cover the updates
 			// from the target cid (ie >=2)
-			testUtils.Request{
+			&action.Request{
 				Request: ` {
 						_commits(
 							docID: "bae-1084671a-e3fb-5f2e-97a0-eb9d684e9738",
-							cid: "bafyreieira5p74wdicqhelwbjsin7jtnnvvlplngrrcqfapleq2phexqga",
+							cid: "bafyreia4x5ju33jenbimdqbtnuqc7pby4lydpa7efyk5iu4nl6urm6ofla",
 							depth: 5
 						) {
 							cid
@@ -159,10 +161,10 @@ func TestQueryCommitsWithDocIDAndCidWithUpdateAndDepth(t *testing.T) {
 				Results: map[string]any{
 					"_commits": []map[string]any{
 						{
-							"cid": "bafyreieira5p74wdicqhelwbjsin7jtnnvvlplngrrcqfapleq2phexqga",
+							"cid": "bafyreia4x5ju33jenbimdqbtnuqc7pby4lydpa7efyk5iu4nl6urm6ofla",
 						},
 						{
-							"cid": "bafyreihpq4duzngkledmxkxx3jevlp2q4aimhmbjygpv5chmgbf6u2fsqm",
+							"cid": "bafyreiejjfevlp5wrfl5o7bxbdtjj4th36lbdjov5gdkmy5n5jzs6dcmpu",
 						},
 					},
 				},

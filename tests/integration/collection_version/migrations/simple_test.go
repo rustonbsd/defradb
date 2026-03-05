@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package migrations
 
@@ -17,20 +18,21 @@ import (
 	"github.com/sourcenetwork/lens/host-go/config/model"
 
 	"github.com/sourcenetwork/defradb/client"
+	"github.com/sourcenetwork/defradb/client/options"
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 	"github.com/sourcenetwork/defradb/tests/lenses"
 )
 
-// Migrations need to be able to be registered for unknown schema ids, so they
+// Migrations need to be able to be registered for unknown collection version ids, so they
 // may migrate to/from them if recieved by the P2P system.
-func TestSchemaMigrationDoesNotErrorGivenUnknownSchemaRoots(t *testing.T) {
+func TestCollectionMigrationDoesNotErrorGivenUnknownCollectionRoots(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			testUtils.ConfigureMigration{
 				LensConfig: client.LensConfig{
-					SourceSchemaVersionID:      "does not exist",
-					DestinationSchemaVersionID: "also does not exist",
+					SourceCollectionVersionID:      "does not exist",
+					DestinationCollectionVersionID: "also does not exist",
 					Lens: model.Lens{
 						Lenses: []model.LensModule{
 							{
@@ -44,10 +46,8 @@ func TestSchemaMigrationDoesNotErrorGivenUnknownSchemaRoots(t *testing.T) {
 					},
 				},
 			},
-			testUtils.GetCollections{
-				FilterOptions: client.CollectionFetchOptions{
-					IncludeInactive: immutable.Some(true),
-				},
+			&action.GetCollections{
+				FilterOptions: options.GetCollections().SetGetInactive(true),
 				ExpectedResults: []client.CollectionVersion{
 					{
 						VersionID:      "also does not exist",
@@ -69,13 +69,13 @@ func TestSchemaMigrationDoesNotErrorGivenUnknownSchemaRoots(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaMigrationGetMigrationsReturnsMultiple(t *testing.T) {
+func TestCollectionMigrationGetMigrationsReturnsMultiple(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			testUtils.ConfigureMigration{
 				LensConfig: client.LensConfig{
-					SourceSchemaVersionID:      "does not exist",
-					DestinationSchemaVersionID: "also does not exist",
+					SourceCollectionVersionID:      "does not exist",
+					DestinationCollectionVersionID: "also does not exist",
 					Lens: model.Lens{
 						Lenses: []model.LensModule{
 							{
@@ -91,8 +91,8 @@ func TestSchemaMigrationGetMigrationsReturnsMultiple(t *testing.T) {
 			},
 			testUtils.ConfigureMigration{
 				LensConfig: client.LensConfig{
-					SourceSchemaVersionID:      "bafyreigsld6ten2pppcu2tgkbexqwdndckp6zt2vfjhuuheykqkgpmwk7i",
-					DestinationSchemaVersionID: "bafyreigqfjat435ghyt66tdaucp7oi2mke5jafx3jw3rozanopihr2vf44",
+					SourceCollectionVersionID:      "bafyreigsld6ten2pppcu2tgkbexqwdndckp6zt2vfjhuuheykqkgpmwk7i",
+					DestinationCollectionVersionID: "bafyreigqfjat435ghyt66tdaucp7oi2mke5jafx3jw3rozanopihr2vf44",
 					Lens: model.Lens{
 						Lenses: []model.LensModule{
 							{
@@ -106,10 +106,8 @@ func TestSchemaMigrationGetMigrationsReturnsMultiple(t *testing.T) {
 					},
 				},
 			},
-			testUtils.GetCollections{
-				FilterOptions: client.CollectionFetchOptions{
-					IncludeInactive: immutable.Some(true),
-				},
+			&action.GetCollections{
+				FilterOptions: options.GetCollections().SetGetInactive(true),
 				ExpectedResults: []client.CollectionVersion{
 					{
 						VersionID:      "also does not exist",
@@ -143,13 +141,13 @@ func TestSchemaMigrationGetMigrationsReturnsMultiple(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaMigrationReplacesExistingMigationBasedOnSourceID(t *testing.T) {
+func TestCollectionMigrationReplacesExistingMigationBasedOnSourceID(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			testUtils.ConfigureMigration{
 				LensConfig: client.LensConfig{
-					SourceSchemaVersionID:      "a",
-					DestinationSchemaVersionID: "b",
+					SourceCollectionVersionID:      "a",
+					DestinationCollectionVersionID: "b",
 					Lens: model.Lens{
 						Lenses: []model.LensModule{
 							{
@@ -166,8 +164,8 @@ func TestSchemaMigrationReplacesExistingMigationBasedOnSourceID(t *testing.T) {
 			testUtils.ConfigureMigration{
 				// Replace the original migration with a new configuration
 				LensConfig: client.LensConfig{
-					SourceSchemaVersionID:      "a",
-					DestinationSchemaVersionID: "c",
+					SourceCollectionVersionID:      "a",
+					DestinationCollectionVersionID: "c",
 					Lens: model.Lens{
 						Lenses: []model.LensModule{
 							{
@@ -181,10 +179,8 @@ func TestSchemaMigrationReplacesExistingMigationBasedOnSourceID(t *testing.T) {
 					},
 				},
 			},
-			testUtils.GetCollections{
-				FilterOptions: client.CollectionFetchOptions{
-					IncludeInactive: immutable.Some(true),
-				},
+			&action.GetCollections{
+				FilterOptions: options.GetCollections().SetGetInactive(true),
 				ExpectedResults: []client.CollectionVersion{
 					{
 						VersionID:      "a",
@@ -213,25 +209,25 @@ func TestSchemaMigrationReplacesExistingMigationBasedOnSourceID(t *testing.T) {
 
 	testUtils.ExecuteTestCase(t, test)
 }
-func TestSchemaMigration_ConfigureMigrationSkippingVersion_Errors(t *testing.T) {
+func TestCollectionMigration_ConfigureMigrationSkippingVersion_Errors(t *testing.T) {
 	version1 := "bafyreihuyovjl5ezgpud5xyqnouzsgx25x3ssrx3ncdv5p3guocc3laqna"
 	version3 := "bafyreih3uwvq6u5yqt65os3u5jdrrmy6gfi7wjq3vwvnm45jhjodbablhe"
 
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users { }
 				`,
 			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				Patch: `
 					[
 						{ "op": "add", "path": "/Users/Fields/-", "value": {"Name": "name", "Kind": "Boolean"} }
 					]
 				`,
 			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				Patch: `
 					[
 						{ "op": "add", "path": "/Users/Fields/-", "value": {"Name": "verified", "Kind": "String"} }
@@ -240,8 +236,8 @@ func TestSchemaMigration_ConfigureMigrationSkippingVersion_Errors(t *testing.T) 
 			},
 			testUtils.ConfigureMigration{
 				LensConfig: client.LensConfig{
-					SourceSchemaVersionID:      version1,
-					DestinationSchemaVersionID: version3,
+					SourceCollectionVersionID:      version1,
+					DestinationCollectionVersionID: version3,
 					Lens: model.Lens{
 						Lenses: []model.LensModule{
 							{

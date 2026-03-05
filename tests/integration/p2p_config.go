@@ -1,12 +1,13 @@
-// Copyright 2025 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 //go:build !js
 
@@ -15,16 +16,16 @@ package tests
 import (
 	"net"
 
-	"github.com/sourcenetwork/go-p2p"
-
-	"github.com/sourcenetwork/defradb/node"
+	"github.com/sourcenetwork/defradb/client/options"
 )
 
 func RandomNetworkingConfig() ConfigureNode {
-	return func() []node.Option {
-		return []node.Option{
-			p2p.WithListenAddresses("/ip4/" + getIPString() + "/tcp/0"),
-			p2p.WithEnableRelay(true),
+	return func() options.NodeP2POptions {
+		return options.NodeP2POptions{
+			ListenAddresses:           []string{"/ip4/" + getIPString() + "/tcp/0"},
+			EnablePubSub:              true,
+			EnableRelay:               true,
+			EnableClearBackoffOnRetry: true,
 		}
 	}
 }
@@ -52,20 +53,10 @@ func getIPString() string {
 	return localAddr.IP.String()
 }
 
-func getP2POptions(opts []node.Option) []node.Option {
-	netOpts := make([]node.Option, 0)
-	for _, opt := range opts {
-		if _, ok := opt.(p2p.NodeOpt); ok {
-			netOpts = append(netOpts, opt)
-		}
-	}
-	return netOpts
+func withPrivateKey(p2pOpts *options.NodeP2POptions, key []byte) {
+	p2pOpts.PrivateKey = key
 }
 
-func withPrivateKey(opts []node.Option, key []byte) []node.Option {
-	return append(opts, p2p.WithPrivateKey(key))
-}
-
-func withWithListenAddresses(opts []node.Option, addresses ...string) []node.Option {
-	return append(opts, p2p.WithListenAddresses(addresses...))
+func withListenAddresses(p2pOpts *options.NodeP2POptions, addresses ...string) {
+	p2pOpts.ListenAddresses = addresses
 }

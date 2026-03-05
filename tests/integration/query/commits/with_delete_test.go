@@ -1,12 +1,13 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package commits
 
@@ -29,15 +30,15 @@ func TestQueryCommits_AfterDocDeletion_ShouldStillFetch(t *testing.T) {
 
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 						age: Int
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 						"name":	"John",
 						"age":	21
@@ -46,15 +47,18 @@ func TestQueryCommits_AfterDocDeletion_ShouldStillFetch(t *testing.T) {
 			testUtils.DeleteDoc{
 				DocID: 0,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
-						_commits(fieldName: "_C") {
+						_commits(filter: {fieldName: {_eq: "_C"}}) {
 							cid
 							fieldName
 							links {
 								cid
-								name
+								fieldName
+							}
+							heads {
+								cid
 							}
 						}
 					}
@@ -64,10 +68,10 @@ func TestQueryCommits_AfterDocDeletion_ShouldStillFetch(t *testing.T) {
 						{
 							"cid":       gomega.And(deleteCid, uniqueCid),
 							"fieldName": "_C",
-							"links": []map[string]any{
+							"links":     []map[string]any{},
+							"heads": []map[string]any{
 								{
-									"cid":  createCompositeCid,
-									"name": "_head",
+									"cid": createCompositeCid,
 								},
 							},
 						},
@@ -76,14 +80,15 @@ func TestQueryCommits_AfterDocDeletion_ShouldStillFetch(t *testing.T) {
 							"fieldName": "_C",
 							"links": []map[string]any{
 								{
-									"cid":  createAgeCid,
-									"name": "age",
+									"cid":       createAgeCid,
+									"fieldName": "age",
 								},
 								{
-									"cid":  createNameCid,
-									"name": "name",
+									"cid":       createNameCid,
+									"fieldName": "name",
 								},
 							},
+							"heads": []map[string]any{},
 						},
 					},
 				},

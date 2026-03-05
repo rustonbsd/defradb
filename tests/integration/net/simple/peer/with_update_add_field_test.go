@@ -1,12 +1,13 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package peer_test
 
@@ -19,19 +20,19 @@ import (
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
-func TestP2PPeerUpdateWithNewFieldSyncsDocsToOlderSchemaVersionMultistep(t *testing.T) {
+func TestP2PPeerUpdateWithNewFieldSyncsDocsToOlderCollectionVersionMultistep(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						Name: String
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "John"
 				}`,
@@ -40,12 +41,12 @@ func TestP2PPeerUpdateWithNewFieldSyncsDocsToOlderSchemaVersionMultistep(t *test
 				SourceNodeID: 1,
 				TargetNodeID: 0,
 			},
-			testUtils.SubscribeToCollection{
+			testUtils.AddCollectionSubscription{
 				NodeID:        1,
 				CollectionIDs: []int{0},
 			},
-			testUtils.PatchCollection{
-				// Patch the schema on the node that we will directly create a doc on
+			&action.PatchCollection{
+				// Patch the collection on the node that we will directly add a doc on
 				NodeID: immutable.Some(0),
 				Patch: `
 					[
@@ -69,7 +70,7 @@ func TestP2PPeerUpdateWithNewFieldSyncsDocsToOlderSchemaVersionMultistep(t *test
 				}`,
 			},
 			testUtils.WaitForSync{},
-			testUtils.Request{
+			&action.Request{
 				NodeID: immutable.Some(0),
 				Request: `query {
 					Users {
@@ -86,7 +87,7 @@ func TestP2PPeerUpdateWithNewFieldSyncsDocsToOlderSchemaVersionMultistep(t *test
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				// The second update should still be received by the second node, updating Name
 				NodeID: immutable.Some(1),
 				Request: `query {
@@ -108,19 +109,19 @@ func TestP2PPeerUpdateWithNewFieldSyncsDocsToOlderSchemaVersionMultistep(t *test
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestP2PPeerUpdateWithNewFieldSyncsDocsToOlderSchemaVersion(t *testing.T) {
+func TestP2PPeerUpdateWithNewFieldSyncsDocsToOlderCollectionVersion(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						Name: String
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "John"
 				}`,
@@ -129,12 +130,12 @@ func TestP2PPeerUpdateWithNewFieldSyncsDocsToOlderSchemaVersion(t *testing.T) {
 				SourceNodeID: 1,
 				TargetNodeID: 0,
 			},
-			testUtils.SubscribeToCollection{
+			testUtils.AddCollectionSubscription{
 				NodeID:        1,
 				CollectionIDs: []int{0},
 			},
-			testUtils.PatchCollection{
-				// Patch the schema on the node that we will directly update the doc on
+			&action.PatchCollection{
+				// Patch the collection on the node that we will directly update the doc on
 				NodeID: immutable.Some(0),
 				Patch: `
 					[
@@ -151,7 +152,7 @@ func TestP2PPeerUpdateWithNewFieldSyncsDocsToOlderSchemaVersion(t *testing.T) {
 				}`,
 			},
 			testUtils.WaitForSync{},
-			testUtils.Request{
+			&action.Request{
 				NodeID: immutable.Some(0),
 				Request: `query {
 					Users {
@@ -168,7 +169,7 @@ func TestP2PPeerUpdateWithNewFieldSyncsDocsToOlderSchemaVersion(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				NodeID: immutable.Some(1),
 				Request: `query {
 					Users {

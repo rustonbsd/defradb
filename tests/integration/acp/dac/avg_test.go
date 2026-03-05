@@ -1,18 +1,20 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_acp_dac
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
@@ -22,15 +24,15 @@ func TestACP_QueryAverageWithoutIdentity(t *testing.T) {
 		Actions: []any{
 			getSetupEmployeeCompanyActions(),
 
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
-						_avg(Employee: {field: salary})
+						AVG(Employee: {field: salary})
 					}
 				`,
 				Results: map[string]any{
 					// 2 public employees, 1 with salary 10k, 1 with salary 20k
-					"_avg": int(15000),
+					"AVG": int(15000),
 				},
 			},
 		},
@@ -45,16 +47,16 @@ func TestACP_QueryAverageWithIdentity(t *testing.T) {
 		Actions: []any{
 			getSetupEmployeeCompanyActions(),
 
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(1),
 				Request: `
 					query {
-						_avg(Employee: {field: salary})
+						AVG(Employee: {field: salary})
 					}
 				`,
 				Results: map[string]any{
 					// 4 employees with salaries 10k, 20k, 30k, 40k
-					"_avg": int(25000),
+					"AVG": int(25000),
 				},
 			},
 		},
@@ -69,16 +71,16 @@ func TestACP_QueryAverageWithWrongIdentity(t *testing.T) {
 		Actions: []any{
 			getSetupEmployeeCompanyActions(),
 
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(2),
 				Request: `
 					query {
-						_avg(Employee: {field: salary})
+						AVG(Employee: {field: salary})
 					}
 				`,
 				Results: map[string]any{
 					// 2 public employees, 1 with salary 10k, 1 with salary 20k
-					"_avg": int(15000),
+					"AVG": int(15000),
 				},
 			},
 		},

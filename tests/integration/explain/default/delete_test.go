@@ -1,18 +1,20 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_explain_default
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 	explainUtils "github.com/sourcenetwork/defradb/tests/integration/explain"
 )
@@ -39,7 +41,7 @@ func TestDefaultExplainMutationRequestWithDeleteUsingFilter(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `mutation @explain {
 					delete_Author(filter: {name: {_eq: "Shahzad"}}) {
@@ -49,7 +51,7 @@ func TestDefaultExplainMutationRequestWithDeleteUsingFilter(t *testing.T) {
 
 				ExpectedPatterns: deletePattern,
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName:    "deleteNode",
 						IncludeChildNodes: false,
@@ -67,7 +69,7 @@ func TestDefaultExplainMutationRequestWithDeleteUsingFilter(t *testing.T) {
 						TargetNodeName:    "scanNode",
 						IncludeChildNodes: true, // should be last node, so will have no child nodes.
 						ExpectedAttributes: dataMap{
-							"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
+							"collectionID":   "bafyreid73sgzodav5hxhrsypjapj6r2uzo7mhm3vqykjhfehj7i5hhksuu",
 							"collectionName": "Author",
 							"filter": dataMap{
 								"name": dataMap{
@@ -93,7 +95,7 @@ func TestDefaultExplainMutationRequestWithDeleteUsingFilterToMatchEverything(t *
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `mutation @explain {
 					delete_Author(filter: {}) {
@@ -103,7 +105,7 @@ func TestDefaultExplainMutationRequestWithDeleteUsingFilterToMatchEverything(t *
 
 				ExpectedPatterns: deletePattern,
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName:    "deleteNode",
 						IncludeChildNodes: false,
@@ -117,7 +119,7 @@ func TestDefaultExplainMutationRequestWithDeleteUsingFilterToMatchEverything(t *
 						TargetNodeName:    "scanNode",
 						IncludeChildNodes: true, // should be last node, so will have no child nodes.
 						ExpectedAttributes: dataMap{
-							"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
+							"collectionID":   "bafyreid73sgzodav5hxhrsypjapj6r2uzo7mhm3vqykjhfehj7i5hhksuu",
 							"collectionName": "Author",
 							"filter":         nil,
 							"prefixes": []string{
@@ -139,7 +141,7 @@ func TestDefaultExplainMutationRequestWithDeleteUsingId(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `mutation @explain {
 					delete_Author(docID: "bae-079d0bd8-4b1b-5f5f-bd95-4d915c277f9d") {
@@ -149,7 +151,7 @@ func TestDefaultExplainMutationRequestWithDeleteUsingId(t *testing.T) {
 
 				ExpectedPatterns: deletePattern,
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName:    "deleteNode",
 						IncludeChildNodes: false,
@@ -165,7 +167,7 @@ func TestDefaultExplainMutationRequestWithDeleteUsingId(t *testing.T) {
 						TargetNodeName:    "scanNode",
 						IncludeChildNodes: true, // should be last node, so will have no child nodes.
 						ExpectedAttributes: dataMap{
-							"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
+							"collectionID":   "bafyreid73sgzodav5hxhrsypjapj6r2uzo7mhm3vqykjhfehj7i5hhksuu",
 							"collectionName": "Author",
 							"filter":         nil,
 							"prefixes": []string{
@@ -187,7 +189,7 @@ func TestDefaultExplainMutationRequestWithDeleteUsingIds(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `mutation @explain {
 					delete_Author(docID: [
@@ -200,7 +202,7 @@ func TestDefaultExplainMutationRequestWithDeleteUsingIds(t *testing.T) {
 
 				ExpectedPatterns: deletePattern,
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName:    "deleteNode",
 						IncludeChildNodes: false,
@@ -217,7 +219,7 @@ func TestDefaultExplainMutationRequestWithDeleteUsingIds(t *testing.T) {
 						TargetNodeName:    "scanNode",
 						IncludeChildNodes: true, // should be last node, so will have no child nodes.
 						ExpectedAttributes: dataMap{
-							"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
+							"collectionID":   "bafyreid73sgzodav5hxhrsypjapj6r2uzo7mhm3vqykjhfehj7i5hhksuu",
 							"collectionName": "Author",
 							"filter":         nil,
 							"prefixes": []string{
@@ -240,7 +242,7 @@ func TestDefaultExplainMutationRequestWithDeleteUsingNoIds(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `mutation @explain {
 					delete_Author(docID: []) {
@@ -250,7 +252,7 @@ func TestDefaultExplainMutationRequestWithDeleteUsingNoIds(t *testing.T) {
 
 				ExpectedPatterns: deletePattern,
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName:    "deleteNode",
 						IncludeChildNodes: false,
@@ -264,7 +266,7 @@ func TestDefaultExplainMutationRequestWithDeleteUsingNoIds(t *testing.T) {
 						TargetNodeName:    "scanNode",
 						IncludeChildNodes: true, // should be last node, so will have no child nodes.
 						ExpectedAttributes: dataMap{
-							"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
+							"collectionID":   "bafyreid73sgzodav5hxhrsypjapj6r2uzo7mhm3vqykjhfehj7i5hhksuu",
 							"collectionName": "Author",
 							"filter":         nil,
 							"prefixes": []string{
@@ -286,7 +288,7 @@ func TestDefaultExplainMutationRequestWithDeleteUsingFilterAndIds(t *testing.T) 
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `mutation @explain {
 					delete_Author(
@@ -304,7 +306,7 @@ func TestDefaultExplainMutationRequestWithDeleteUsingFilterAndIds(t *testing.T) 
 
 				ExpectedPatterns: deletePattern,
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName:    "deleteNode",
 						IncludeChildNodes: false,
@@ -334,7 +336,7 @@ func TestDefaultExplainMutationRequestWithDeleteUsingFilterAndIds(t *testing.T) 
 						TargetNodeName:    "scanNode",
 						IncludeChildNodes: true, // should be last node, so will have no child nodes.
 						ExpectedAttributes: dataMap{
-							"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
+							"collectionID":   "bafyreid73sgzodav5hxhrsypjapj6r2uzo7mhm3vqykjhfehj7i5hhksuu",
 							"collectionName": "Author",
 							"filter": dataMap{
 								"_and": []any{

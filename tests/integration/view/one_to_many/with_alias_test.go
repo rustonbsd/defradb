@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package one_to_many
 
@@ -20,8 +21,8 @@ import (
 func TestView_OneToManyWithAliasOnOuter(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Author {
 						name: String
 						books: [Book]
@@ -32,7 +33,7 @@ func TestView_OneToManyWithAliasOnOuter(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddView{
 				Query: `
 					Author {
 						fullName: name
@@ -51,20 +52,20 @@ func TestView_OneToManyWithAliasOnOuter(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name":	"Harper Lee"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "To Kill a Mockingbird",
-					"author_id": testUtils.NewDocIndex(0, 0),
+					"_authorID": testUtils.NewDocIndex(0, 0),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 							AuthorView {
 								fullName
@@ -95,8 +96,8 @@ func TestView_OneToManyWithAliasOnOuter(t *testing.T) {
 func TestView_OneToManyWithAliasOnInner(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Author {
 						name: String
 						books: [Book]
@@ -107,7 +108,7 @@ func TestView_OneToManyWithAliasOnInner(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddView{
 				Query: `
 					Author {
 						name
@@ -126,20 +127,20 @@ func TestView_OneToManyWithAliasOnInner(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name":	"Harper Lee"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "To Kill a Mockingbird",
-					"author_id": testUtils.NewDocIndex(0, 0),
+					"_authorID": testUtils.NewDocIndex(0, 0),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						AuthorView {

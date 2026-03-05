@@ -26,13 +26,21 @@ func InitCollectionCache(ctx context.Context) context.Context {
 	return context.WithValue(ctx, collectionCacheKey{}, NewCollectionCache())
 }
 
+// InitCollectionCache initialializes the context with a none-nil collection cache.
+//
+// It is done to avoid an extra check to see if the cache exists or not when fetching
+// it from the context.
+func ContextWithCollectionCache(ctx context.Context, cache *CollectionCache) context.Context {
+	return context.WithValue(ctx, collectionCacheKey{}, cache)
+}
+
 // getCollectionCache retrieves the collection short-id cache from the given context.
-func getCollectionCache(ctx context.Context) *collectionCache {
-	return ctx.Value(collectionCacheKey{}).(*collectionCache) //nolint:forcetypeassert
+func CollectionCacheFromContext(ctx context.Context) *CollectionCache {
+	return ctx.Value(collectionCacheKey{}).(*CollectionCache) //nolint:forcetypeassert
 }
 
 // collectionCache is an object providing easy access to cached collections.
-type collectionCache struct {
+type CollectionCache struct {
 	IsFullyPopulated             bool
 	IsActiveCollectionsPopulated bool
 
@@ -53,15 +61,15 @@ type collectionCache struct {
 }
 
 // NewCollectionCache creates a new [collectionCache] populated with the given [CollectionVersion]s.
-func NewCollectionCache() *collectionCache {
-	return &collectionCache{
+func NewCollectionCache() *CollectionCache {
+	return &CollectionCache{
 		CollectionsByVersionID:  make(map[string]client.CollectionVersion),
 		ActiveCollectionsByName: make(map[string]client.CollectionVersion),
 		ActiveCollectionsByID:   make(map[string]client.CollectionVersion),
 	}
 }
 
-func (cache *collectionCache) Add(col client.CollectionVersion) {
+func (cache *CollectionCache) Add(col client.CollectionVersion) {
 	_, isOld := cache.CollectionsByVersionID[col.VersionID]
 	cache.CollectionsByVersionID[col.VersionID] = col
 
@@ -89,6 +97,15 @@ func (cache *collectionCache) Add(col client.CollectionVersion) {
 					break
 				}
 			}
+
+			colVersions := cache.CollectionsByID[col.CollectionID]
+			for i := range colVersions {
+				if colVersions[i].VersionID == col.VersionID {
+					colVersions[i] = col
+					break
+				}
+			}
+			cache.CollectionsByID[col.CollectionID] = colVersions
 		}
 	}
 
@@ -139,7 +156,48 @@ func (cache *collectionCache) Add(col client.CollectionVersion) {
 	}
 }
 
-func (cache *collectionCache) AddAll(cols []client.CollectionVersion) {
+func (cache *CollectionCache) Delete(version client.CollectionVersion) {
+	delete(cache.CollectionsByVersionID, version.VersionID)
+
+	if cols, ok := cache.CollectionsByID[version.CollectionID]; ok {
+		var indexToRemove int
+		for i, col := range cols {
+			if col.VersionID == version.VersionID {
+				indexToRemove = i
+				break
+			}
+		}
+		cache.CollectionsByID[version.CollectionID] = append(cols[:indexToRemove], cols[indexToRemove+1:]...)
+	}
+
+	var indexToRemove int
+	for i, col := range cache.Collections {
+		if col.VersionID == version.VersionID {
+			indexToRemove = i
+			break
+		}
+	}
+	cache.Collections = append(cache.Collections[:indexToRemove], cache.Collections[indexToRemove+1:]...)
+
+	if version.IsActive {
+		delete(cache.ActiveCollectionsByID, version.CollectionID)
+		delete(cache.ActiveCollectionsByName, version.Name)
+
+		var indexToRemove int
+		for i, col := range cache.ActiveCollections {
+			if col.VersionID == version.VersionID {
+				indexToRemove = i
+				break
+			}
+		}
+		cache.ActiveCollections = append(
+			cache.ActiveCollections[:indexToRemove],
+			cache.ActiveCollections[indexToRemove+1:]...,
+		)
+	}
+}
+
+func (cache *CollectionCache) AddAll(cols []client.CollectionVersion) {
 	cache.Collections = make([]client.CollectionVersion, 0, len(cols))
 	cache.ActiveCollections = make([]client.CollectionVersion, 0)
 	cache.CollectionsByID = make(map[string][]client.CollectionVersion)
@@ -163,7 +221,7 @@ func (cache *collectionCache) AddAll(cols []client.CollectionVersion) {
 	cache.IsActiveCollectionsPopulated = true
 }
 
-func (cache *collectionCache) AddAllActive(cols []client.CollectionVersion) {
+func (cache *CollectionCache) AddAllActive(cols []client.CollectionVersion) {
 	cache.ActiveCollections = make([]client.CollectionVersion, 0, len(cols))
 
 	for _, col := range cols {

@@ -1,18 +1,20 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_explain_default
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 	explainUtils "github.com/sourcenetwork/defradb/tests/integration/explain"
 )
@@ -23,7 +25,7 @@ func TestDefaultExplainRequestWithDocIDOnParentGroupBy(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain {
 					Author(
@@ -31,7 +33,7 @@ func TestDefaultExplainRequestWithDocIDOnParentGroupBy(t *testing.T) {
 						docID: "bae-6a4c5bc5-b044-5a03-a868-8260af6f2254"
 					) {
 						age
-						_group {
+						GROUP {
 							name
 						}
 					}
@@ -39,7 +41,7 @@ func TestDefaultExplainRequestWithDocIDOnParentGroupBy(t *testing.T) {
 
 				ExpectedPatterns: groupPattern,
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName:    "groupNode",
 						IncludeChildNodes: false,
@@ -54,7 +56,7 @@ func TestDefaultExplainRequestWithDocIDOnParentGroupBy(t *testing.T) {
 						TargetNodeName:    "scanNode",
 						IncludeChildNodes: true, // should be leaf of it's branch, so will have no child nodes.
 						ExpectedAttributes: dataMap{
-							"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
+							"collectionID":   "bafyreid73sgzodav5hxhrsypjapj6r2uzo7mhm3vqykjhfehj7i5hhksuu",
 							"collectionName": "Author",
 							"filter":         nil,
 							"prefixes": []string{
@@ -76,7 +78,7 @@ func TestDefaultExplainRequestWithDocIDsAndFilterOnParentGroupBy(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain {
 					Author(
@@ -88,7 +90,7 @@ func TestDefaultExplainRequestWithDocIDsAndFilterOnParentGroupBy(t *testing.T) {
 						]
 					) {
 						age
-						_group {
+						GROUP {
 							name
 						}
 					}
@@ -96,7 +98,7 @@ func TestDefaultExplainRequestWithDocIDsAndFilterOnParentGroupBy(t *testing.T) {
 
 				ExpectedPatterns: groupPattern,
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName:    "groupNode",
 						IncludeChildNodes: false,
@@ -111,7 +113,7 @@ func TestDefaultExplainRequestWithDocIDsAndFilterOnParentGroupBy(t *testing.T) {
 						TargetNodeName:    "scanNode",
 						IncludeChildNodes: true, // should be leaf of it's branch, so will have no child nodes.
 						ExpectedAttributes: dataMap{
-							"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
+							"collectionID":   "bafyreid73sgzodav5hxhrsypjapj6r2uzo7mhm3vqykjhfehj7i5hhksuu",
 							"collectionName": "Author",
 							"filter": dataMap{
 								"age": dataMap{

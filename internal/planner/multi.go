@@ -63,6 +63,7 @@ type parallelNode struct { // serialNode?
 	children     []planNode
 	childIndexes []int
 
+	source    planNode
 	multiscan *multiScanNode
 }
 
@@ -80,6 +81,33 @@ func (p *parallelNode) Kind() string {
 }
 
 func (p *parallelNode) Init() error {
+	newChildren := make([]planNode, len(p.children))
+	newChildIndexes := make([]int, len(p.childIndexes))
+
+	endIndex := len(p.children) - 1
+	startIndex := 0
+	for i, child := range p.children {
+		switch child.(type) {
+		case *dagScanNode:
+			// Any node types that result in `nextAppend` calls must be executed last, as they are
+			// dependent on the docID set by the `nextMerge` calls.
+			//
+			// For example, there might be two children, a `scanNode` and a `dagScanNode`. As per the logic
+			// in `parallelNode.Next`, the `scanNode` must be executed before the `dagScanNode` as the
+			// `dagScanNode` uses the DocID yielded from the `scanNode`.
+			newChildren[endIndex] = child
+			newChildIndexes[endIndex] = p.childIndexes[i]
+			endIndex--
+		default:
+			newChildren[startIndex] = child
+			newChildIndexes[startIndex] = p.childIndexes[i]
+			startIndex++
+		}
+	}
+
+	p.children = newChildren
+	p.childIndexes = newChildIndexes
+
 	return p.applyToPlans(func(n planNode) error {
 		return n.Init()
 	})
@@ -114,13 +142,11 @@ func (p *parallelNode) Next() (bool, error) {
 	for i, plan := range p.children {
 		var next bool
 		var err error
-		// isMerge := false
 		switch n := plan.(type) {
-		case *scanNode, *typeIndexJoin:
-			// isMerge = true
-			next, err = p.nextMerge(i, n)
 		case *dagScanNode:
 			next, err = p.nextAppend(i, n)
+		default: // anything else is a merge
+			next, err = p.nextMerge(i, n)
 		}
 		if err != nil {
 			return false, err
@@ -181,7 +207,7 @@ func (p *parallelNode) nextAppend(index int, plan planNode) (bool, error) {
 	return true, nil
 }
 
-func (p *parallelNode) Source() planNode { return p.multiscan }
+func (p *parallelNode) Source() planNode { return p.source }
 
 func (p *parallelNode) Children() []planNode {
 	return p.children
@@ -195,13 +221,14 @@ func (p *parallelNode) addChild(fieldIndex int, node planNode) {
 func (n *selectNode) addSubPlan(fieldIndex int, newPlan planNode) error {
 	switch sourceNode := n.source.(type) {
 	// if its a scan node, we either replace or create a multinode
-	case *scanNode, *pipeNode:
+	case *updateNode, *scanNode, *pipeNode:
 		switch newPlan.(type) {
-		case *scanNode, *typeIndexJoin:
+		case *typeIndexJoin:
 			n.source = newPlan
 		case *dagScanNode:
 			m := &parallelNode{
 				p:         n.planner,
+				source:    newPlan,
 				docMapper: docMapper{n.source.DocumentMap()},
 			}
 			m.addChild(-1, n.source)
@@ -212,31 +239,51 @@ func (n *selectNode) addSubPlan(fieldIndex int, newPlan planNode) error {
 		}
 
 	case *typeIndexJoin:
-		origScan, _ := walkAndFindPlanType[*scanNode](newPlan)
-		if origScan == nil {
-			return ErrFailedToFindScanNode
+		var multiscan *multiScanNode
+		var source planNode
+		var origSource planNode
+
+		// we need to replace the original "source" with the appropriate
+		// multiScanNode type. However, not all "source" types are equal.
+		// For query ops the target source is a `*scanNode`, for mutations
+		// the target source is either a `*createNode`, `*updateNode`, or
+		// a `*upsertNode`
+		//
+		// This is necessary since the `*typeIndexJoin` join will read
+		// from this source multiple times per iteration, so we need
+		// to make sure that we're caching the necessary state. Eg during
+		// a mutation multiple reads shouldn't trigger multiple mutations.
+		switch n.origSource.(type) {
+		case *updateNode:
+			origSource, _ = walkAndFindPlanType[*updateNode](newPlan)
+		default:
+			origSource, _ = walkAndFindPlanType[*scanNode](newPlan)
 		}
-		// create our new multiscanner
-		multiscan := &multiScanNode{scanNode: origScan}
-		// replace our current source internal scanNode with our new multiscanner
-		if err := n.planner.walkAndReplacePlan(n.source, origScan, multiscan); err != nil {
-			return err
+
+		if origSource != nil {
+			multiscan = &multiScanNode{planNode: origSource}
+			if err := n.planner.walkAndReplacePlan(n.source, origSource, multiscan); err != nil {
+				return err
+			}
+			if err := n.planner.walkAndReplacePlan(newPlan, origSource, multiscan); err != nil {
+				return err
+			}
+			multiscan.addReader()
+			multiscan.addReader()
+
+			source = multiscan
+		} else {
+			source = newPlan
 		}
-		// create parallelNode
+
 		parallelNode := &parallelNode{
 			p:         n.planner,
 			multiscan: multiscan,
+			source:    source,
 			docMapper: docMapper{n.source.DocumentMap()},
 		}
 		parallelNode.addChild(-1, n.source)
-		multiscan.addReader()
-		// replace our new node internal scanNode with our new multiscanner
-		if err := n.planner.walkAndReplacePlan(newPlan, origScan, multiscan); err != nil {
-			return err
-		}
-		// add our newly updated plan to the multinode
 		parallelNode.addChild(fieldIndex, newPlan)
-		multiscan.addReader()
 		n.source = parallelNode
 
 	// we already have an existing parallelNode as our source
@@ -244,14 +291,28 @@ func (n *selectNode) addSubPlan(fieldIndex int, newPlan planNode) error {
 		switch newPlan.(type) {
 		// We have a internal multiscanNode on our MultiNode
 		case *scanNode, *typeIndexJoin:
-			// replace our new node internal scanNode with our existing multiscanner
-			if err := n.planner.walkAndReplacePlan(newPlan, sourceNode.multiscan.Source(), sourceNode.multiscan); err != nil {
-				return err
+			if sourceNode.multiscan != nil {
+				if err := n.planner.walkAndReplacePlan(newPlan, sourceNode.multiscan.Source(), sourceNode.multiscan); err != nil {
+					return err
+				}
+				sourceNode.multiscan.addReader()
 			}
-			sourceNode.multiscan.addReader()
+		}
+
+		if _, ok := newPlan.(*typeIndexJoin); ok {
+			for i, child := range sourceNode.children {
+				if _, ok := child.(*scanNode); ok {
+					// `typeIndexJoin` contain the `scanNode`, so if the `scanNode` has already been added to the
+					// `parallelNode` it must be overwritten by the `typeIndexJoin` that wraps it.
+					sourceNode.children[i] = newPlan
+					sourceNode.childIndexes[i] = fieldIndex
+					return nil
+				}
+			}
 		}
 
 		sourceNode.addChild(fieldIndex, newPlan)
 	}
+
 	return nil
 }

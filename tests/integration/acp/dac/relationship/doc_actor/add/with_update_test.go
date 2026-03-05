@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_acp_dac_relationship_doc_actor_add
 
@@ -17,16 +18,17 @@ import (
 
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
+	"github.com/sourcenetwork/defradb/tests/state"
 )
 
 func TestACP_OwnerGivesUpdateAccessToAnotherActorTwice_ShowThatTheRelationshipAlreadyExists(t *testing.T) {
 	test := testUtils.TestCase{
 
 		SupportedMutationTypes: immutable.Some(
-			[]testUtils.MutationType{
+			[]state.MutationType{
 				// GQL mutation will return no error when wrong identity is used with gql (only for update requests),
-				testUtils.CollectionNamedMutationType,
-				testUtils.CollectionSaveMutationType,
+				state.CollectionNamedMutationType,
+				state.CollectionSaveMutationType,
 			}),
 
 		Actions: []any{
@@ -35,59 +37,42 @@ func TestACP_OwnerGivesUpdateAccessToAnotherActorTwice_ShowThatTheRelationshipAl
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: Test Policy
-
-                    description: A Policy
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader + updater + deleter
-
-                          update:
-                            expr: owner + updater
-
-                          delete:
-                            expr: owner + deleter
-
-                          nothing:
-                            expr: dummy
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-
-                          reader:
-                            types:
-                              - actor
-
-                          updater:
-                            types:
-                              - actor
-
-                          deleter:
-                            types:
-                              - actor
-
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-
-                          dummy:
-                            types:
-                              - actor
-                `,
+description: A Policy
+name: Test Policy
+resources:
+- name: users
+  permissions:
+  - expr: deleter
+    name: delete
+  - expr: dummy
+    name: nothing
+  - expr: reader + updater + deleter
+    name: read
+  - expr: updater
+    name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: deleter
+    types:
+    - actor
+  - name: dummy
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+  - name: updater
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 						type Users @policy(
 							id: "{{.Policy0}}",
 							resource: "users"
@@ -98,7 +83,7 @@ func TestACP_OwnerGivesUpdateAccessToAnotherActorTwice_ShowThatTheRelationshipAl
 					`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Identity: testUtils.ClientIdentity(1),
 
 				CollectionID: 0,
@@ -111,7 +96,7 @@ func TestACP_OwnerGivesUpdateAccessToAnotherActorTwice_ShowThatTheRelationshipAl
 				`,
 			},
 
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(2), // This identity can not read yet.
 
 				Request: `
@@ -182,10 +167,10 @@ func TestACP_OwnerGivesUpdateAccessToAnotherActor_OtherActorCanUpdate(t *testing
 	test := testUtils.TestCase{
 
 		SupportedMutationTypes: immutable.Some(
-			[]testUtils.MutationType{
+			[]state.MutationType{
 				// GQL mutation will return no error when wrong identity is used with gql (only for update requests),
-				testUtils.CollectionNamedMutationType,
-				testUtils.CollectionSaveMutationType,
+				state.CollectionNamedMutationType,
+				state.CollectionSaveMutationType,
 			}),
 
 		Actions: []any{
@@ -194,59 +179,42 @@ func TestACP_OwnerGivesUpdateAccessToAnotherActor_OtherActorCanUpdate(t *testing
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: Test Policy
-
-                    description: A Policy
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader + updater + deleter
-
-                          update:
-                            expr: owner + updater
-
-                          delete:
-                            expr: owner + deleter
-
-                          nothing:
-                            expr: dummy
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-
-                          reader:
-                            types:
-                              - actor
-
-                          updater:
-                            types:
-                              - actor
-
-                          deleter:
-                            types:
-                              - actor
-
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-
-                          dummy:
-                            types:
-                              - actor
-                `,
+description: A Policy
+name: Test Policy
+resources:
+- name: users
+  permissions:
+  - expr: deleter
+    name: delete
+  - expr: dummy
+    name: nothing
+  - expr: reader + updater + deleter
+    name: read
+  - expr: updater
+    name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: deleter
+    types:
+    - actor
+  - name: dummy
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+  - name: updater
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 						type Users @policy(
 							id: "{{.Policy0}}",
 							resource: "users"
@@ -257,7 +225,7 @@ func TestACP_OwnerGivesUpdateAccessToAnotherActor_OtherActorCanUpdate(t *testing
 					`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Identity: testUtils.ClientIdentity(1),
 
 				CollectionID: 0,
@@ -270,7 +238,7 @@ func TestACP_OwnerGivesUpdateAccessToAnotherActor_OtherActorCanUpdate(t *testing
 				`,
 			},
 
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(2), // This identity can not read yet.
 
 				Request: `
@@ -332,7 +300,7 @@ func TestACP_OwnerGivesUpdateAccessToAnotherActor_OtherActorCanUpdate(t *testing
 				`,
 			},
 
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(2), // This identity can now also read.
 
 				Request: `
@@ -370,59 +338,42 @@ func TestACP_OwnerGivesUpdateAccessToAnotherActor_OtherActorCanUpdateSoCanTheOwn
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: Test Policy
-
-                    description: A Policy
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader + updater + deleter
-
-                          update:
-                            expr: owner + updater
-
-                          delete:
-                            expr: owner + deleter
-
-                          nothing:
-                            expr: dummy
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-
-                          reader:
-                            types:
-                              - actor
-
-                          updater:
-                            types:
-                              - actor
-
-                          deleter:
-                            types:
-                              - actor
-
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-
-                          dummy:
-                            types:
-                              - actor
-                `,
+description: A Policy
+name: Test Policy
+resources:
+- name: users
+  permissions:
+  - expr: deleter
+    name: delete
+  - expr: dummy
+    name: nothing
+  - expr: reader + updater + deleter
+    name: read
+  - expr: updater
+    name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: deleter
+    types:
+    - actor
+  - name: dummy
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+  - name: updater
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 						type Users @policy(
 							id: "{{.Policy0}}",
 							resource: "users"
@@ -433,7 +384,7 @@ func TestACP_OwnerGivesUpdateAccessToAnotherActor_OtherActorCanUpdateSoCanTheOwn
 					`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Identity: testUtils.ClientIdentity(1),
 
 				CollectionID: 0,
@@ -474,7 +425,7 @@ func TestACP_OwnerGivesUpdateAccessToAnotherActor_OtherActorCanUpdateSoCanTheOwn
 				`,
 			},
 
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(2), // This identity can now also read.
 
 				Request: `
@@ -512,7 +463,7 @@ func TestACP_OwnerGivesUpdateAccessToAnotherActor_OtherActorCanUpdateSoCanTheOwn
 				`,
 			},
 
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(2), // Owner can still also read (ownership not transferred)
 
 				Request: `

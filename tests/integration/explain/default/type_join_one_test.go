@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_explain_default
 
@@ -15,6 +16,7 @@ import (
 
 	"github.com/sourcenetwork/immutable"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 	explainUtils "github.com/sourcenetwork/defradb/tests/integration/explain"
 )
@@ -25,7 +27,7 @@ func TestDefaultExplainRequestWithAOneToOneJoin(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain {
 					Author {
@@ -49,7 +51,7 @@ func TestDefaultExplainRequestWithAOneToOneJoin(t *testing.T) {
 					},
 				},
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName:    "typeIndexJoin",
 						IncludeChildNodes: false,
@@ -68,7 +70,7 @@ func TestDefaultExplainRequestWithAOneToOneJoin(t *testing.T) {
 						ExpectedAttributes: dataMap{
 							"scanNode": dataMap{
 								"filter":         nil,
-								"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
+								"collectionID":   "bafyreid73sgzodav5hxhrsypjapj6r2uzo7mhm3vqykjhfehj7i5hhksuu",
 								"collectionName": "Author",
 								"prefixes": []string{
 									"/3",
@@ -88,7 +90,7 @@ func TestDefaultExplainRequestWithAOneToOneJoin(t *testing.T) {
 									"filter": nil,
 									"scanNode": dataMap{
 										"filter":         nil,
-										"collectionID":   "bafyreih7hbb4bi6nlnamq3aqqcqffwqkyawh6slhy7hilwnagorygkmpi4",
+										"collectionID":   "bafyreie2qrsugrpukipgyuxhdtneyjf4tstssauisjvjfqhps4trc4c2py",
 										"collectionName": "AuthorContact",
 										"prefixes": []string{
 											"/4",
@@ -112,7 +114,7 @@ func TestDefaultExplainRequestWithTwoLevelDeepNestedJoins(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain {
 					Author {
@@ -151,7 +153,7 @@ func TestDefaultExplainRequestWithTwoLevelDeepNestedJoins(t *testing.T) {
 					},
 				},
 
-				ExpectedTargets: []testUtils.PlanNodeTargetCase{
+				ExpectedTargets: []action.PlanNodeTargetCase{
 					{
 						TargetNodeName:    "typeIndexJoin",
 						OccurancesToSkip:  0,
@@ -170,7 +172,7 @@ func TestDefaultExplainRequestWithTwoLevelDeepNestedJoins(t *testing.T) {
 						ExpectedAttributes: dataMap{
 							"scanNode": dataMap{
 								"filter":         nil,
-								"collectionID":   "bafyreieuz5havjhscyfrvmpkwnjycxrohivnq5vtfoi6v5unyjay4ktawu",
+								"collectionID":   "bafyreid73sgzodav5hxhrsypjapj6r2uzo7mhm3vqykjhfehj7i5hhksuu",
 								"collectionName": "Author",
 								"prefixes": []string{
 									"/3",
@@ -200,7 +202,7 @@ func TestDefaultExplainRequestWithTwoLevelDeepNestedJoins(t *testing.T) {
 						ExpectedAttributes: dataMap{
 							"scanNode": dataMap{
 								"filter":         nil,
-								"collectionID":   "bafyreih7hbb4bi6nlnamq3aqqcqffwqkyawh6slhy7hilwnagorygkmpi4",
+								"collectionID":   "bafyreie2qrsugrpukipgyuxhdtneyjf4tstssauisjvjfqhps4trc4c2py",
 								"collectionName": "AuthorContact",
 								"prefixes": []string{
 									"/4",

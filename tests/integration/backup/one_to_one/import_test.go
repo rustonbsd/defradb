@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package backup
 
@@ -20,7 +21,7 @@ import (
 func TestBackupImport_WithMultipleNoKeyAndMultipleCollections_NoError(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.BackupImport{
+			testUtils.ImportBackup{
 				ImportContent: `{
 					"User":[
 						{"age":30,"name":"John"},
@@ -33,7 +34,7 @@ func TestBackupImport_WithMultipleNoKeyAndMultipleCollections_NoError(t *testing
 					]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query  {
 						User {
@@ -59,7 +60,7 @@ func TestBackupImport_WithMultipleNoKeyAndMultipleCollections_NoError(t *testing
 				},
 				NonOrderedResults: true,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query  {
 						Book {
@@ -87,11 +88,11 @@ func TestBackupImport_WithMultipleNoKeyAndMultipleCollections_NoError(t *testing
 func TestBackupImport_WithMultipleNoKeyAndMultipleCollectionsAndUpdatedDocs_NoError(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.BackupImport{
+			testUtils.ImportBackup{
 				ImportContent: `{
 					"Book":[
 						{
-							"author_id":"bae-1552bcf5-6b3b-5cd0-bdaf-33bb43f74ab4",
+							"_authorID":"bae-1552bcf5-6b3b-5cd0-bdaf-33bb43f74ab4",
 							"name":"John and the sourcerers' stone"
 						}
 					],
@@ -107,7 +108,7 @@ func TestBackupImport_WithMultipleNoKeyAndMultipleCollectionsAndUpdatedDocs_NoEr
 					]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query  {
 						User {
@@ -129,7 +130,7 @@ func TestBackupImport_WithMultipleNoKeyAndMultipleCollectionsAndUpdatedDocs_NoEr
 				},
 				NonOrderedResults: true,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query  {
 						Book {
@@ -159,15 +160,15 @@ func TestBackupImport_WithMultipleNoKeyAndMultipleCollectionsAndUpdatedDocs_NoEr
 func TestBackupImport_WithMultipleNoKeyAndMultipleCollectionsAndMultipleUpdatedDocs_NoError(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.BackupImport{
+			testUtils.ImportBackup{
 				ImportContent: `{
 					"Book":[
 						{
-							"author_id":"bae-1552bcf5-6b3b-5cd0-bdaf-33bb43f74ab4",
+							"_authorID":"bae-1552bcf5-6b3b-5cd0-bdaf-33bb43f74ab4",
 							"name":"Game of chains"
 						},
 						{
-							"author_id":"bae-1552bcf5-6b3b-5cd0-bdaf-33bb43f74ab4",
+							"_authorID":"bae-1552bcf5-6b3b-5cd0-bdaf-33bb43f74ab4",
 							"name":"John and the sourcerers' stone"
 						}
 					],
@@ -182,7 +183,7 @@ func TestBackupImport_WithMultipleNoKeyAndMultipleCollectionsAndMultipleUpdatedD
 						}
 					]
 				}`,
-				ExpectedError: "target document is already linked to another document.",
+				ExpectedError: "can not index a doc's field(s) that violates unique index",
 			},
 		},
 	}
@@ -193,8 +194,8 @@ func TestBackupImport_WithMultipleNoKeyAndMultipleCollectionsAndMultipleUpdatedD
 func TestBackupImport_DoubleRelationshipWithUpdate_NoError(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 				type User {
 					name: String
 					age: Int
@@ -208,10 +209,10 @@ func TestBackupImport_DoubleRelationshipWithUpdate_NoError(t *testing.T) {
 				}
 				`,
 			},
-			testUtils.BackupImport{
-				ImportContent: `{"User":[{"age":31,"name":"Bob"},{"age":31,"name":"John"}],"Book":[{"name":"Game of chains"},{"author_id":"bae-1552bcf5-6b3b-5cd0-bdaf-33bb43f74ab4","favourite_id":"bae-1552bcf5-6b3b-5cd0-bdaf-33bb43f74ab4","name":"John and the sourcerers' stone"}]}`,
+			testUtils.ImportBackup{
+				ImportContent: `{"User":[{"age":31,"name":"Bob"},{"age":31,"name":"John"}],"Book":[{"name":"Game of chains"},{"_authorID":"bae-1552bcf5-6b3b-5cd0-bdaf-33bb43f74ab4","_favouriteID":"bae-1552bcf5-6b3b-5cd0-bdaf-33bb43f74ab4","name":"John and the sourcerers' stone"}]}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query  {
 						Book {

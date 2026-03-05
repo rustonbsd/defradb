@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package index
 
@@ -20,8 +21,8 @@ import (
 func TestQueryWithUniqueCompositeIndex_WithFilterOnIndexedRelation_ShouldFilter(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						devices: [Device]
@@ -33,24 +34,24 @@ func TestQueryWithUniqueCompositeIndex_WithFilterOnIndexedRelation_ShouldFilter(
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name": "John",
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"manufacturer": "Apple",
-					"owner_id":     testUtils.NewDocIndex(0, 0),
+					"_ownerID":     testUtils.NewDocIndex(0, 0),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					User {
 						name
-						devices(filter: {owner_id: {_eq: "bae-7f4197fe-c647-5cc6-91bb-5f32229fd4cd"}}) {
+						devices(filter: {_ownerID: {_eq: "bae-7f4197fe-c647-5cc6-91bb-5f32229fd4cd"}}) {
 							manufacturer
 						}
 					}

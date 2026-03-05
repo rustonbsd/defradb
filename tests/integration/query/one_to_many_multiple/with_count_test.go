@@ -1,12 +1,13 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package one_to_many_multiple
 
@@ -20,8 +21,8 @@ import (
 func TestQueryOneToManyMultipleWithCount(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Article {
 						name: String
 						author: Author
@@ -43,7 +44,7 @@ func TestQueryOneToManyMultipleWithCount(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name":     "John Grisham",
@@ -51,7 +52,7 @@ func TestQueryOneToManyMultipleWithCount(t *testing.T) {
 					"verified": true,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name":     "Cornelia Funke",
@@ -59,60 +60,60 @@ func TestQueryOneToManyMultipleWithCount(t *testing.T) {
 					"verified": false,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "After Guantánamo, Another Injustice",
-					"author_id": testUtils.NewDocIndex(2, 0),
+					"_authorID": testUtils.NewDocIndex(2, 0),
 					"rating":    3,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "To my dear readers",
-					"author_id": testUtils.NewDocIndex(2, 1),
+					"_authorID": testUtils.NewDocIndex(2, 1),
 					"rating":    2,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "Twinklestar's Favourite Xmas Cookie",
-					"author_id": testUtils.NewDocIndex(2, 1),
+					"_authorID": testUtils.NewDocIndex(2, 1),
 					"rating":    1,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "Painted House",
-					"author_id": testUtils.NewDocIndex(2, 0),
+					"_authorID": testUtils.NewDocIndex(2, 0),
 					"score":     1,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "A Time for Mercy",
-					"author_id": testUtils.NewDocIndex(2, 0),
+					"_authorID": testUtils.NewDocIndex(2, 0),
 					"score":     2,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "Theif Lord",
-					"author_id": testUtils.NewDocIndex(2, 1),
+					"_authorID": testUtils.NewDocIndex(2, 1),
 					"score":     4,
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 						Author {
 							name
-							numberOfBooks: _count(books: {})
-							numberOfArticles: _count(articles: {})
+							numberOfBooks: COUNT(books: {})
+							numberOfArticles: COUNT(articles: {})
 						}
 					}`,
 				Results: map[string]any{
@@ -140,8 +141,8 @@ func TestQueryOneToManyMultipleWithCount(t *testing.T) {
 func TestQueryOneToManyMultipleWithCountOnMultipleJoins(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Article {
 						name: String
 						author: Author
@@ -163,7 +164,7 @@ func TestQueryOneToManyMultipleWithCountOnMultipleJoins(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name":     "John Grisham",
@@ -171,7 +172,7 @@ func TestQueryOneToManyMultipleWithCountOnMultipleJoins(t *testing.T) {
 					"verified": true,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name":     "Cornelia Funke",
@@ -179,78 +180,78 @@ func TestQueryOneToManyMultipleWithCountOnMultipleJoins(t *testing.T) {
 					"verified": false,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "After Guantánamo, Another Injustice",
-					"author_id": testUtils.NewDocIndex(2, 0),
+					"_authorID": testUtils.NewDocIndex(2, 0),
 					"rating":    3,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "To my dear readers",
-					"author_id": testUtils.NewDocIndex(2, 1),
+					"_authorID": testUtils.NewDocIndex(2, 1),
 					"rating":    2,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				DocMap: map[string]any{
 					"name":      "Twinklestar's Favourite Xmas Cookie",
-					"author_id": testUtils.NewDocIndex(2, 1),
+					"_authorID": testUtils.NewDocIndex(2, 1),
 					"rating":    1,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "Painted House",
-					"author_id": testUtils.NewDocIndex(2, 0),
+					"_authorID": testUtils.NewDocIndex(2, 0),
 					"score":     1,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "A Time for Mercy",
-					"author_id": testUtils.NewDocIndex(2, 0),
+					"_authorID": testUtils.NewDocIndex(2, 0),
 					"score":     2,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "Sooley",
-					"author_id": testUtils.NewDocIndex(2, 0),
+					"_authorID": testUtils.NewDocIndex(2, 0),
 					"score":     3,
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "Theif Lord",
-					"author_id": testUtils.NewDocIndex(2, 1),
+					"_authorID": testUtils.NewDocIndex(2, 1),
 					"score":     4,
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 						Author {
 							name
-							_count(books: {}, articles: {})
+							COUNT(books: {}, articles: {})
 						}
 					}`,
 				Results: map[string]any{
 					"Author": []map[string]any{
 						{
-							"name":   "John Grisham",
-							"_count": 4,
+							"name":  "John Grisham",
+							"COUNT": 4,
 						},
 						{
-							"name":   "Cornelia Funke",
-							"_count": 3,
+							"name":  "Cornelia Funke",
+							"COUNT": 3,
 						},
 					},
 				},

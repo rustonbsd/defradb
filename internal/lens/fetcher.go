@@ -26,6 +26,8 @@ import (
 	"github.com/sourcenetwork/defradb/client/request"
 	"github.com/sourcenetwork/defradb/internal/core"
 	"github.com/sourcenetwork/defradb/internal/datastore"
+	acpDB "github.com/sourcenetwork/defradb/internal/db/acp"
+	"github.com/sourcenetwork/defradb/internal/db/description"
 	"github.com/sourcenetwork/defradb/internal/db/fetcher"
 	"github.com/sourcenetwork/defradb/internal/db/id"
 	"github.com/sourcenetwork/defradb/internal/keys"
@@ -68,6 +70,7 @@ func (f *lensedFetcher) Init(
 	ctx context.Context,
 	identity immutable.Option[acpIdentity.Identity],
 	txn datastore.Txn,
+	nodeACP acpDB.NACInfo,
 	documentACP immutable.Option[dac.DocumentACP],
 	index immutable.Option[client.IndexDescription],
 	col client.Collection,
@@ -90,7 +93,8 @@ func (f *lensedFetcher) Init(
 		f.fieldDescriptionsByName[defFields[i].Name] = defFields[i]
 	}
 
-	history, err := getTargetedCollectionHistory(ctx, f.col.Version().CollectionID, f.col.Version().VersionID)
+	history, err := description.GetTargetedCollectionHistory(ctx, f.col.Version().CollectionID,
+		f.col.Version().VersionID)
 	if err != nil {
 		return err
 	}
@@ -98,8 +102,8 @@ func (f *lensedFetcher) Init(
 	f.txn = txn
 
 	for _, historyItem := range history {
-		if historyItem.collection.PreviousVersion.HasValue() &&
-			historyItem.collection.PreviousVersion.Value().Transform.HasValue() {
+		if historyItem.Collection().PreviousVersion.HasValue() &&
+			historyItem.Collection().PreviousVersion.Value().Transform.HasValue() {
 			f.hasMigrations = true
 			break
 		}
@@ -108,23 +112,37 @@ func (f *lensedFetcher) Init(
 	f.targetVersionID = col.Version().VersionID
 
 	var innerFetcherFields []client.CollectionFieldDescription
+	var innerFetcherFilter *mapper.Filter
 	if f.hasMigrations {
 		// If there are migrations present, they may require fields that are not otherwise
 		// requested.  At the moment this means we need to pass in nil so that the underlying
 		// fetcher fetches everything.
 		innerFetcherFields = nil
+
+		if index.HasValue() {
+			// When an index is used, the index has been reindexed with migrated values,
+			// so we can safely pass the filter to the source for index optimization.
+			innerFetcherFilter = filter
+		} else {
+			// When no index is used, we cannot pass the filter to the source because
+			// it would filter based on pre-migration values.
+			// The selectNode will apply the filter after lens transformation.
+			innerFetcherFilter = nil
+		}
 	} else {
 		innerFetcherFields = fields
+		innerFetcherFilter = filter
 	}
 	return f.source.Init(
 		ctx,
 		identity,
 		txn,
+		nodeACP,
 		documentACP,
 		index,
 		col,
 		innerFetcherFields,
-		filter,
+		innerFetcherFilter,
 		ordering,
 		docmapper,
 		showDeleted,
@@ -136,58 +154,62 @@ func (f *lensedFetcher) Start(ctx context.Context, prefixes ...keys.Walkable) er
 }
 
 func (f *lensedFetcher) FetchNext(ctx context.Context) (fetcher.EncodedDocument, fetcher.ExecInfo, error) {
-	doc, execInfo, err := f.source.FetchNext(ctx)
-	if err != nil {
-		return nil, fetcher.ExecInfo{}, err
-	}
+	for {
+		doc, execInfo, err := f.source.FetchNext(ctx)
+		if err != nil {
+			return nil, fetcher.ExecInfo{}, err
+		}
 
-	if doc == nil {
-		return nil, execInfo, nil
-	}
+		if doc == nil {
+			return nil, execInfo, nil
+		}
 
-	if !f.hasMigrations || doc.SchemaVersionID() == f.targetVersionID {
-		// If there are no migrations registered for this schema, or if the document is already
-		// at the target schema version, no migration is required and we can return it early.
-		return doc, execInfo, nil
-	}
+		var resultDoc fetcher.EncodedDocument
 
-	sourceLensDoc, err := encodedDocToLensDoc(doc)
-	if err != nil {
-		return nil, fetcher.ExecInfo{}, err
-	}
+		if !f.hasMigrations || doc.CollectionVersionID() == f.targetVersionID {
+			// If there are no migrations registered for this collection, or if the document is already
+			// at the target collection version, no migration is required.
+			resultDoc = doc
+		} else {
+			sourceLensDoc, err := encodedDocToLensDoc(doc)
+			if err != nil {
+				return nil, fetcher.ExecInfo{}, err
+			}
 
-	err = f.lens.Put(doc.SchemaVersionID(), sourceLensDoc)
-	if err != nil {
-		return nil, fetcher.ExecInfo{}, err
-	}
+			err = f.lens.Put(doc.CollectionVersionID(), sourceLensDoc)
+			if err != nil {
+				return nil, fetcher.ExecInfo{}, err
+			}
 
-	hasNext, err := f.lens.Next()
-	if err != nil {
-		return nil, fetcher.ExecInfo{}, err
-	}
-	if !hasNext {
-		// The migration decided to not yield a document, so we cycle through the next fetcher doc
-		doc, nextExecInfo, err := f.FetchNext(ctx)
-		execInfo.Add(nextExecInfo)
-		return doc, execInfo, err
-	}
+			hasNext, err := f.lens.Next()
+			if err != nil {
+				return nil, fetcher.ExecInfo{}, err
+			}
+			if !hasNext {
+				// The migration decided to not yield a document, so we cycle through the next fetcher doc
+				continue
+			}
 
-	migratedLensDoc, err := f.lens.Value()
-	if err != nil {
-		return nil, fetcher.ExecInfo{}, err
-	}
+			migratedLensDoc, err := f.lens.Value()
+			if err != nil {
+				return nil, fetcher.ExecInfo{}, err
+			}
 
-	migratedDoc, err := f.lensDocToEncodedDoc(migratedLensDoc)
-	if err != nil {
-		return nil, fetcher.ExecInfo{}, err
-	}
+			migratedDoc, err := f.lensDocToEncodedDoc(migratedLensDoc)
+			if err != nil {
+				return nil, fetcher.ExecInfo{}, err
+			}
 
-	err = f.updateDataStore(ctx, sourceLensDoc, migratedLensDoc)
-	if err != nil {
-		return nil, fetcher.ExecInfo{}, err
-	}
+			err = f.updateDataStore(ctx, sourceLensDoc, migratedLensDoc)
+			if err != nil {
+				return nil, fetcher.ExecInfo{}, err
+			}
 
-	return migratedDoc, execInfo, nil
+			resultDoc = migratedDoc
+		}
+
+		return resultDoc, execInfo, nil
+	}
 }
 
 func (f *lensedFetcher) Close() error {
@@ -254,10 +276,10 @@ func (f *lensedFetcher) lensDocToEncodedDoc(docAsMap LensDoc) (fetcher.EncodedDo
 	}
 
 	return &lensEncodedDocument{
-		key:             []byte(key),
-		schemaVersionID: f.col.Version().VersionID,
-		status:          status,
-		properties:      properties,
+		key:                 []byte(key),
+		collectionVersionID: f.col.Version().VersionID,
+		status:              status,
+		properties:          properties,
 	}, nil
 }
 
@@ -332,14 +354,14 @@ func (f *lensedFetcher) updateDataStore(ctx context.Context, original map[string
 			return err
 		}
 
-		err = txn.Datastore().Set(ctx, fieldKey.Bytes(), bytes)
+		err = txn.Datastore().Set(ctx, fieldKey, bytes)
 		if err != nil {
 			return err
 		}
 	}
 
 	versionKey := datastoreKeyBase.WithFieldID(keys.DATASTORE_DOC_VERSION_FIELD_ID)
-	err = txn.Datastore().Set(ctx, versionKey.Bytes(), []byte(f.targetVersionID))
+	err = txn.Datastore().Set(ctx, versionKey, []byte(f.targetVersionID))
 	if err != nil {
 		return err
 	}
@@ -348,10 +370,10 @@ func (f *lensedFetcher) updateDataStore(ctx context.Context, original map[string
 }
 
 type lensEncodedDocument struct {
-	key             []byte
-	schemaVersionID string
-	status          client.DocumentStatus
-	properties      map[client.CollectionFieldDescription]any
+	key                 []byte
+	collectionVersionID string
+	status              client.DocumentStatus
+	properties          map[client.CollectionFieldDescription]any
 }
 
 var _ fetcher.EncodedDocument = (*lensEncodedDocument)(nil)
@@ -360,8 +382,8 @@ func (encdoc *lensEncodedDocument) ID() []byte {
 	return encdoc.key
 }
 
-func (encdoc *lensEncodedDocument) SchemaVersionID() string {
-	return encdoc.schemaVersionID
+func (encdoc *lensEncodedDocument) CollectionVersionID() string {
+	return encdoc.collectionVersionID
 }
 
 func (encdoc *lensEncodedDocument) Status() client.DocumentStatus {
@@ -374,7 +396,7 @@ func (encdoc *lensEncodedDocument) Properties(onlyFilterProps bool) (map[client.
 
 func (encdoc *lensEncodedDocument) Reset() {
 	encdoc.key = nil
-	encdoc.schemaVersionID = ""
+	encdoc.collectionVersionID = ""
 	encdoc.status = 0
 	encdoc.properties = map[client.CollectionFieldDescription]any{}
 }

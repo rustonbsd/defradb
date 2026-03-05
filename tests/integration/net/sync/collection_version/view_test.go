@@ -1,12 +1,13 @@
-// Copyright 2025 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package collection_version
 
@@ -17,37 +18,28 @@ import (
 	"github.com/sourcenetwork/lens/host-go/config/model"
 
 	"github.com/sourcenetwork/defradb/client"
+	"github.com/sourcenetwork/defradb/client/options"
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 	"github.com/sourcenetwork/defradb/tests/lenses"
 )
 
-func TestColSync_WithView(t *testing.T) {
+func TestSyncColVersion_WithView(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
+			&action.AddCollection{
 				NodeID: immutable.Some(0),
-				Schema: `
+				SDL: `
 					type Users {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddLens{
 				NodeID: immutable.Some(0),
-				Query: `
-					Users {
-						name
-					}
-				`,
-				SDL: `
-					type UserView @materialized(if: false) {
-						fullName: String
-					}
-				`,
-				Transform: immutable.Some(model.Lens{
+				Lens: model.Lens{
 					// This transform will copy the value from `name` into the `fullName` field,
 					// like an overly-complicated alias
 					Lenses: []model.LensModule{
@@ -59,21 +51,33 @@ func TestColSync_WithView(t *testing.T) {
 							},
 						},
 					},
-				}),
+				},
+			},
+			&action.AddView{
+				NodeID: immutable.Some(0),
+				Query: `
+					Users {
+						name
+					}
+				`,
+				SDL: `
+					type UserView @materialized(if: false) {
+						fullName: String
+					}
+				`,
+				TransformCID: immutable.Some("{{.LensID0}}"),
 			},
 			testUtils.ConnectPeers{
 				SourceNodeID: 0,
 				TargetNodeID: 1,
 			},
-			&action.SyncCollection{
+			&action.SyncCollectionVersions{
 				NodeID:     1,
 				VersionIDs: []string{"{{.CollectionVersionID1}}"},
 			},
-			testUtils.GetCollections{
-				FilterOptions: client.CollectionFetchOptions{
-					IncludeInactive: immutable.Some(true),
-				},
-				NodeID: immutable.Some(1),
+			&action.GetCollections{
+				FilterOptions: options.GetCollections().SetGetInactive(true),
+				NodeID:        immutable.Some(1),
 				ExpectedResults: []client.CollectionVersion{
 					{
 						Name: "UserView",
@@ -94,7 +98,7 @@ func TestColSync_WithView(t *testing.T) {
 							},
 						},
 						/* There is no good way to dynamically get the transform id at the moment, so unfortunately
-						   we need to disable this assertion for now.  TestColSync_WithView_CanBeActivatedAndQueried
+						   we need to disable this assertion for now.  TestSyncColVersion_WithView_CanBeActivatedAndQueried
 						   does prove that the transform is synced however.
 							Query: immutable.Some(client.QuerySource{
 								Query: request.Select{
@@ -121,31 +125,21 @@ func TestColSync_WithView(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestColSync_WithView_CanBeActivatedAndQueried(t *testing.T) {
+func TestSyncColVersion_WithView_CanBeActivatedAndQueried(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddLens{
 				NodeID: immutable.Some(0),
-				Query: `
-					Users {
-						name
-					}
-				`,
-				SDL: `
-					type UserView @materialized(if: false) {
-						fullName: String
-					}
-				`,
-				Transform: immutable.Some(model.Lens{
+				Lens: model.Lens{
 					// This transform will copy the value from `name` into the `fullName` field,
 					// like an overly-complicated alias
 					Lenses: []model.LensModule{
@@ -157,13 +151,27 @@ func TestColSync_WithView_CanBeActivatedAndQueried(t *testing.T) {
 							},
 						},
 					},
-				}),
+				},
+			},
+			&action.AddView{
+				NodeID: immutable.Some(0),
+				Query: `
+					Users {
+						name
+					}
+				`,
+				SDL: `
+					type UserView @materialized(if: false) {
+						fullName: String
+					}
+				`,
+				TransformCID: immutable.Some("{{.LensID0}}"),
 			},
 			testUtils.ConnectPeers{
 				SourceNodeID: 0,
 				TargetNodeID: 1,
 			},
-			&action.SyncCollection{
+			&action.SyncCollectionVersions{
 				NodeID:     1,
 				VersionIDs: []string{"{{.CollectionVersionID1}}"},
 			},
@@ -171,12 +179,12 @@ func TestColSync_WithView_CanBeActivatedAndQueried(t *testing.T) {
 				NodeID:    immutable.Some(1),
 				VersionID: "{{.CollectionVersionID1}}",
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				DocMap: map[string]any{
 					"name": "John",
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					UserView {
 						fullName

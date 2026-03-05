@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package gen
 
@@ -17,6 +18,7 @@ import (
 	"unicode"
 
 	"github.com/sourcenetwork/defradb/client"
+	"github.com/sourcenetwork/defradb/client/options"
 	"github.com/sourcenetwork/defradb/node"
 )
 
@@ -26,11 +28,15 @@ func ParseSDL(gqlSDL string) (map[string]client.CollectionVersion, error) {
 	// Spinning up a temporary in-memory node with all extras disabled is the
 	// most reliable and cheapest maintainance-cost-wise way to fully parse
 	// the SDL and correctly link all relations.
+	nodeOpts := options.Node().
+		SetDisableAPI(true).
+		SetDisableP2P(true).
+		Store().SetBadgerInMemory(true).
+		Node()
+
 	node, err := node.New(
 		ctx,
-		node.WithBadgerInMemory(true),
-		node.WithDisableAPI(true),
-		node.WithDisableP2P(true),
+		nodeOpts,
 	)
 	if err != nil {
 		return nil, err
@@ -41,12 +47,12 @@ func ParseSDL(gqlSDL string) (map[string]client.CollectionVersion, error) {
 		return nil, err
 	}
 
-	_, err = node.DB.AddSchema(ctx, gqlSDL)
+	_, err = node.DB.AddCollection(ctx, gqlSDL)
 	if err != nil {
 		return nil, err
 	}
 
-	cols, err := node.DB.GetCollections(ctx, client.CollectionFetchOptions{})
+	cols, err := node.DB.GetCollections(ctx)
 	if err != nil {
 		return nil, err
 	}

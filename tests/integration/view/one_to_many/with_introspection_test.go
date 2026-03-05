@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package one_to_many
 
@@ -21,8 +22,8 @@ import (
 func TestView_OneToMany_GQLIntrospectionTest(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Author {
 						name: String
 						books: [Book]
@@ -33,7 +34,7 @@ func TestView_OneToMany_GQLIntrospectionTest(t *testing.T) {
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddView{
 				Query: `
 					Author {
 						name
@@ -109,7 +110,7 @@ func TestView_OneToMany_GQLIntrospectionTest(t *testing.T) {
 					"__type": map[string]any{
 						"name": "BookView",
 						// Note: `_docID`, `_version`, `_deleted`, etc should not be present,
-						// although aggregates and `_group` should be.
+						// although aggregates and `GROUP` should be.
 						// There should also be no `Author` field - the relationship field
 						// should only exist on the parent.
 						"fields": collection_version.DefaultViewObjFields.Append(

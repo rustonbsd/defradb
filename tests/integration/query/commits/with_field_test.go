@@ -1,18 +1,20 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package commits
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
@@ -20,23 +22,23 @@ func TestQueryCommitsWithField(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			updateUserCollectionSchema(),
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 						"name":	"John",
 						"age":	21
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-						_commits (fieldName: "age") {
+						_commits (filter: {fieldName: {_eq: "age"}}) {
 							cid
 						}
 					}`,
 				Results: map[string]any{
 					"_commits": []map[string]any{
 						{
-							"cid": "bafyreihakk5jjukb4fw7klfejdmniwhuscnckcjo677p3mtcxrdpiahuea",
+							"cid": "bafyreiajq6jmyblg2b6vupjdapzkaodbt7kkwqp4fijekdvydnyxvr4y7q",
 						},
 					},
 				},
@@ -51,16 +53,16 @@ func TestQueryCommitsWithFieldId(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			updateUserCollectionSchema(),
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 						"name":	"John",
 						"age":	21
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-						_commits (fieldName: "1") {
+						_commits (filter: {fieldName: {_eq: "1"}}) {
 							cid
 						}
 					}`,
@@ -78,23 +80,23 @@ func TestQueryCommitsWithCompositeField(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			updateUserCollectionSchema(),
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 						"name":	"John",
 						"age":	21
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-						_commits(fieldName: "_C") {
+						_commits(filter: {fieldName: {_eq: "_C"}}) {
 							cid
 						}
 					}`,
 				Results: map[string]any{
 					"_commits": []map[string]any{
 						{
-							"cid": "bafyreihpq4duzngkledmxkxx3jevlp2q4aimhmbjygpv5chmgbf6u2fsqm",
+							"cid": "bafyreiejjfevlp5wrfl5o7bxbdtjj4th36lbdjov5gdkmy5n5jzs6dcmpu",
 						},
 					},
 				},
@@ -107,29 +109,62 @@ func TestQueryCommitsWithCompositeField(t *testing.T) {
 
 // This test is for documentation reasons only. This is not
 // desired behaviour (Users should not be specifying field ids).
-func TestQueryCommitsWithCompositeFieldIdWithReturnedSchemaVersionID(t *testing.T) {
+func TestQueryCommitsWithCompositeFieldIdWithReturnedCollectionVersionID(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			updateUserCollectionSchema(),
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 						"name":	"John",
 						"age":	21
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-						_commits(fieldName: "_C") {
+						_commits(filter: {fieldName: {_eq: "_C"}}) {
 							cid
-							schemaVersionId
+							collectionVersionId
 						}
 					}`,
 				Results: map[string]any{
 					"_commits": []map[string]any{
 						{
-							"cid":             "bafyreihpq4duzngkledmxkxx3jevlp2q4aimhmbjygpv5chmgbf6u2fsqm",
-							"schemaVersionId": "bafyreicrgjxxcviov5jawe2haq5fbtd4jxt63vsdhqpcyaaahiothj72tu",
+							"cid":                 "bafyreiejjfevlp5wrfl5o7bxbdtjj4th36lbdjov5gdkmy5n5jzs6dcmpu",
+							"collectionVersionId": "bafyreicrgjxxcviov5jawe2haq5fbtd4jxt63vsdhqpcyaaahiothj72tu",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	testUtils.ExecuteTestCase(t, test)
+}
+
+func TestQueryCommits_WithFilterFieldNameNotEqualComposite_ReturnsFieldCommits(t *testing.T) {
+	test := testUtils.TestCase{
+		Actions: []any{
+			updateUserCollectionSchema(),
+			&action.AddDoc{
+				Doc: `{
+						"name":	"John",
+						"age":	21
+					}`,
+			},
+			&action.Request{
+				Request: `query {
+						_commits(filter: {fieldName: {_neq: "_C"}}) {
+							fieldName
+						}
+					}`,
+				Results: map[string]any{
+					"_commits": []map[string]any{
+						{
+							"fieldName": "age",
+						},
+						{
+							"fieldName": "name",
 						},
 					},
 				},
@@ -144,23 +179,26 @@ func TestQueryCommitsWithFieldAndCID(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			updateUserCollectionSchema(),
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 						"name":	"John",
 						"age":	21
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-						_commits (fieldName: "age", cid: "bafyreihakk5jjukb4fw7klfejdmniwhuscnckcjo677p3mtcxrdpiahuea") {
+						_commits (
+							filter: {fieldName: {_eq: "age"}}, 
+							cid: "bafyreiajq6jmyblg2b6vupjdapzkaodbt7kkwqp4fijekdvydnyxvr4y7q"
+						) {
 							cid
 						}
 					}`,
 				Results: map[string]any{
 					"_commits": []map[string]any{
 						{
-							"cid": "bafyreihakk5jjukb4fw7klfejdmniwhuscnckcjo677p3mtcxrdpiahuea",
+							"cid": "bafyreiajq6jmyblg2b6vupjdapzkaodbt7kkwqp4fijekdvydnyxvr4y7q",
 						},
 					},
 				},
@@ -175,16 +213,19 @@ func TestQueryCommits_WithWrongFieldAndCID_ReturnEmptyList(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			updateUserCollectionSchema(),
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 						"name":	"John",
 						"age":	21
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-						_commits (fieldName: "name", cid: "bafyreihakk5jjukb4fw7klfejdmniwhuscnckcjo677p3mtcxrdpiahuea") {
+						_commits (
+							filter: {fieldName: {_eq: "name"}}, 
+							cid: "bafyreiajq6jmyblg2b6vupjdapzkaodbt7kkwqp4fijekdvydnyxvr4y7q"
+						) {
 							cid
 						}
 					}`,
@@ -202,16 +243,19 @@ func TestQueryCommits_WithInvalidFieldAndCID_ReturnEmptyList(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
 			updateUserCollectionSchema(),
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 						"name":	"John",
 						"age":	21
 					}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-						_commits (fieldName: "NOT_A_FIELD", cid: "bafyreihakk5jjukb4fw7klfejdmniwhuscnckcjo677p3mtcxrdpiahuea") {
+						_commits (
+							filter: {fieldName: {_eq: "NOT_A_FIELD"}}, 
+							cid: "bafyreiajq6jmyblg2b6vupjdapzkaodbt7kkwqp4fijekdvydnyxvr4y7q"
+						) {
 							cid
 						}
 					}`,

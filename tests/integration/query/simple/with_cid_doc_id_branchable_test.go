@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package simple
 
@@ -20,19 +21,19 @@ import (
 func TestQuerySimpleWithCidOfBranchableCollectionAndDocID(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @branchable {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Fred"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John"
 				}`,
@@ -42,12 +43,12 @@ func TestQuerySimpleWithCidOfBranchableCollectionAndDocID(t *testing.T) {
 					"name": "Freddddd"
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				// This is the cid of the collection-commit when the second doc (John) is created.
 				// Without the docID param both John and Fred should be returned.
 				Request: `query {
 					Users (
-							cid: "bafyreicbmj4ph5cjdn65ugobaqzwrwdcqkf2qqsdfimxdhvc2ceemfkdkq",
+							cid: "bafyreicxlkbypv4hjc2trunobsugx63no47322xfjjazj3v5y6hqeck3d4",
 							docID: "bae-235c64e3-abf7-549c-9aff-971c8afdfa3f"
 						) {
 						name

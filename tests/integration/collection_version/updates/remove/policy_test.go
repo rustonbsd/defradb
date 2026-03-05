@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package remove
 
@@ -28,36 +29,27 @@ func TestColVersionUpdateRemovePolicy_Errors(t *testing.T) {
                     name: test
                     description: a test policy which marks a collection in a database as a resource
 
-                    actor:
-                      name: actor
-
                     resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
+                    - name: users
+                      permissions:
+                      - name: read
+                        expr: reader
+                      - name: update
+                      - name: delete
+                      relations:
+                      - name: reader
+                        types:
+                        - actor
+                      - name: admin
+                        manages:
+                        - reader
+                        types:
+                        - actor
                 `,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @policy(
 						id: "{{.Policy0}}",
 						resource: "users"
@@ -68,7 +60,7 @@ func TestColVersionUpdateRemovePolicy_Errors(t *testing.T) {
 				`,
 			},
 
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				Patch: `
 					[
 						{

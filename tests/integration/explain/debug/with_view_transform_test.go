@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_explain_debug
 
@@ -47,14 +48,27 @@ func TestDebugExplainRequestWithViewWithTransform(t *testing.T) {
 	test := testUtils.TestCase{
 		SupportedViewTypes: immutable.Some([]testUtils.ViewType{testUtils.CachelessViewType}),
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddLens{
+				Lens: model.Lens{
+					Lenses: []model.LensModule{
+						{
+							Path: lenses.CopyModulePath,
+							Arguments: map[string]any{
+								"src": "name",
+								"dst": "fullName",
+							},
+						},
+					},
+				},
+			},
+			&action.AddView{
 				Query: `
 					User {
 						name
@@ -65,19 +79,9 @@ func TestDebugExplainRequestWithViewWithTransform(t *testing.T) {
 						fullName: String
 					}
 				`,
-				Transform: immutable.Some(model.Lens{
-					Lenses: []model.LensModule{
-						{
-							Path: lenses.CopyModulePath,
-							Arguments: map[string]any{
-								"src": "name",
-								"dst": "fullName",
-							},
-						},
-					},
-				}),
+				TransformCID: immutable.Some("{{.LensID0}}"),
 			},
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 				Request: `query @explain(type: debug) {
 					UserView {
 						fullName

@@ -1,18 +1,20 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_explain_execute
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 	explainUtils "github.com/sourcenetwork/defradb/tests/integration/explain"
 )
@@ -22,8 +24,8 @@ func TestExecuteExplainQueryDeletedDocs(t *testing.T) {
 
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
-			create2AddressDocuments(),
-			testUtils.Request{
+			add2AddressDocuments(),
+			&action.Request{
 				Request: `mutation  {
 					delete_ContactAddress(docID: ["bae-78bc4454-19a6-58ed-9e18-f0ca175dd12c"]) {
 						_docID
@@ -35,7 +37,7 @@ func TestExecuteExplainQueryDeletedDocs(t *testing.T) {
 					},
 				},
 			},
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 				Request: `query @explain(type: execute) {
 					ContactAddress(showDeleted: true) {
 						city

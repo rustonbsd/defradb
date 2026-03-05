@@ -1,42 +1,44 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package inline_array
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
 func TestQueryInlineIntegerArrayWithAverageWithFilter(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"favouriteIntegers": [-1, 2, -1, 1, 0]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users {
 						name
-						_avg(favouriteIntegers: {filter: {_gt: 0}})
+						AVG(favouriteIntegers: {filter: {_gt: 0}})
 					}
 				}`,
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
 							"name": "Shahzad",
-							"_avg": float64(1.5),
+							"AVG":  float64(1.5),
 						},
 					},
 				},
@@ -50,24 +52,24 @@ func TestQueryInlineIntegerArrayWithAverageWithFilter(t *testing.T) {
 func TestQueryInlineNillableIntegerArrayWithAverageWithFilter(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"testScores": [-1, null, 13, 0]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users {
 						name
-						_avg(testScores: {filter: {_gt: -1}})
+						AVG(testScores: {filter: {_gt: -1}})
 					}
 				}`,
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
 							"name": "John",
-							"_avg": float64(6.5),
+							"AVG":  float64(6.5),
 						},
 					},
 				},
@@ -81,24 +83,24 @@ func TestQueryInlineNillableIntegerArrayWithAverageWithFilter(t *testing.T) {
 func TestQueryInlineFloatArrayWithAverageWithFilter(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"favouriteFloats": [3.4, 3.6, 10]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users {
 						name
-						_avg(favouriteFloats: {filter: {_lt: 9}})
+						AVG(favouriteFloats: {filter: {_lt: 9}})
 					}
 				}`,
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
 							"name": "Shahzad",
-							"_avg": 3.5,
+							"AVG":  3.5,
 						},
 					},
 				},
@@ -112,24 +114,24 @@ func TestQueryInlineFloatArrayWithAverageWithFilter(t *testing.T) {
 func TestQueryInlineNillableFloatArrayWithAverageWithFilter(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"pageRatings": [3.4, 3.6, 10, null]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users {
 						name
-						_avg(pageRatings: {filter: {_lt: 9}})
+						AVG(pageRatings: {filter: {_lt: 9}})
 					}
 				}`,
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
 							"name": "Shahzad",
-							"_avg": 3.5,
+							"AVG":  3.5,
 						},
 					},
 				},

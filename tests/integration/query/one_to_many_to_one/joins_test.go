@@ -1,18 +1,20 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package one_to_many_to_one
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
@@ -21,7 +23,7 @@ func TestOneToManyToOneJoinsAreLinkedProperly(t *testing.T) {
 		Actions: []any{
 			gqlSchemaOneToManyToOne(),
 			// Authors
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				// Has written 5 books
 				Doc: `{
@@ -30,7 +32,7 @@ func TestOneToManyToOneJoinsAreLinkedProperly(t *testing.T) {
 					"verified": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				// Has written 1 Book
 				Doc: `{
@@ -39,7 +41,7 @@ func TestOneToManyToOneJoinsAreLinkedProperly(t *testing.T) {
 					"verified": false
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				// Has written no Book
 				Doc: `{
@@ -49,107 +51,107 @@ func TestOneToManyToOneJoinsAreLinkedProperly(t *testing.T) {
 				}`,
 			},
 			// Books
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				// Has 1 Publisher
 				DocMap: map[string]any{
 					"name":      "The Rooster Bar",
 					"rating":    4,
-					"author_id": testUtils.NewDocIndex(0, 1),
+					"_authorID": testUtils.NewDocIndex(0, 1),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				// Has 1 Publisher
 				DocMap: map[string]any{
 					"name":      "Theif Lord",
 					"rating":    4.8,
-					"author_id": testUtils.NewDocIndex(0, 0),
+					"_authorID": testUtils.NewDocIndex(0, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				// Has no Publisher.
 				DocMap: map[string]any{
 					"name":      "The Associate",
 					"rating":    4.2,
-					"author_id": testUtils.NewDocIndex(0, 0),
+					"_authorID": testUtils.NewDocIndex(0, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				// Has 1 Publisher
 				DocMap: map[string]any{
 					"name":      "Painted House",
 					"rating":    4.9,
-					"author_id": testUtils.NewDocIndex(0, 0),
+					"_authorID": testUtils.NewDocIndex(0, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				// Has 1 Publisher
 				DocMap: map[string]any{
 					"name":      "A Time for Mercy",
 					"rating":    4.5,
-					"author_id": testUtils.NewDocIndex(0, 0),
+					"_authorID": testUtils.NewDocIndex(0, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				// Has 1 Publisher
 				DocMap: map[string]any{
 					"name":      "Sooley",
 					"rating":    3.2,
-					"author_id": testUtils.NewDocIndex(0, 0),
+					"_authorID": testUtils.NewDocIndex(0, 0),
 				},
 			},
 			// Publishers
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name":       "Only Publisher of The Rooster Bar",
 					"address":    "1 Rooster Ave., Waterloo, Ontario",
 					"yearOpened": 2022,
-					"book_id":    testUtils.NewDocIndex(1, 0),
+					"_bookID":    testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name":       "Only Publisher of Theif Lord",
 					"address":    "1 Theif Lord, Waterloo, Ontario",
 					"yearOpened": 2020,
-					"book_id":    testUtils.NewDocIndex(1, 1),
+					"_bookID":    testUtils.NewDocIndex(1, 1),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name":       "Only Publisher of Painted House",
 					"address":    "600 Madison Ave., New York, New York",
 					"yearOpened": 1995,
-					"book_id":    testUtils.NewDocIndex(1, 3),
+					"_bookID":    testUtils.NewDocIndex(1, 3),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name":       "Only Publisher of A Time for Mercy",
 					"address":    "123 Andrew Street, Flin Flon, Manitoba",
 					"yearOpened": 2013,
-					"book_id":    testUtils.NewDocIndex(1, 4),
+					"_bookID":    testUtils.NewDocIndex(1, 4),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name":       "Only Publisher of Sooley",
 					"address":    "11 Sooley Ave., Waterloo, Ontario",
 					"yearOpened": 1999,
-					"book_id":    testUtils.NewDocIndex(1, 5),
+					"_bookID":    testUtils.NewDocIndex(1, 5),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Author {
 						_docID

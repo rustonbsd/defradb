@@ -39,21 +39,55 @@ func parseCommitSelect(
 
 		switch name {
 		case request.DocIDArgName:
-			if v, ok := value.(string); ok {
-				commit.DocID = immutable.Some(v)
+			var docIDs []string
+			switch v := value.(type) {
+			case []any:
+				if len(v) > 1 {
+					// todo - This limitiation is temporary and should be removed in
+					// https://github.com/sourcenetwork/defradb/issues/4302
+					return nil, ErrMultipleDocIDsNotSupported
+				}
+
+				docIDs = make([]string, len(v))
+				for i, value := range v {
+					docIDs[i] = value.(string)
+				}
+
+			case []string:
+				if len(v) > 1 {
+					// todo - This limitiation is temporary and should be removed in
+					// https://github.com/sourcenetwork/defradb/issues/4302
+					return nil, ErrMultipleDocIDsNotSupported
+				}
+
+				docIDs = v
+
+			case string:
+				docIDs = []string{v}
+
+			default:
+				continue
 			}
+
+			commit.DocIDs = immutable.Some(docIDs)
 
 		case request.CidFieldName:
-			if v, ok := value.(string); ok {
-				commit.CID = immutable.Some(v)
+			v, ok := value.([]any)
+			if !ok {
+				continue // value is nil
 			}
 
-		case request.FieldNameName:
-			if value == nil {
-				commit.FieldName = immutable.Some("")
-			} else if v, ok := value.(string); ok {
-				commit.FieldName = immutable.Some(v)
+			if len(v) > 1 {
+				// todo - This limitiation is temporary and should be removed in
+				// https://github.com/sourcenetwork/defradb/issues/4303
+				return nil, ErrMultipleCidsNotSupported
 			}
+
+			cids := make([]string, len(v))
+			for i, value := range v {
+				cids[i] = value.(string)
+			}
+			commit.CIDs = immutable.Some(cids)
 
 		case request.OrderClause:
 			v, ok := value.([]any)
@@ -95,19 +129,11 @@ func parseCommitSelect(
 			commit.GroupBy = immutable.Some(request.GroupBy{
 				Fields: fields,
 			})
-		}
-	}
 
-	// _latestCommits is just syntax sugar around a commits operation.
-	if commit.Name == request.LatestCommitsName {
-		// Depth is not exposed as an input parameter for _latestCommits,
-		// so we can blindly set it here without worrying about existing
-		// values
-		commit.Depth = immutable.Some(uint64(1))
-
-		if !commit.FieldName.HasValue() {
-			// latest commits defaults to composite commits only
-			commit.FieldName = immutable.Some(request.CompositeFieldName)
+		case request.FilterClause:
+			if v, ok := value.(map[string]any); ok {
+				commit.Filter = immutable.Some(request.Filter{Conditions: v})
+			}
 		}
 	}
 

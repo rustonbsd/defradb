@@ -1,12 +1,13 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package aggregates
 
@@ -17,11 +18,11 @@ import (
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
-func TestSchemaAggregateSimpleCreatesUsersCount(t *testing.T) {
+func TestCollectionVersionAggregateSimpleAddsUsersCount(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {}
 				`,
 			},
@@ -53,10 +54,10 @@ func TestSchemaAggregateSimpleCreatesUsersCount(t *testing.T) {
 						"name": "Users",
 						"fields": []any{
 							map[string]any{
-								"name": "_count",
+								"name": "COUNT",
 								"args": []any{
 									map[string]any{
-										"name": "_group",
+										"name": "GROUP",
 										"type": map[string]any{
 											"name": "Users__CountSelector",
 											"inputFields": []any{
@@ -113,11 +114,11 @@ func TestSchemaAggregateSimpleCreatesUsersCount(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaAggregateSimpleCreatesUsersSum(t *testing.T) {
+func TestCollectionVersionAggregateSimpleAddsUsersSum(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {}
 				`,
 			},
@@ -241,33 +242,12 @@ func TestSchemaAggregateSimpleCreatesUsersSum(t *testing.T) {
 										},
 									},
 								},
-								"name": "_group",
+								"name": "GROUP",
 							},
 							map[string]any{
 								"args": []any{
 									map[string]any{
-										"name": "_count",
-										"type": map[string]any{
-											"inputFields": []any{},
-											"name":        "",
-										},
-									},
-									map[string]any{
-										"name": "_deleted",
-										"type": map[string]any{
-											"inputFields": []any{},
-											"name":        "",
-										},
-									},
-									map[string]any{
-										"name": "_docID",
-										"type": map[string]any{
-											"inputFields": []any{},
-											"name":        "",
-										},
-									},
-									map[string]any{
-										"name": "_group",
+										"name": "GROUP",
 										"type": map[string]any{
 											"inputFields": []any{
 												map[string]any{
@@ -319,7 +299,7 @@ func TestSchemaAggregateSimpleCreatesUsersSum(t *testing.T) {
 										},
 									},
 								},
-								"name": "_sum",
+								"name": "SUM",
 							},
 						},
 						"name": "Users",
@@ -332,11 +312,11 @@ func TestSchemaAggregateSimpleCreatesUsersSum(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaAggregateSimpleCreatesUsersAverage(t *testing.T) {
+func TestCollectionVersionAggregateSimpleAddsUsersAverage(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `type Users {}`,
+			&action.AddCollection{
+				SDL: `type Users {}`,
 			},
 			testUtils.IntrospectionRequest{
 				Request: `
@@ -364,31 +344,10 @@ func TestSchemaAggregateSimpleCreatesUsersAverage(t *testing.T) {
 						"name": "Users",
 						"fields": []any{
 							map[string]any{
-								"name": "_avg",
+								"name": "AVG",
 								"args": []any{
 									map[string]any{
-										"name": "_count",
-										"type": map[string]any{
-											"inputFields": []any{},
-											"name":        "",
-										},
-									},
-									map[string]any{
-										"name": "_deleted",
-										"type": map[string]any{
-											"inputFields": []any{},
-											"name":        "",
-										},
-									},
-									map[string]any{
-										"name": "_docID",
-										"type": map[string]any{
-											"inputFields": []any{},
-											"name":        "",
-										},
-									},
-									map[string]any{
-										"name": "_group",
+										"name": "GROUP",
 										"type": map[string]any{
 											"name": "Users__NumericSelector",
 											"inputFields": []any{
@@ -437,13 +396,6 @@ func TestSchemaAggregateSimpleCreatesUsersAverage(t *testing.T) {
 													},
 												},
 											},
-										},
-									},
-									map[string]any{
-										"name": "_sum",
-										"type": map[string]any{
-											"inputFields": []any{},
-											"name":        "",
 										},
 									},
 								},

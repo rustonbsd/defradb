@@ -1,16 +1,18 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package predefined
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/sourcenetwork/defradb/client"
@@ -68,22 +70,22 @@ outer:
 	return ""
 }
 
-func mustGetDocIDFromDocMap(docMap map[string]any, collection client.CollectionVersion) string {
-	doc, err := client.NewDocFromMap(docMap, collection)
+func mustGetDocIDFromDocMap(ctx context.Context, docMap map[string]any, collection client.CollectionVersion) string {
+	doc, err := client.NewDocFromMap(ctx, docMap, collection)
 	if err != nil {
 		panic("can not get doc from map" + err.Error())
 	}
 	return doc.ID().String()
 }
 
-func mustAddDocIDToDoc(doc map[string]any, collection client.CollectionVersion) map[string]any {
-	doc[request.DocIDFieldName] = mustGetDocIDFromDocMap(doc, collection)
+func mustAddDocIDToDoc(ctx context.Context, doc map[string]any, collection client.CollectionVersion) map[string]any {
+	doc[request.DocIDFieldName] = mustGetDocIDFromDocMap(ctx, doc, collection)
 	return doc
 }
 
-func mustAddDocIDsToDocs(docs []map[string]any, collection client.CollectionVersion) []map[string]any {
+func mustAddDocIDsToDocs(ctx context.Context, docs []map[string]any, collection client.CollectionVersion) []map[string]any {
 	for i := range docs {
-		mustAddDocIDToDoc(docs[i], collection)
+		mustAddDocIDToDoc(ctx, docs[i], collection)
 	}
 	return docs
 }

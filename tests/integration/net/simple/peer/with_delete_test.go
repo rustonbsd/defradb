@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package peer_test
 
@@ -27,22 +28,22 @@ func TestP2PWithMultipleDocumentsSingleDelete(t *testing.T) {
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						Name: String
 						Age: Int
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// Create John on all nodes
 				Doc: `{
 					"Name": "John",
 					"Age": 43
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// Create Andy on all nodes
 				Doc: `{
 					"Name": "Andy",
@@ -53,7 +54,7 @@ func TestP2PWithMultipleDocumentsSingleDelete(t *testing.T) {
 				SourceNodeID: 0,
 				TargetNodeID: 1,
 			},
-			testUtils.SubscribeToDocument{
+			testUtils.AddDocumentSubscription{
 				NodeID: 1,
 				DocIDs: []state.ColDocIndex{
 					state.NewColDocIndex(0, 0),
@@ -64,7 +65,7 @@ func TestP2PWithMultipleDocumentsSingleDelete(t *testing.T) {
 				DocID:  0,
 			},
 			testUtils.WaitForSync{},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users {
 						_deleted
@@ -93,22 +94,22 @@ func TestP2PWithMultipleDocumentsSingleDeleteWithShowDeleted(t *testing.T) {
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						Name: String
 						Age: Int
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// Create John on all nodes
 				Doc: `{
 					"Name": "John",
 					"Age": 43
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// Create Andy on all nodes
 				Doc: `{
 					"Name": "Andy",
@@ -119,7 +120,7 @@ func TestP2PWithMultipleDocumentsSingleDeleteWithShowDeleted(t *testing.T) {
 				SourceNodeID: 0,
 				TargetNodeID: 1,
 			},
-			testUtils.SubscribeToDocument{
+			testUtils.AddDocumentSubscription{
 				NodeID: 1,
 				DocIDs: []state.ColDocIndex{
 					state.NewColDocIndex(0, 0),
@@ -130,7 +131,7 @@ func TestP2PWithMultipleDocumentsSingleDeleteWithShowDeleted(t *testing.T) {
 				DocID:  0,
 			},
 			testUtils.WaitForSync{},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(showDeleted: true) {
 						_deleted
@@ -165,22 +166,22 @@ func TestP2PWithMultipleDocumentsWithSingleUpdateBeforeConnectSingleDeleteWithSh
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						Name: String
 						Age: Int
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// Create John on all nodes
 				Doc: `{
 					"Name": "John",
 					"Age": 43
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// Create Andy on all nodes
 				Doc: `{
 					"Name": "Andy",
@@ -199,7 +200,7 @@ func TestP2PWithMultipleDocumentsWithSingleUpdateBeforeConnectSingleDeleteWithSh
 				SourceNodeID: 0,
 				TargetNodeID: 1,
 			},
-			testUtils.SubscribeToDocument{
+			testUtils.AddDocumentSubscription{
 				NodeID: 1,
 				DocIDs: []state.ColDocIndex{
 					state.NewColDocIndex(0, 0),
@@ -210,7 +211,7 @@ func TestP2PWithMultipleDocumentsWithSingleUpdateBeforeConnectSingleDeleteWithSh
 				DocID:  0,
 			},
 			testUtils.WaitForSync{},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(showDeleted: true) {
 						_deleted
@@ -245,22 +246,22 @@ func TestP2PWithMultipleDocumentsWithMultipleUpdatesBeforeConnectSingleDeleteWit
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						Name: String
 						Age: Int
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// Create John on all nodes
 				Doc: `{
 					"Name": "John",
 					"Age": 43
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// Create Andy on all nodes
 				Doc: `{
 					"Name": "Andy",
@@ -287,7 +288,7 @@ func TestP2PWithMultipleDocumentsWithMultipleUpdatesBeforeConnectSingleDeleteWit
 				SourceNodeID: 0,
 				TargetNodeID: 1,
 			},
-			testUtils.SubscribeToDocument{
+			testUtils.AddDocumentSubscription{
 				NodeID: 1,
 				DocIDs: []state.ColDocIndex{
 					state.NewColDocIndex(0, 0),
@@ -298,7 +299,7 @@ func TestP2PWithMultipleDocumentsWithMultipleUpdatesBeforeConnectSingleDeleteWit
 				DocID:  0,
 			},
 			testUtils.WaitForSync{},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(showDeleted: true) {
 						_deleted
@@ -333,22 +334,22 @@ func TestP2PWithMultipleDocumentsWithUpdateAndDeleteBeforeConnectSingleDeleteWit
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						Name: String
 						Age: Int
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// Create John on all nodes
 				Doc: `{
 					"Name": "John",
 					"Age": 43
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// Create Andy on all nodes
 				Doc: `{
 					"Name": "Andy",
@@ -379,7 +380,7 @@ func TestP2PWithMultipleDocumentsWithUpdateAndDeleteBeforeConnectSingleDeleteWit
 				SourceNodeID: 0,
 				TargetNodeID: 1,
 			},
-			testUtils.SubscribeToDocument{
+			testUtils.AddDocumentSubscription{
 				NodeID: 0,
 				DocIDs: []state.ColDocIndex{
 					state.NewColDocIndex(0, 1),
@@ -394,7 +395,7 @@ func TestP2PWithMultipleDocumentsWithUpdateAndDeleteBeforeConnectSingleDeleteWit
 				}`,
 			},
 			testUtils.WaitForSync{},
-			testUtils.Request{
+			&action.Request{
 				NodeID: immutable.Some(0),
 				Request: `query {
 					Users(showDeleted: true) {
@@ -421,7 +422,7 @@ func TestP2PWithMultipleDocumentsWithUpdateAndDeleteBeforeConnectSingleDeleteWit
 			},
 			// The target node currently won't receive the pre-connection updates from the source.
 			// We should look into adding a head exchange mechanic on connect.
-			testUtils.Request{
+			&action.Request{
 				NodeID: immutable.Some(1),
 				Request: `query {
 					Users(showDeleted: true) {

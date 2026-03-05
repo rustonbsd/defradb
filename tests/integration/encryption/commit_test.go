@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package encryption
 
@@ -18,17 +19,18 @@ import (
 
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
+	"github.com/sourcenetwork/defradb/tests/multiplier"
 )
 
 func TestDocEncryption_WithEncryptionOnLWWCRDT_ShouldStoreCommitsDeltaEncrypted(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			updateUserCollectionSchema(),
-			testUtils.CreateDoc{
+			addUserCollection(),
+			&action.AddDoc{
 				Doc:            john21Doc,
 				IsDocEncrypted: true,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						_commits {
@@ -39,7 +41,7 @@ func TestDocEncryption_WithEncryptionOnLWWCRDT_ShouldStoreCommitsDeltaEncrypted(
 							height
 							links {
 								cid
-								name
+								fieldName
 							}
 						}
 					}
@@ -47,7 +49,7 @@ func TestDocEncryption_WithEncryptionOnLWWCRDT_ShouldStoreCommitsDeltaEncrypted(
 				Results: map[string]any{
 					"_commits": []map[string]any{
 						{
-							"cid":       "bafyreidxqtu7lxotzahlnu5lxqewy4kvwskiqx7lgfcrlv66kbgbcdbyue",
+							"cid":       "bafyreiagmkic4btj532gyc7kcf2h24toepdz6gwbqwnmlc2inueku7vlqi",
 							"delta":     encrypt(testUtils.CBORValue(21), john21DocID, ""),
 							"docID":     john21DocID,
 							"fieldName": "age",
@@ -55,7 +57,7 @@ func TestDocEncryption_WithEncryptionOnLWWCRDT_ShouldStoreCommitsDeltaEncrypted(
 							"links":     []map[string]any{},
 						},
 						{
-							"cid":       "bafyreiaatouuapteh55x7o7mo2nes3bmj3u4d2wmi4i2zepfmmdmd74sjy",
+							"cid":       "bafyreihnbwvr4yay445skacvd26o25w2vnuqdtorfiw62pniogipawz5sm",
 							"delta":     encrypt(testUtils.CBORValue("John"), john21DocID, ""),
 							"docID":     john21DocID,
 							"fieldName": "name",
@@ -63,19 +65,19 @@ func TestDocEncryption_WithEncryptionOnLWWCRDT_ShouldStoreCommitsDeltaEncrypted(
 							"links":     []map[string]any{},
 						},
 						{
-							"cid":       "bafyreif4w2sctatv6q4juyytwfge2z4e5fe5z27xtz6q5qm4h542vqdgtm",
+							"cid":       "bafyreig4u7rsynyozwdt7dqyux7rq6epl3g7bljackbzhkyqbnipn5beua",
 							"delta":     nil,
 							"docID":     john21DocID,
 							"fieldName": "_C",
 							"height":    int64(1),
 							"links": []map[string]any{
 								{
-									"cid":  "bafyreiaatouuapteh55x7o7mo2nes3bmj3u4d2wmi4i2zepfmmdmd74sjy",
-									"name": "name",
+									"cid":       "bafyreihnbwvr4yay445skacvd26o25w2vnuqdtorfiw62pniogipawz5sm",
+									"fieldName": "name",
 								},
 								{
-									"cid":  "bafyreidxqtu7lxotzahlnu5lxqewy4kvwskiqx7lgfcrlv66kbgbcdbyue",
-									"name": "age",
+									"cid":       "bafyreiagmkic4btj532gyc7kcf2h24toepdz6gwbqwnmlc2inueku7vlqi",
+									"fieldName": "age",
 								},
 							},
 						},
@@ -92,8 +94,8 @@ func TestDocEncryption_WithEncryptionOnLWWCRDT_ShouldStoreCommitsDeltaEncrypted(
 func TestDocEncryption_UponUpdateOnLWWCRDT_ShouldEncryptCommitDelta(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			updateUserCollectionSchema(),
-			testUtils.CreateDoc{
+			addUserCollection(),
+			&action.AddDoc{
 				Doc:            john21Doc,
 				IsDocEncrypted: true,
 			},
@@ -102,10 +104,10 @@ func TestDocEncryption_UponUpdateOnLWWCRDT_ShouldEncryptCommitDelta(t *testing.T
 					"age":	22
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
-						_commits(fieldName: "age") {
+						_commits(filter: {fieldName: {_eq: "age"}}) {
 							delta
 						}
 					}
@@ -131,12 +133,12 @@ func TestDocEncryption_UponUpdateOnLWWCRDT_ShouldEncryptCommitDelta(t *testing.T
 func TestDocEncryption_WithMultipleDocsUponUpdate_ShouldEncryptOnlyRelevantDocs(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			updateUserCollectionSchema(),
-			testUtils.CreateDoc{
+			addUserCollection(),
+			&action.AddDoc{
 				Doc:            john21Doc,
 				IsDocEncrypted: true,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: islam33Doc,
 			},
 			testUtils.UpdateDoc{
@@ -151,10 +153,10 @@ func TestDocEncryption_WithMultipleDocsUponUpdate_ShouldEncryptOnlyRelevantDocs(
 					"age": 34
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
-						_commits(fieldName: "age") {
+						_commits(filter: {fieldName: {_eq: "age"}}) {
 							delta
 							docID
 						}
@@ -192,18 +194,21 @@ func TestDocEncryption_WithEncryptionOnCounterCRDT_ShouldStoreCommitsDeltaEncryp
 	const docID = "bae-c60ff298-7222-528f-920f-783ca0caeae1"
 
 	test := testUtils.TestCase{
+		// Accumulated CRDT fields (pncounter/pcounter) cannot be indexed.
+		// https://github.com/sourcenetwork/defradb/issues/4439
+		MultiplierExcludes: []string{multiplier.SecondaryIndex},
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
                     type Users {
                         points: Int @crdt(type: pcounter)
                     }
                 `},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc:            `{ "points": 5 }`,
 				IsDocEncrypted: true,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						_commits {
@@ -235,14 +240,17 @@ func TestDocEncryption_UponUpdateOnCounterCRDT_ShouldEncryptedCommitDelta(t *tes
 	const docID = "bae-c60ff298-7222-528f-920f-783ca0caeae1"
 
 	test := testUtils.TestCase{
+		// Accumulated CRDT fields (pncounter/pcounter) cannot be indexed.
+		// https://github.com/sourcenetwork/defradb/issues/4439
+		MultiplierExcludes: []string{multiplier.SecondaryIndex},
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
                     type Users {
                         points: Int @crdt(type: pcounter)
                     }
                 `},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc:            `{ "points": 5 }`,
 				IsDocEncrypted: true,
 			},
@@ -251,10 +259,10 @@ func TestDocEncryption_UponUpdateOnCounterCRDT_ShouldEncryptedCommitDelta(t *tes
 					"points": 3
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
-						_commits(fieldName: "points") {
+						_commits(filter: {fieldName: {_eq: "points"}}) {
 							delta
 						}
 					}
@@ -279,12 +287,12 @@ func TestDocEncryption_UponUpdateOnCounterCRDT_ShouldEncryptedCommitDelta(t *tes
 func TestDocEncryption_UponEncryptionSeveralDocs_ShouldStoreAllCommitsDeltaEncrypted(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			updateUserCollectionSchema(),
-			testUtils.CreateDoc{
+			addUserCollection(),
+			&action.AddDoc{
 				Doc:            "[" + islam33Doc + ", " + john21Doc + "]",
 				IsDocEncrypted: true,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						_commits {
@@ -332,25 +340,25 @@ func TestDocEncryption_UponEncryptionSeveralDocs_ShouldStoreAllCommitsDeltaEncry
 func TestDocEncryption_IfTwoDocsHaveSameFieldValue_CipherTextShouldBeDifferent(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			updateUserCollectionSchema(),
-			testUtils.CreateDoc{
+			addUserCollection(),
+			&action.AddDoc{
 				Doc: `{
 						"name": "John",
 						"age": 21
 					}`,
 				IsDocEncrypted: true,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 						"name": "Islam",
 						"age": 21
 					}`,
 				IsDocEncrypted: true,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
-						_commits(fieldName: "age") {
+						_commits(filter: {fieldName: {_eq: "age"}}) {
 							delta
 							fieldName
 						}

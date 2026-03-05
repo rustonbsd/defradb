@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package replace
 
@@ -16,7 +17,6 @@ import (
 	"github.com/sourcenetwork/immutable"
 	"github.com/sourcenetwork/lens/host-go/config/model"
 
-	"github.com/sourcenetwork/defradb/client"
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 	"github.com/sourcenetwork/defradb/tests/lenses"
@@ -25,15 +25,41 @@ import (
 func TestColVersionUpdateReplaceQuerySourceTransform(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						firstName: String
 						lastName: String
 					}
 				`,
 			},
-			testUtils.CreateView{
+			&action.AddLens{
+				Lens: model.Lens{
+					Lenses: []model.LensModule{
+						{
+							Path: lenses.CopyModulePath,
+							Arguments: map[string]any{
+								"src": "firstName",
+								"dst": "fullName",
+							},
+						},
+					},
+				},
+			},
+			&action.AddLens{
+				Lens: model.Lens{
+					Lenses: []model.LensModule{
+						{
+							Path: lenses.CopyModulePath,
+							Arguments: map[string]any{
+								"src": "lastName",
+								"dst": "fullName",
+							},
+						},
+					},
+				},
+			},
+			&action.AddView{
 				Query: `
 					User {
 						firstName
@@ -45,59 +71,27 @@ func TestColVersionUpdateReplaceQuerySourceTransform(t *testing.T) {
 						fullName: String
 					}
 				`,
-				Transform: immutable.Some(model.Lens{
-					// This transform will copy the value from `firstName` into the `fullName` field,
-					// like an overly-complicated alias
-					Lenses: []model.LensModule{
-						{
-							Path: lenses.CopyModulePath,
-							Arguments: map[string]any{
-								"src": "firstName",
-								"dst": "fullName",
-							},
-						},
-					},
-				}),
+				TransformCID: immutable.Some("{{.LensID0}}"),
 			},
-			// This ConfigureMigration action is a temporary work around as we have not yet exposed a
-			// means to add lenses into Defra.  The collection ids are made up and have no impact on
-			// the test.  The ID is passed into the next PatchCollection action.
-			testUtils.ConfigureMigration{
-				LensConfig: client.LensConfig{
-					SourceSchemaVersionID:      "bafyreigbatez5rnojqa4ccfqsbguh4ckquxr76elgqij7ckftbxpwqniv4",
-					DestinationSchemaVersionID: "bafyreihiiez4vcgh4rys2zfs74macgwyybchutjslyw2oin747enuywn54",
-					Lens: model.Lens{
-						Lenses: []model.LensModule{
-							{
-								Path: lenses.CopyModulePath,
-								Arguments: map[string]any{
-									"src": "lastName",
-									"dst": "fullName",
-								},
-							},
-						},
-					},
-				},
-			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				Patch: `
 					[
 						{
 							"op": "replace",
 							"path": "/UserView/Query/Transform",
-							"value": "{{.LensID0}}"
+							"value": "{{.LensID1}}"
 						}
 					]
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				// Set the `name` field only
 				Doc: `{
 					"firstName": "John",
 					"lastName":  "S"
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						UserView {

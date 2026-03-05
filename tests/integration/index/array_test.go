@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package index
 
@@ -25,32 +26,32 @@ func TestArrayIndex_WithFilterOnIndexedArrayUsingAny_ShouldUseIndex(t *testing.T
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						numbers: [Int!] @index
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"numbers": [0, 10, 20]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"numbers": [30, 40, 50, 30]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Andy",
 					"numbers": [33, 44, 55]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -60,7 +61,7 @@ func TestArrayIndex_WithFilterOnIndexedArrayUsingAny_ShouldUseIndex(t *testing.T
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithFieldFetches(2).WithIndexFetches(1),
 			},
@@ -72,38 +73,38 @@ func TestArrayIndex_WithFilterOnIndexedArrayUsingAny_ShouldUseIndex(t *testing.T
 
 func TestArrayIndex_WithFilterOnIndexedArrayUsingAll_ShouldUseIndex(t *testing.T) {
 	req := `query {
-		User(filter: {numbers: {_all: {_ge: 33}}}) {
+		User(filter: {numbers: {_all: {_geq: 33}}}) {
 			name
 		}
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						numbers: [Int!] @index
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"numbers": [0, 10, 20]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"numbers": [30, 40, 50]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Andy",
 					"numbers": [33, 44, 55]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -113,7 +114,7 @@ func TestArrayIndex_WithFilterOnIndexedArrayUsingAll_ShouldUseIndex(t *testing.T
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(5),
 			},
@@ -125,38 +126,38 @@ func TestArrayIndex_WithFilterOnIndexedArrayUsingAll_ShouldUseIndex(t *testing.T
 
 func TestArrayIndex_WithFilterOnIndexedArrayUsingNone_ShouldNotUseIndex(t *testing.T) {
 	req := `query {
-		User(filter: {numbers: {_none: {_ge: 33}}}) {
+		User(filter: {numbers: {_none: {_geq: 33}}}) {
 			name
 		}
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						numbers: [Int!] @index
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"numbers": [0, 10, 20]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"numbers": [30, 40, 50]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Andy",
 					"numbers": [33, 44, 55]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -166,7 +167,7 @@ func TestArrayIndex_WithFilterOnIndexedArrayUsingNone_ShouldNotUseIndex(t *testi
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: makeExplainQuery(req),
 				// index is not used for _none operator as it might be even less optimal than full scan
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(0),
@@ -185,20 +186,20 @@ func TestArrayIndexUpdate_IfUpdateRearrangesArrayElements_ShouldFetch(t *testing
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						numbers: [Int!] @index
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"numbers": [0, 10, 20]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"numbers": [30, 40, 50, 30]
@@ -211,7 +212,7 @@ func TestArrayIndexUpdate_IfUpdateRearrangesArrayElements_ShouldFetch(t *testing
 					"numbers": [50, 30, 40]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -221,7 +222,7 @@ func TestArrayIndexUpdate_IfUpdateRearrangesArrayElements_ShouldFetch(t *testing
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithFieldFetches(2).WithIndexFetches(1),
 			},
@@ -239,20 +240,20 @@ func TestArrayIndexUpdate_IfUpdateRemovesSoughtElement_ShouldNotFetch(t *testing
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						numbers: [Int!] @index
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"numbers": [0, 10, 20]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"numbers": [30, 40, 50, 30]
@@ -265,13 +266,13 @@ func TestArrayIndexUpdate_IfUpdateRemovesSoughtElement_ShouldNotFetch(t *testing
 					"numbers": [50, 40]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(0),
 			},
@@ -289,20 +290,20 @@ func TestArrayIndexUpdate_IfUpdateAddsSoughtElement_ShouldFetch(t *testing.T) {
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						numbers: [Int!] @index
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"numbers": [0, 10, 20]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"numbers": [40, 50]
@@ -315,7 +316,7 @@ func TestArrayIndexUpdate_IfUpdateAddsSoughtElement_ShouldFetch(t *testing.T) {
 					"numbers": [80, 30, 60]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -325,7 +326,7 @@ func TestArrayIndexUpdate_IfUpdateAddsSoughtElement_ShouldFetch(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(1),
 			},
@@ -343,27 +344,27 @@ func TestArrayIndexDelete_IfUpdateRemovesSoughtElement_ShouldNotFetch(t *testing
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						numbers: [Int!] @index
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"numbers": [0, 10, 20]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"numbers": [40, 50]
 				}`,
 			},
 			testUtils.DeleteDoc{DocID: 0},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -385,26 +386,26 @@ func TestArrayIndex_Bool_ShouldUseIndex(t *testing.T) {
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						booleans: [Boolean!] @index
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"booleans": [true, false, true]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"booleans": [false, false]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -412,7 +413,7 @@ func TestArrayIndex_Bool_ShouldUseIndex(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithFieldFetches(2).WithIndexFetches(1),
 			},
@@ -430,26 +431,26 @@ func TestArrayIndex_OptionalBool_ShouldUseIndex(t *testing.T) {
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						booleans: [Boolean] @index
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"booleans": [true, false, true]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"booleans": [false, false]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -457,7 +458,7 @@ func TestArrayIndex_OptionalBool_ShouldUseIndex(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithFieldFetches(2).WithIndexFetches(1),
 			},
@@ -475,26 +476,26 @@ func TestArrayIndex_OptionalInt_ShouldUseIndex(t *testing.T) {
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						numbers: [Int] @index
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"numbers": [4, 3, 7]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"numbers": [2, 8]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -502,7 +503,7 @@ func TestArrayIndex_OptionalInt_ShouldUseIndex(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(1),
 			},
@@ -520,26 +521,26 @@ func TestArrayIndex_Float_ShouldUseIndex(t *testing.T) {
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						rates: [Float!] @index
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"rates": [0.5, 1.0, 1.25]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"rates": [1.5, 1.2]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -547,7 +548,7 @@ func TestArrayIndex_Float_ShouldUseIndex(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(1),
 			},
@@ -565,26 +566,26 @@ func TestArrayIndex_OptionalFloat_ShouldUseIndex(t *testing.T) {
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						rates: [Float] @index
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"rates": [0.5, 1.0, 1.25]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"rates": [1.5, 1.2]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -592,7 +593,7 @@ func TestArrayIndex_OptionalFloat_ShouldUseIndex(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(1),
 			},
@@ -610,26 +611,26 @@ func TestArrayIndex_OptionalString_ShouldUseIndex(t *testing.T) {
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						hobbies: [String] @index
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"hobbies": ["games", "books", "music"]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"hobbies": ["movies", "music"]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -637,7 +638,7 @@ func TestArrayIndex_OptionalString_ShouldUseIndex(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(1),
 			},
@@ -655,26 +656,26 @@ func TestArrayIndex_WithAnyAndInOperator_Succeed(t *testing.T) {
 	}`
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						numbers: [Int!] @index
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"numbers": [1, 4, 7]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"numbers": [2, 8]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: req,
 				Results: map[string]any{
 					"User": []map[string]any{
@@ -682,7 +683,7 @@ func TestArrayIndex_WithAnyAndInOperator_Succeed(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request:  makeExplainQuery(req),
 				Asserter: testUtils.NewExplainAsserter().WithIndexFetches(1),
 			},
@@ -695,32 +696,32 @@ func TestArrayIndex_WithAnyAndInOperator_Succeed(t *testing.T) {
 func TestArrayIndex_WithAllAndInOperator_Succeed(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						numbers: [Int!] @index
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"numbers": [3, 4]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"numbers": [2, 8]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Andy",
 					"numbers": [3, 5, 8]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					User(filter: {numbers: {_all: {_in: [3, 4, 5]}}}) {
 						name
@@ -741,32 +742,32 @@ func TestArrayIndex_WithAllAndInOperator_Succeed(t *testing.T) {
 func TestArrayIndex_WithNoneAndInOperator_Succeed(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						numbers: [Int!] @index
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"numbers": [3, 4]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"numbers": [2, 8]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Andy",
 					"numbers": [3, 5, 8]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					User(filter: {numbers: {_none: {_in: [4, 5]}}}) {
 						name
@@ -787,32 +788,32 @@ func TestArrayIndex_WithNoneAndInOperator_Succeed(t *testing.T) {
 func TestArrayIndex_WithNoneAndNinOperator_Succeed(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						numbers: [Int!] @index
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"numbers": [3, 4]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"numbers": [2, 8]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Andy",
 					"numbers": [3, 5, 8]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					User(filter: {numbers: {_none: {_nin: [3, 4, 5]}}}) {
 						name
@@ -833,32 +834,32 @@ func TestArrayIndex_WithNoneAndNinOperator_Succeed(t *testing.T) {
 func TestArrayIndex_WithAllAndNinOperator_Succeed(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						numbers: [Int!] @index
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"numbers": [3, 4]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"numbers": [2, 8]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Andy",
 					"numbers": [3, 5, 8]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					User(filter: {numbers: {_all: {_nin: [4, 5]}}}) {
 						name
@@ -879,32 +880,32 @@ func TestArrayIndex_WithAllAndNinOperator_Succeed(t *testing.T) {
 func TestArrayIndex_WithAnyAndNinOperator_Succeed(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						numbers: [Int!] @index
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"numbers": [3, 4]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"numbers": [2, 8]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Andy",
 					"numbers": [3, 5, 8]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					User(filter: {numbers: {_any: {_nin: [3, 4, 5]}}}) {
 						name
@@ -926,32 +927,32 @@ func TestArrayIndex_WithAnyAndNinOperator_Succeed(t *testing.T) {
 func TestArrayIndex_WithNilElementsAndAnyOp_Succeed(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						numbers: [Int] @index
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"numbers": [0, null, 2, 3, null]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"numbers": [10, 20, null]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Andy",
 					"numbers": [33, 44, 55]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 						User(filter: {numbers: {_any: {_eq: 2}}}) {
 							name
@@ -963,7 +964,7 @@ func TestArrayIndex_WithNilElementsAndAnyOp_Succeed(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 						User(filter: {numbers: {_any: {_eq: null}}}) {
 							name
@@ -985,40 +986,40 @@ func TestArrayIndex_WithNilElementsAndAnyOp_Succeed(t *testing.T) {
 func TestArrayIndex_WithNilElementsAndAllOp_Succeed(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						numbers: [Int] @index
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"numbers": [0, null, 2, 3, null]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"numbers": [10, 20, null]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Andy",
 					"numbers": [33, 44, 55]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Islam",
 					"numbers": [null, null]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-						User(filter: {numbers: {_all: {_ge: 10}}}) {
+						User(filter: {numbers: {_all: {_geq: 10}}}) {
 							name
 						}
 					}`,
@@ -1028,7 +1029,7 @@ func TestArrayIndex_WithNilElementsAndAllOp_Succeed(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 						User(filter: {numbers: {_all: {_eq: null}}}) {
 							name
@@ -1049,34 +1050,34 @@ func TestArrayIndex_WithNilElementsAndAllOp_Succeed(t *testing.T) {
 func TestArrayIndex_WithNilElementsAndNoneOp_Succeed(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String 
 						numbers: [Int] @index
 					}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John",
 					"numbers": [0, null, 2, 3, null]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Shahzad",
 					"numbers": [10, 20, null]
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Andy",
 					"numbers": [33, 44, 55]
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-						User(filter: {numbers: {_none: {_ge: 10}}}) {
+						User(filter: {numbers: {_none: {_geq: 10}}}) {
 							name
 						}
 					}`,
@@ -1086,7 +1087,7 @@ func TestArrayIndex_WithNilElementsAndNoneOp_Succeed(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 						User(filter: {numbers: {_none: {_eq: null}}}) {
 							name

@@ -1,18 +1,20 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_explain_debug
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 	explainUtils "github.com/sourcenetwork/defradb/tests/integration/explain"
 )
@@ -23,7 +25,7 @@ func TestDebugExplainRequestWithStringEqualFilter(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain(type: debug) {
 					Author(filter: {name: {_eq: "Lone"}}) {
@@ -46,7 +48,7 @@ func TestDebugExplainRequestWithIntegerEqualFilter(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain(type: debug) {
 					Author(filter: {age: {_eq: 26}}) {
@@ -69,7 +71,7 @@ func TestDebugExplainRequestWithGreaterThanFilter(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain(type: debug) {
 					Author(filter: {age: {_gt: 20}}) {
@@ -92,7 +94,7 @@ func TestDebugExplainRequestWithLogicalCompoundAndFilter(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain(type: debug) {
 					Author(filter: {_and: [{age: {_gt: 20}}, {age: {_lt: 50}}]}) {
@@ -115,7 +117,7 @@ func TestDebugExplainRequestWithLogicalCompoundOrFilter(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain(type: debug) {
 					Author(filter: {_or: [{age: {_eq: 55}}, {age: {_eq: 19}}]}) {
@@ -138,7 +140,7 @@ func TestDebugExplainRequestWithMatchInsideList(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain(type: debug) {
 					Author(filter: {age: {_in: [19, 40, 55]}}) {

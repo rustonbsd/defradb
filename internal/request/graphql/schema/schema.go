@@ -19,32 +19,34 @@ import (
 // defaultSchema returns a new gql.Schema containing the default type definitions.
 func defaultSchema() (gql.Schema, error) {
 	orderEnum := types.OrderingEnum()
+	commitsEnum := types.CommitsEnum()
 	crdtEnum := types.CRDTEnum()
 	explainEnum := types.ExplainEnum()
 
-	commitLinkObject := types.CommitLinkObject()
-	commitObject := types.CommitObject(commitLinkObject)
 	commitsOrderArg := types.CommitsOrderArg(orderEnum)
+	commitsFilterFieldNameArg := types.CommitsFilterFieldNameArg()
+	commitsFilterArg := types.CommitsFilterArg(commitsFilterFieldNameArg)
+
+	commitObject := types.CommitObject(commitsOrderArg, commitsFilterArg, commitsEnum)
 
 	encryptedSearchResult := types.EncryptedSearchResultObject()
 
 	indexFieldInput := types.IndexFieldInputObject(orderEnum)
 
-	queryCommits := types.QueryCommits(commitObject, commitsOrderArg)
-	queryLatestCommits := types.QueryLatestCommits(commitObject)
+	queryCommits := types.QueryCommits(commitObject, commitsOrderArg, commitsFilterArg, commitsEnum)
 
 	sch, err := gql.NewSchema(gql.SchemaConfig{
 		Types: defaultTypes(
 			commitObject,
-			commitLinkObject,
 			commitsOrderArg,
+			commitsEnum,
 			orderEnum,
 			crdtEnum,
 			explainEnum,
 			indexFieldInput,
 			encryptedSearchResult,
 		),
-		Query:        defaultQueryType(queryCommits, queryLatestCommits),
+		Query:        defaultQueryType(queryCommits),
 		Mutation:     defaultMutationType(),
 		Directives:   defaultDirectivesType(crdtEnum, explainEnum, orderEnum, indexFieldInput),
 		Subscription: defaultSubscriptionType(queryCommits),
@@ -126,8 +128,8 @@ func inlineArrayTypes() []gql.Type {
 // default type map includes all the native scalar types
 func defaultTypes(
 	commitObject *gql.Object,
-	commitLinkObject *gql.Object,
 	commitsOrderArg *gql.InputObject,
+	commitsEnum *gql.Enum,
 	orderEnum *gql.Enum,
 	crdtEnum *gql.Enum,
 	explainEnum *gql.Enum,
@@ -142,6 +144,7 @@ func defaultTypes(
 	stringOpBlock := types.StringOperatorBlock()
 	blobOpBlock := types.BlobOperatorBlock(types.Blob)
 	dateTimeOpBlock := types.DateTimeOperatorBlock()
+	scalarAggregateBlock := types.ScalarAggregateNumericBlock()
 
 	notNullIntOpBlock := types.NotNullIntOperatorBlock()
 	notNullFloat64OpBlock := types.NotNullFloat64OperatorBlock()
@@ -202,8 +205,11 @@ func defaultTypes(
 		types.NotNullBooleanListOperatorBlock(notNullBooleanOpBlock),
 		types.NotNullStringListOperatorBlock(notNullStringOpBlock),
 
+		// aggregate input args
+		scalarAggregateBlock,
+
+		commitsEnum,
 		commitsOrderArg,
-		commitLinkObject,
 		commitObject,
 
 		crdtEnum,

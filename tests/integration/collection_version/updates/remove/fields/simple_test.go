@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package fields
 
@@ -15,27 +16,30 @@ import (
 
 	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
+	"github.com/sourcenetwork/defradb/tests/multiplier"
 )
 
-func TestSchemaUpdatesRemoveField(t *testing.T) {
+func TestCollectionVersionUpdatesRemoveField(t *testing.T) {
 	test := testUtils.TestCase{
+		// TODO: https://github.com/sourcenetwork/defradb/issues/4353
+		MultiplierExcludes: []string{multiplier.SecondaryIndex},
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 						email: String
 					}
 				`,
 			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				Patch: `
 					[
 						{ "op": "remove", "path": "/Users/Fields/2" }
 					]
 				`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users {
 						name
@@ -44,7 +48,7 @@ func TestSchemaUpdatesRemoveField(t *testing.T) {
 				}`,
 				ExpectedError: "Cannot query field \"name\" on type \"Users\".",
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users {
 						email
@@ -59,25 +63,27 @@ func TestSchemaUpdatesRemoveField(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaUpdatesRemoveAllFields(t *testing.T) {
+func TestCollectionVersionUpdatesRemoveAllFields(t *testing.T) {
 	test := testUtils.TestCase{
+		// TODO: https://github.com/sourcenetwork/defradb/issues/4353
+		MultiplierExcludes: []string{multiplier.SecondaryIndex},
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 						email: String
 					}
 				`,
 			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				Patch: `
 					[
 						{ "op": "remove", "path": "/Users/Fields" }
 					]
 				`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users {
 						_docID
@@ -92,18 +98,18 @@ func TestSchemaUpdatesRemoveAllFields(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaUpdatesRemoveFieldNameErrors(t *testing.T) {
+func TestCollectionVersionUpdatesRemoveFieldNameErrors(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 						email: String
 					}
 				`,
 			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				Patch: `
 					[
 						{ "op": "remove", "path": "/Users/Fields/2/Name" }
@@ -116,18 +122,18 @@ func TestSchemaUpdatesRemoveFieldNameErrors(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaUpdatesRemoveFieldKindErrors(t *testing.T) {
+func TestCollectionVersionUpdatesRemoveFieldKindErrors(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 						email: String
 					}
 				`,
 			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				Patch: `
 					[
 						{ "op": "remove", "path": "/Users/Fields/2/Kind" }
@@ -140,18 +146,18 @@ func TestSchemaUpdatesRemoveFieldKindErrors(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaUpdatesRemoveFieldTypErrors(t *testing.T) {
+func TestCollectionVersionUpdatesRemoveFieldTypErrors(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 						email: String
 					}
 				`,
 			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				Patch: `
 					[
 						{ "op": "remove", "path": "/Users/Fields/2/Typ" }

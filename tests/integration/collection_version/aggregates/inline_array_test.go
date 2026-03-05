@@ -1,12 +1,13 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package aggregates
 
@@ -17,11 +18,11 @@ import (
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
-func TestSchemaAggregateInlineArrayCreatesUsersCount(t *testing.T) {
+func TestCollectionVersionAggregateInlineArrayAddsUsersCount(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						favouriteIntegers: [Int!]
 					}
@@ -55,10 +56,10 @@ func TestSchemaAggregateInlineArrayCreatesUsersCount(t *testing.T) {
 						"name": "Users",
 						"fields": []any{
 							map[string]any{
-								"name": "_count",
+								"name": "COUNT",
 								"args": []any{
 									map[string]any{
-										"name": "_group",
+										"name": "GROUP",
 										"type": map[string]any{
 											"name": "Users__CountSelector",
 											"inputFields": []any{
@@ -141,11 +142,11 @@ func TestSchemaAggregateInlineArrayCreatesUsersCount(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaAggregateInlineArrayCreatesUsersSum(t *testing.T) {
+func TestCollectionVersionAggregateInlineArrayAddsUsersSum(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						FavouriteFloats: [Float!]
 					}
@@ -179,7 +180,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersSum(t *testing.T) {
 						"name": "Users",
 						"fields": []any{
 							map[string]any{
-								"name": "_sum",
+								"name": "SUM",
 								"args": []any{
 									map[string]any{
 										"name": "FavouriteFloats",
@@ -214,28 +215,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersSum(t *testing.T) {
 										},
 									},
 									map[string]any{
-										"name": "_count",
-										"type": map[string]any{
-											"inputFields": []any{},
-											"name":        "",
-										},
-									},
-									map[string]any{
-										"name": "_deleted",
-										"type": map[string]any{
-											"inputFields": []any{},
-											"name":        "",
-										},
-									},
-									map[string]any{
-										"name": "_docID",
-										"type": map[string]any{
-											"inputFields": []any{},
-											"name":        "",
-										},
-									},
-									map[string]any{
-										"name": "_group",
+										"name": "GROUP",
 										"type": map[string]any{
 											"name": "Users__NumericSelector",
 											"inputFields": []any{
@@ -284,11 +264,11 @@ func TestSchemaAggregateInlineArrayCreatesUsersSum(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaAggregateInlineArrayCreatesUsersAverage(t *testing.T) {
+func TestCollectionVersionAggregateInlineArrayAddsUsersAverage(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						favouriteIntegers: [Int!]
 					}
@@ -322,31 +302,10 @@ func TestSchemaAggregateInlineArrayCreatesUsersAverage(t *testing.T) {
 						"name": "Users",
 						"fields": []any{
 							map[string]any{
-								"name": "_avg",
+								"name": "AVG",
 								"args": []any{
 									map[string]any{
-										"name": "_count",
-										"type": map[string]any{
-											"inputFields": []any{},
-											"name":        "",
-										},
-									},
-									map[string]any{
-										"name": "_deleted",
-										"type": map[string]any{
-											"inputFields": []any{},
-											"name":        "",
-										},
-									},
-									map[string]any{
-										"name": "_docID",
-										"type": map[string]any{
-											"inputFields": []any{},
-											"name":        "",
-										},
-									},
-									map[string]any{
-										"name": "_group",
+										"name": "GROUP",
 										"type": map[string]any{
 											"inputFields": []any{
 												map[string]any{
@@ -381,13 +340,6 @@ func TestSchemaAggregateInlineArrayCreatesUsersAverage(t *testing.T) {
 												},
 											},
 											"name": "Users__NumericSelector",
-										},
-									},
-									map[string]any{
-										"name": "_sum",
-										"type": map[string]any{
-											"inputFields": []any{},
-											"name":        "",
 										},
 									},
 									map[string]any{
@@ -436,7 +388,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersAverage(t *testing.T) {
 
 func aggregateGroupArg(fieldType string) map[string]any {
 	return map[string]any{
-		"name": "_group",
+		"name": "GROUP",
 		"type": map[string]any{
 			"name": "Users__CountSelector",
 			"inputFields": []any{
@@ -526,11 +478,11 @@ var aggregateVersionArg = map[string]any{
 	},
 }
 
-func TestSchemaAggregateInlineArrayCreatesUsersNillableBooleanCountFilter(t *testing.T) {
+func TestCollectionVersionAggregateInlineArrayAddsUsersNillableBooleanCountFilter(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						Favourites: [Boolean]
 					}
@@ -570,7 +522,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersNillableBooleanCountFilter(t *tes
 						"name": "Users",
 						"fields": []any{
 							map[string]any{
-								"name": "_count",
+								"name": "COUNT",
 								"args": []any{
 									map[string]any{
 										"name": "Favourites",
@@ -601,7 +553,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersNillableBooleanCountFilter(t *tes
 																},
 															},
 															map[string]any{
-																"name": "_ne",
+																"name": "_neq",
 																"type": map[string]any{
 																	"name": "Boolean",
 																},
@@ -652,11 +604,11 @@ func TestSchemaAggregateInlineArrayCreatesUsersNillableBooleanCountFilter(t *tes
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaAggregateInlineArrayCreatesUsersBooleanCountFilter(t *testing.T) {
+func TestCollectionVersionAggregateInlineArrayAddsUsersBooleanCountFilter(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						Favourites: [Boolean!]
 					}
@@ -696,7 +648,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersBooleanCountFilter(t *testing.T) 
 						"name": "Users",
 						"fields": []any{
 							map[string]any{
-								"name": "_count",
+								"name": "COUNT",
 								"args": []any{
 									map[string]any{
 										"name": "Favourites",
@@ -727,7 +679,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersBooleanCountFilter(t *testing.T) 
 																},
 															},
 															map[string]any{
-																"name": "_ne",
+																"name": "_neq",
 																"type": map[string]any{
 																	"name": "Boolean",
 																},
@@ -778,11 +730,11 @@ func TestSchemaAggregateInlineArrayCreatesUsersBooleanCountFilter(t *testing.T) 
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaAggregateInlineArrayCreatesUsersNillableIntegerCountFilter(t *testing.T) {
+func TestCollectionVersionAggregateInlineArrayAddsUsersNillableIntegerCountFilter(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						Favourites: [Int]
 					}
@@ -822,7 +774,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersNillableIntegerCountFilter(t *tes
 						"name": "Users",
 						"fields": []any{
 							map[string]any{
-								"name": "_count",
+								"name": "COUNT",
 								"args": []any{
 									map[string]any{
 										"name": "Favourites",
@@ -847,7 +799,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersNillableIntegerCountFilter(t *tes
 																},
 															},
 															map[string]any{
-																"name": "_ge",
+																"name": "_geq",
 																"type": map[string]any{
 																	"name": "Int",
 																},
@@ -865,7 +817,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersNillableIntegerCountFilter(t *tes
 																},
 															},
 															map[string]any{
-																"name": "_le",
+																"name": "_leq",
 																"type": map[string]any{
 																	"name": "Int",
 																},
@@ -877,7 +829,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersNillableIntegerCountFilter(t *tes
 																},
 															},
 															map[string]any{
-																"name": "_ne",
+																"name": "_neq",
 																"type": map[string]any{
 																	"name": "Int",
 																},
@@ -928,11 +880,11 @@ func TestSchemaAggregateInlineArrayCreatesUsersNillableIntegerCountFilter(t *tes
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaAggregateInlineArrayCreatesUsersIntegerCountFilter(t *testing.T) {
+func TestCollectionVersionAggregateInlineArrayAddsUsersIntegerCountFilter(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						Favourites: [Int!]
 					}
@@ -972,7 +924,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersIntegerCountFilter(t *testing.T) 
 						"name": "Users",
 						"fields": []any{
 							map[string]any{
-								"name": "_count",
+								"name": "COUNT",
 								"args": []any{
 									map[string]any{
 										"name": "Favourites",
@@ -997,7 +949,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersIntegerCountFilter(t *testing.T) 
 																},
 															},
 															map[string]any{
-																"name": "_ge",
+																"name": "_geq",
 																"type": map[string]any{
 																	"name": "Int",
 																},
@@ -1015,7 +967,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersIntegerCountFilter(t *testing.T) 
 																},
 															},
 															map[string]any{
-																"name": "_le",
+																"name": "_leq",
 																"type": map[string]any{
 																	"name": "Int",
 																},
@@ -1027,7 +979,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersIntegerCountFilter(t *testing.T) 
 																},
 															},
 															map[string]any{
-																"name": "_ne",
+																"name": "_neq",
 																"type": map[string]any{
 																	"name": "Int",
 																},
@@ -1078,11 +1030,11 @@ func TestSchemaAggregateInlineArrayCreatesUsersIntegerCountFilter(t *testing.T) 
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaAggregateInlineArrayCreatesUsersNillableFloatCountFilter(t *testing.T) {
+func TestCollectionVersionAggregateInlineArrayAddsUsersNillableFloatCountFilter(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						Favourites: [Float]
 					}
@@ -1122,7 +1074,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersNillableFloatCountFilter(t *testi
 						"name": "Users",
 						"fields": []any{
 							map[string]any{
-								"name": "_count",
+								"name": "COUNT",
 								"args": []any{
 									map[string]any{
 										"name": "Favourites",
@@ -1147,7 +1099,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersNillableFloatCountFilter(t *testi
 																},
 															},
 															map[string]any{
-																"name": "_ge",
+																"name": "_geq",
 																"type": map[string]any{
 																	"name": "Float64",
 																},
@@ -1165,7 +1117,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersNillableFloatCountFilter(t *testi
 																},
 															},
 															map[string]any{
-																"name": "_le",
+																"name": "_leq",
 																"type": map[string]any{
 																	"name": "Float64",
 																},
@@ -1177,7 +1129,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersNillableFloatCountFilter(t *testi
 																},
 															},
 															map[string]any{
-																"name": "_ne",
+																"name": "_neq",
 																"type": map[string]any{
 																	"name": "Float64",
 																},
@@ -1228,11 +1180,11 @@ func TestSchemaAggregateInlineArrayCreatesUsersNillableFloatCountFilter(t *testi
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaAggregateInlineArrayCreatesUsersFloatCountFilter(t *testing.T) {
+func TestCollectionVersionAggregateInlineArrayAddsUsersFloatCountFilter(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						Favourites: [Float!]
 					}
@@ -1272,7 +1224,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersFloatCountFilter(t *testing.T) {
 						"name": "Users",
 						"fields": []any{
 							map[string]any{
-								"name": "_count",
+								"name": "COUNT",
 								"args": []any{
 									map[string]any{
 										"name": "Favourites",
@@ -1297,7 +1249,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersFloatCountFilter(t *testing.T) {
 																},
 															},
 															map[string]any{
-																"name": "_ge",
+																"name": "_geq",
 																"type": map[string]any{
 																	"name": "Float64",
 																},
@@ -1315,7 +1267,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersFloatCountFilter(t *testing.T) {
 																},
 															},
 															map[string]any{
-																"name": "_le",
+																"name": "_leq",
 																"type": map[string]any{
 																	"name": "Float64",
 																},
@@ -1327,7 +1279,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersFloatCountFilter(t *testing.T) {
 																},
 															},
 															map[string]any{
-																"name": "_ne",
+																"name": "_neq",
 																"type": map[string]any{
 																	"name": "Float64",
 																},
@@ -1378,11 +1330,11 @@ func TestSchemaAggregateInlineArrayCreatesUsersFloatCountFilter(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaAggregateInlineArrayCreatesUsersNillableStringCountFilter(t *testing.T) {
+func TestCollectionVersionAggregateInlineArrayAddsUsersNillableStringCountFilter(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						Favourites: [String]
 					}
@@ -1422,7 +1374,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersNillableStringCountFilter(t *test
 						"name": "Users",
 						"fields": []any{
 							map[string]any{
-								"name": "_count",
+								"name": "COUNT",
 								"args": []any{
 									map[string]any{
 										"name": "Favourites",
@@ -1465,7 +1417,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersNillableStringCountFilter(t *test
 																},
 															},
 															map[string]any{
-																"name": "_ne",
+																"name": "_neq",
 																"type": map[string]any{
 																	"name": "String",
 																},
@@ -1528,11 +1480,11 @@ func TestSchemaAggregateInlineArrayCreatesUsersNillableStringCountFilter(t *test
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaAggregateInlineArrayCreatesUsersStringCountFilter(t *testing.T) {
+func TestCollectionVersionAggregateInlineArrayAddsUsersStringCountFilter(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						Favourites: [String!]
 					}
@@ -1572,7 +1524,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersStringCountFilter(t *testing.T) {
 						"name": "Users",
 						"fields": []any{
 							map[string]any{
-								"name": "_count",
+								"name": "COUNT",
 								"args": []any{
 									map[string]any{
 										"name": "Favourites",
@@ -1615,7 +1567,7 @@ func TestSchemaAggregateInlineArrayCreatesUsersStringCountFilter(t *testing.T) {
 																},
 															},
 															map[string]any{
-																"name": "_ne",
+																"name": "_neq",
 																"type": map[string]any{
 																	"name": "String",
 																},

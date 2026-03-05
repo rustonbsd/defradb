@@ -1,12 +1,13 @@
-// Copyright 2025 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package subscribe_test
 
@@ -22,8 +23,8 @@ func TestP2PCollectionAddGetSingle(t *testing.T) {
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 					}
@@ -33,11 +34,11 @@ func TestP2PCollectionAddGetSingle(t *testing.T) {
 				SourceNodeID: 1,
 				TargetNodeID: 0,
 			},
-			testUtils.SubscribeToCollection{
+			testUtils.AddCollectionSubscription{
 				NodeID:        1,
 				CollectionIDs: []int{0},
 			},
-			testUtils.GetAllP2PCollections{
+			testUtils.ListP2PCollections{
 				NodeID:                1,
 				ExpectedCollectionIDs: []int{0},
 			},
@@ -52,10 +53,10 @@ func TestP2PCollectionAddGetMultiple(t *testing.T) {
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
+			&action.AddCollection{
 				// Note: If a test is failing here in the error trace, you likely need to change the
-				// order of these schema types declared below (some renaming can cause this).
-				Schema: `
+				// order of these collection types declared below (some renaming can cause this).
+				SDL: `
 					type Users {
 						name: String
 					}
@@ -71,11 +72,11 @@ func TestP2PCollectionAddGetMultiple(t *testing.T) {
 				SourceNodeID: 1,
 				TargetNodeID: 0,
 			},
-			testUtils.SubscribeToCollection{
+			testUtils.AddCollectionSubscription{
 				NodeID:        1,
 				CollectionIDs: []int{0, 2},
 			},
-			testUtils.GetAllP2PCollections{
+			testUtils.ListP2PCollections{
 				NodeID:                1,
 				ExpectedCollectionIDs: []int{0, 2},
 			},

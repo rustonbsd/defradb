@@ -14,25 +14,16 @@ import "github.com/sourcenetwork/immutable"
 
 // CommitSelect represents a commit request from a consumer.
 //
-// E.g. _commits, or _latestCommits.
+// E.g. _commits
 type CommitSelect struct {
 	// The underlying Select, defining the information requested.
 	Select
 
-	// The key of the target document for which to get commits for.
-	DocID immutable.Option[string]
-
-	// The field for which commits have been requested.
-	FieldName immutable.Option[string]
-
 	// The maximum depth to yield results for.
 	Depth immutable.Option[uint64]
 
-	// The parent Cid for which commit information has been requested.
-	Cid immutable.Option[string]
-
-	// The SchemaVersionID at the time of commit.
-	SchemaVersionID immutable.Option[string]
+	// The CollectionVersionID at the time of commit.
+	CollectionVersionID immutable.Option[string]
 }
 
 func (s *CommitSelect) CloneTo(index int) Requestable {
@@ -41,9 +32,6 @@ func (s *CommitSelect) CloneTo(index int) Requestable {
 
 func (s *CommitSelect) cloneTo(index int) *CommitSelect {
 	return &CommitSelect{
-		Select:    *s.Select.cloneTo(index),
-		DocID:     s.DocID,
-		FieldName: s.FieldName,
-		Cid:       s.Cid,
+		Select: *s.Select.cloneTo(index),
 	}
 }

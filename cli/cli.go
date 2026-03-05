@@ -36,23 +36,24 @@ func NewDefraCommand(ctx context.Context) *cobra.Command {
 	p2p_collection := MakeP2PCollectionCommand(ctx)
 	p2p_collection.AddCommand(
 		MakeP2PCollectionAddCommand(ctx),
-		MakeP2PCollectionRemoveCommand(ctx),
-		MakeP2PCollectionGetAllCommand(ctx),
-		MakeP2PCollectionSyncCommand(ctx),
+		MakeP2PCollectionDeleteCommand(ctx),
+		MakeP2PCollectionListCommand(ctx),
+		MakeP2PCollectionSyncVersionsCommand(ctx),
+		MakeP2PCollectionSyncBranchableCommand(ctx),
 	)
 
 	p2p_document := MakeP2PDocumentCommand(ctx)
 	p2p_document.AddCommand(
 		MakeP2PDocumentAddCommand(ctx),
-		MakeP2PDocumentRemoveCommand(ctx),
-		MakeP2PDocumentGetAllCommand(ctx),
+		MakeP2PDocumentDeleteCommand(ctx),
+		MakeP2PDocumentListCommand(ctx),
 		MakeP2PDocumentSyncCommand(ctx),
 	)
 
 	p2p_replicator := MakeP2PReplicatorCommand(ctx)
 	p2p_replicator.AddCommand(
-		MakeP2PReplicatorGetAllCommand(ctx),
-		MakeP2PReplicatorSetCommand(ctx),
+		MakeP2PReplicatorListCommand(ctx),
+		MakeP2PReplicatorAddCommand(ctx),
 		MakeP2PReplicatorDeleteCommand(ctx),
 	)
 
@@ -62,17 +63,15 @@ func NewDefraCommand(ctx context.Context) *cobra.Command {
 		p2p_collection,
 		p2p_document,
 		MakeP2PInfoCommand(ctx),
+		MakeP2PActivePeersCommand(ctx),
 		MakeP2PConnectCommand(ctx),
 	)
 
 	lens := MakeLensCommand(ctx)
 	lens.AddCommand(
 		MakeLensSetCommand(ctx),
-	)
-
-	schema := MakeSchemaCommand(ctx)
-	schema.AddCommand(
-		MakeSchemaAddCommand(ctx),
+		MakeLensAddCommand(ctx),
+		MakeLensListCommand(ctx),
 	)
 
 	acp_node_relationship := MakeNodeACPRelationshipCommand(ctx)
@@ -120,14 +119,14 @@ func NewDefraCommand(ctx context.Context) *cobra.Command {
 
 	index := MakeIndexCommand(ctx)
 	index.AddCommand(
-		MakeIndexCreateCommand(ctx),
-		MakeIndexDropCommand(ctx),
+		MakeIndexNewCommand(ctx),
+		MakeIndexDeleteCommand(ctx),
 		MakeIndexListCommand(ctx),
 	)
 
 	encrypted_index := MakeEncryptedIndexCommand(ctx)
 	encrypted_index.AddCommand(
-		MakeEncryptedIndexCreateCommand(ctx),
+		MakeEncryptedIndexNewCommand(ctx),
 		MakeEncryptedIndexDeleteCommand(ctx),
 		MakeEncryptedIndexListCommand(ctx),
 	)
@@ -140,21 +139,26 @@ func NewDefraCommand(ctx context.Context) *cobra.Command {
 
 	tx := MakeTxCommand(ctx)
 	tx.AddCommand(
-		MakeTxCreateCommand(ctx),
+		MakeTxNewCommand(ctx),
 		MakeTxCommitCommand(ctx),
 		MakeTxDiscardCommand(ctx),
 	)
 
 	collection := MakeCollectionCommand(ctx)
 	collection.AddCommand(
-		MakeCollectionGetCommand(ctx),
-		MakeCollectionListDocIDsCommand(ctx),
-		MakeCollectionDeleteCommand(ctx),
-		MakeCollectionUpdateCommand(ctx),
-		MakeCollectionCreateCommand(ctx),
+		MakeCollectionAddCommand(ctx),
 		MakeCollectionDescribeCommand(ctx),
 		MakeCollectionPatchCommand(ctx),
 		MakeCollectionSetActiveCommand(ctx),
+		MakeCollectionTruncateCommand(ctx),
+	)
+
+	document := MakeDocumentCommand(ctx)
+	document.AddCommand(
+		MakeDocumentAddCommand(ctx),
+		MakeDocumentGetCommand(ctx),
+		MakeDocumentUpdateCommand(ctx),
+		MakeDocumentDeleteCommand(ctx),
 	)
 
 	block := MakeBlockCommand(ctx)
@@ -168,7 +172,6 @@ func NewDefraCommand(ctx context.Context) *cobra.Command {
 		MakeDumpCommand(ctx),
 		MakeRequestCommand(ctx),
 		MakeNodeIdentityCommand(ctx),
-		schema,
 		acp,
 		view,
 		index,
@@ -177,15 +180,16 @@ func NewDefraCommand(ctx context.Context) *cobra.Command {
 		backup,
 		tx,
 		collection,
+		document,
 		lens,
 		block,
 	)
 
 	keyring := MakeKeyringCommand(ctx)
 	keyring.AddCommand(
-		MakeKeyringGenerateCommand(ctx),
-		MakeKeyringImportCommand(ctx),
-		MakeKeyringExportCommand(ctx),
+		MakeKeyringNewCommand(ctx),
+		MakeKeyringAddCommand(ctx),
+		MakeKeyringGetCommand(ctx),
 		MakeKeyringListCommand(ctx),
 	)
 
@@ -194,14 +198,21 @@ func NewDefraCommand(ctx context.Context) *cobra.Command {
 		MakeIdentityNewCommand(ctx),
 	)
 
+	sdl := MakeSDLCommand(ctx)
+	sdl.AddCommand(
+		MakeSDLGenerateCommand(ctx),
+	)
+
 	root := MakeRootCommand(ctx)
 	root.AddCommand(
 		client,
 		keyring,
 		identity,
+		sdl,
 		MakeStartCommand(ctx),
 		MakeServerDumpCmd(),
 		MakeVersionCommand(ctx),
+		MakeWizardCommand(),
 	)
 
 	return root

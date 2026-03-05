@@ -1,18 +1,20 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_explain_debug
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 	explainUtils "github.com/sourcenetwork/defradb/tests/integration/explain"
 )
@@ -43,7 +45,7 @@ func TestDebugExplainRequestWithDescendingOrderOnParentGroupBy(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain(type: debug) {
 					Author(
@@ -51,7 +53,7 @@ func TestDebugExplainRequestWithDescendingOrderOnParentGroupBy(t *testing.T) {
 						order: {name: DESC}
 					) {
 						name
-						_group {
+						GROUP {
 							age
 						}
 					}
@@ -71,7 +73,7 @@ func TestDebugExplainRequestWithAscendingOrderOnParentGroupBy(t *testing.T) {
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain(type: debug) {
 					Author(
@@ -79,7 +81,7 @@ func TestDebugExplainRequestWithAscendingOrderOnParentGroupBy(t *testing.T) {
 						order: {name: ASC}
 					) {
 						name
-						_group {
+						GROUP {
 							age
 						}
 					}
@@ -99,7 +101,7 @@ func TestDebugExplainRequestWithOrderOnParentGroupByAndOnInnerGroupSelection(t *
 		Actions: []any{
 			explainUtils.SchemaForExplainTests,
 
-			testUtils.ExplainRequest{
+			&action.ExplainRequest{
 
 				Request: `query @explain(type: debug) {
 					Author(
@@ -107,7 +109,7 @@ func TestDebugExplainRequestWithOrderOnParentGroupByAndOnInnerGroupSelection(t *
 						order: {name: DESC}
 					) {
 						name
-						_group (order: {age: ASC}){
+						GROUP (order: {age: ASC}){
 							age
 						}
 					}

@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package query
 
@@ -21,22 +22,22 @@ import (
 	"github.com/sourcenetwork/defradb/tests/lenses"
 )
 
-func TestSchemaMigrationQueryWithRestart(t *testing.T) {
+func TestCollectionMigrationQueryWithRestart(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John"
 				}`,
 			},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				Patch: `
 					[
 						{ "op": "add", "path": "/Users/Fields/-", "value": {"Name": "verified", "Kind": "Boolean"} }
@@ -45,8 +46,8 @@ func TestSchemaMigrationQueryWithRestart(t *testing.T) {
 			},
 			testUtils.ConfigureMigration{
 				LensConfig: client.LensConfig{
-					SourceSchemaVersionID:      "bafyreiciz2hrrmt7ritk5gf5fyruw46v2tfhq5dc7qto4wgpzluben2smu",
-					DestinationSchemaVersionID: "bafyreigqfjat435ghyt66tdaucp7oi2mke5jafx3jw3rozanopihr2vf44",
+					SourceCollectionVersionID:      "bafyreiciz2hrrmt7ritk5gf5fyruw46v2tfhq5dc7qto4wgpzluben2smu",
+					DestinationCollectionVersionID: "bafyreigqfjat435ghyt66tdaucp7oi2mke5jafx3jw3rozanopihr2vf44",
 					Lens: model.Lens{
 						Lenses: []model.LensModule{
 							{
@@ -61,7 +62,7 @@ func TestSchemaMigrationQueryWithRestart(t *testing.T) {
 				},
 			},
 			testUtils.Restart{},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users {
 						name
@@ -83,25 +84,25 @@ func TestSchemaMigrationQueryWithRestart(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestSchemaMigrationQueryWithRestartAndMigrationBeforePatchCollection(t *testing.T) {
+func TestCollectionMigrationQueryWithRestartAndMigrationBeforePatchCollection(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John"
 				}`,
 			},
 			testUtils.ConfigureMigration{
 				LensConfig: client.LensConfig{
-					SourceSchemaVersionID:      "bafyreiciz2hrrmt7ritk5gf5fyruw46v2tfhq5dc7qto4wgpzluben2smu",
-					DestinationSchemaVersionID: "bafyreigqfjat435ghyt66tdaucp7oi2mke5jafx3jw3rozanopihr2vf44",
+					SourceCollectionVersionID:      "bafyreiciz2hrrmt7ritk5gf5fyruw46v2tfhq5dc7qto4wgpzluben2smu",
+					DestinationCollectionVersionID: "bafyreigqfjat435ghyt66tdaucp7oi2mke5jafx3jw3rozanopihr2vf44",
 					Lens: model.Lens{
 						Lenses: []model.LensModule{
 							{
@@ -116,14 +117,14 @@ func TestSchemaMigrationQueryWithRestartAndMigrationBeforePatchCollection(t *tes
 				},
 			},
 			testUtils.Restart{},
-			testUtils.PatchCollection{
+			&action.PatchCollection{
 				Patch: `
 					[
 						{ "op": "add", "path": "/Users/Fields/-", "value": {"Name": "verified", "Kind": "Boolean"} }
 					]
 				`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users {
 						name

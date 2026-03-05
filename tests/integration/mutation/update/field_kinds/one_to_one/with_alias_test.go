@@ -1,12 +1,13 @@
-// Copyright 2023 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package one_to_one
 
@@ -16,7 +17,9 @@ import (
 
 	"github.com/sourcenetwork/immutable"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
+	"github.com/sourcenetwork/defradb/tests/state"
 )
 
 func TestMutationUpdateOneToOne_AliasRelationNameToLinkFromPrimarySide(t *testing.T) {
@@ -24,20 +27,20 @@ func TestMutationUpdateOneToOne_AliasRelationNameToLinkFromPrimarySide(t *testin
 
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Painted House"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "John Grisham",
 					"published": testUtils.NewDocIndex(0, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "New Shahzad"
@@ -52,7 +55,7 @@ func TestMutationUpdateOneToOne_AliasRelationNameToLinkFromPrimarySide(t *testin
 					}`,
 					bookID,
 				),
-				ExpectedError: "target document is already linked to another document.",
+				ExpectedError: "can not index a doc's field(s) that violates unique index",
 			},
 		},
 	}
@@ -64,25 +67,25 @@ func TestMutationUpdateOneToOne_AliasRelationNameToLinkFromSecondarySide_Collect
 	author2ID := "bae-c058cfd4-259f-5b08-975d-106f13a143d5"
 
 	test := testUtils.TestCase{
-		SupportedMutationTypes: immutable.Some([]testUtils.MutationType{
-			testUtils.CollectionSaveMutationType,
-			testUtils.CollectionNamedMutationType,
+		SupportedMutationTypes: immutable.Some([]state.MutationType{
+			state.CollectionSaveMutationType,
+			state.CollectionNamedMutationType,
 		}),
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Painted House"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "John Grisham",
 					"published": testUtils.NewDocIndex(0, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "New Shahzad"
@@ -109,24 +112,24 @@ func TestMutationUpdateOneToOne_AliasRelationNameToLinkFromSecondarySide_GQL(t *
 	author2ID := "bae-c058cfd4-259f-5b08-975d-106f13a143d5"
 
 	test := testUtils.TestCase{
-		SupportedMutationTypes: immutable.Some([]testUtils.MutationType{
-			testUtils.GQLRequestMutationType,
+		SupportedMutationTypes: immutable.Some([]state.MutationType{
+			state.GQLRequestMutationType,
 		}),
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Painted House"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "John Grisham",
 					"published": testUtils.NewDocIndex(0, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				Doc: `{
 					"name": "New Shahzad"
@@ -155,13 +158,13 @@ func TestMutationUpdateOneToOne_AliasWithInvalidLengthRelationIDToLink_Error(t *
 
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name": "Painted House"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"name":      "John Grisham",

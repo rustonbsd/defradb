@@ -32,12 +32,14 @@ import (
 	"github.com/sourcenetwork/defradb/acp/identity"
 	acpTypes "github.com/sourcenetwork/defradb/acp/types"
 	"github.com/sourcenetwork/defradb/client"
+	"github.com/sourcenetwork/defradb/client/options"
 	"github.com/sourcenetwork/defradb/errors"
 	"github.com/sourcenetwork/defradb/event"
 	coreblock "github.com/sourcenetwork/defradb/internal/core/block"
 	"github.com/sourcenetwork/defradb/internal/datastore"
+	acpDB "github.com/sourcenetwork/defradb/internal/db/acp"
 	"github.com/sourcenetwork/defradb/internal/db/p2p/protocol"
-	"github.com/sourcenetwork/defradb/internal/db/permission"
+	"github.com/sourcenetwork/defradb/internal/kms"
 	"github.com/sourcenetwork/defradb/internal/se"
 	"github.com/sourcenetwork/defradb/internal/telemetry"
 )
@@ -66,21 +68,30 @@ type PushToReplicatorsHandler interface {
 type DB interface {
 	// NewTxn returns a new transaction on the root store that may be managed externally.
 	NewTxn(readOnly bool) (client.Txn, error)
+	// GetNodeIdentity returns the current node identity.
+	GetNodeIdentity(ctx context.Context) (immutable.Option[identity.PublicRawIdentity], error)
 	// GetNodeIdentityToken returns an identity token for the given audience.
 	GetNodeIdentityToken(ctx context.Context, audience immutable.Option[string]) ([]byte, error)
 	// GetCollections returns all collections and their descriptions matching the given options
 	// that currently exist within this [Store].
-	GetCollections(ctx context.Context, options client.CollectionFetchOptions) ([]client.Collection, error)
+	GetCollections(
+		ctx context.Context,
+		opts ...options.Enumerable[options.GetCollectionsOptions],
+	) ([]client.Collection, error)
 	// Merge initiates a merge of the DAG and caches the resulting values into the datastore.
 	Merge(ctx context.Context, evt event.Merge) error
 	// Events returns the event bus for the database.
 	Events() event.Bus
 	// RetryIntervals returns the replicator retry configuration.
 	RetryIntervals() []time.Duration
+	// NodeACP returns the NodeACP implementation configured on the database.
+	NodeACP() acpDB.NACInfo
 	// DocumentACP returns the DocumentACP implementation configured on the database.
 	DocumentACP() immutable.Option[dac.DocumentACP]
 	// Rootstore returns the rootstore
 	Rootstore() corekv.TxnStore
+	// Multistore returns the multistore
+	Multistore() *datastore.Multistore
 	// P2PBlockSyncTimeout is the timeout duration for syncing block links.
 	P2PBlockSyncTimeout() time.Duration
 	// SearchableEncryptionKey returns the searchable encryption key if configured.
@@ -97,6 +108,7 @@ type P2P struct {
 	db   DB
 	lens *lens.Node
 	host client.Host
+	kms  kms.Service
 
 	// replicators is a map from collection CollectionID => peerId => list of addresses.
 	// This is a cached in-memory copy of the persisted replicators in the database.
@@ -138,6 +150,22 @@ func (proc *pushLogCommProcessor) ProcessRequest(
 	return protocol.PushLogReply{}, proc.p2p.processPushlogRequest(ctx, &req, true)
 }
 
+// peerEventHandlingHost wraps a Host to add a PeerEventHandler to pubsub topics.
+// It's added so that KMS doesn't need to bother with event handling and keeps it independent
+// from the event bus.
+type peerEventHandlingHost struct {
+	client.Host
+	eventHandler client.PeerEventHandler
+}
+
+func (h *peerEventHandlingHost) AddPubSubTopic(
+	topicName string,
+	subscribe bool,
+	handler client.PubsubMessageHandler,
+) error {
+	return h.Host.AddPubSubTopic(topicName, subscribe, handler, h.eventHandler)
+}
+
 // New returns a new configured P2P instance.
 func New(
 	ctx context.Context,
@@ -145,6 +173,7 @@ func New(
 	lens *lens.Node,
 	host client.Host,
 	nodeIdentity immutable.Option[identity.Identity],
+	collectionRetriever kms.CollectionRetriever,
 ) (*P2P, error) {
 	p := P2P{
 		ctx:                  ctx,
@@ -162,7 +191,13 @@ func New(
 
 	host.SetBlockAccessFunc(p.hasAccess)
 
-	err := p.host.AddPubSubTopic(docSyncTopic, true, p.docSyncMessageHandler)
+	err := p.host.AddPubSubTopic(docSyncTopic, true, p.docSyncMessageHandler, p.peerEventHandler)
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.host.AddPubSubTopic(syncBranchableCollectionTopic, true, p.syncBranchableCollectionMessageHandler,
+		p.peerEventHandler)
 	if err != nil {
 		return nil, err
 	}
@@ -181,6 +216,25 @@ func New(
 		return nil, err
 	}
 
+	if nodeIdentity.HasValue() {
+		p.kms, err = kms.NewPubSubService(
+			ctx,
+			host.ID(),
+			&peerEventHandlingHost{
+				Host:         host,
+				eventHandler: p.peerEventHandler,
+			},
+			datastore.EncstoreFrom(db.Rootstore()),
+			db.NodeACP(),
+			db.DocumentACP(),
+			collectionRetriever,
+			nodeIdentity.Value().DID(),
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if len(db.SearchableEncryptionKey()) > 0 {
 		coord, err := se.NewCoordinator(&p, host, db, db.SearchableEncryptionKey(), nodeIdentity)
 		if err != nil {
@@ -191,6 +245,10 @@ func New(
 	}
 
 	return &p, nil
+}
+
+func (p *P2P) KMS() kms.Service {
+	return p.kms
 }
 
 func (p *P2P) SECoordinator() *se.Coordinator {
@@ -204,6 +262,10 @@ func (p *P2P) AddPushToReplicatorsHandler(handler PushToReplicatorsHandler) {
 
 func (p *P2P) PeerInfo() ([]string, error) {
 	return p.host.Addresses()
+}
+
+func (p *P2P) ActivePeers(ctx context.Context) ([]string, error) {
+	return p.host.ActivePeers()
 }
 
 // Connect initiates a connection to the peer with the given addresses.
@@ -252,15 +314,7 @@ func (p *P2P) hasAccess(ctx context.Context, pid string, c cid.Cid) bool {
 		return true
 	}
 
-	clientTxn, err := p.db.NewTxn(false)
-	if err != nil {
-		log.ErrorE("Failed to get new transaction", err)
-		return false
-	}
-	defer clientTxn.Discard()
-	txn := datastore.MustGetFromClientTxn(clientTxn)
-
-	rawblock, err := txn.Blockstore().Get(ctx, c)
+	rawblock, err := p.db.Multistore().Blockstore().Get(ctx, c)
 	if err != nil {
 		if !ipld.IsNotFound(err) {
 			log.ErrorE("Failed to get block", err)
@@ -293,18 +347,24 @@ func (p *P2P) hasAccess(ctx context.Context, pid string, c cid.Cid) bool {
 		return true
 	}
 
-	cols, err := clientTxn.GetCollections(
-		ctx,
-		client.CollectionFetchOptions{
-			VersionID: immutable.Some(block.Delta.GetSchemaVersionID()),
-		},
-	)
+	ident, err := p.db.GetNodeIdentity(p.ctx)
+	if err != nil {
+		log.ErrorE("Failed to get node identity", err)
+		return false
+	}
+	getColOpts := options.GetCollections().SetCollectionID(block.Delta.GetCollectionVersionID())
+	if ident.HasValue() {
+		getColOpts = getColOpts.SetIdentity(identity.FromDID(ident.Value().DID))
+	}
+
+	cols, err := p.db.GetCollections(ctx, getColOpts)
 	if err != nil {
 		log.ErrorE("Failed to get collections", err)
 		return false
 	}
 	if len(cols) == 0 {
-		log.Info("No collections found", corelog.Any("Schema Version ID", block.Delta.GetSchemaVersionID()))
+		log.Info("No collections found",
+			corelog.Any("Collection Version ID", block.Delta.GetCollectionVersionID()))
 		return false
 	}
 
@@ -353,9 +413,10 @@ func (p *P2P) hasAccess(ctx context.Context, pid string, c cid.Cid) bool {
 		return immutable.Some(ident)
 	}
 
-	peerHasAccess, err := permission.CheckDocAccessWithIdentityFunc(
+	peerHasAccess, err := acpDB.CheckDocAccessWithIdentityFunc(
 		ctx,
 		identFunc,
+		p.db.NodeACP(),
 		p.db.DocumentACP().Value(),
 		cols[0], // For now we assume there is only one collection.
 		acpTypes.DocumentReadPerm,
@@ -379,17 +440,9 @@ func (p *P2P) trySelfHasAccess(ctx context.Context, block *coreblock.Block, coll
 		return true, nil
 	}
 
-	clientTxn, err := p.db.NewTxn(false)
-	if err != nil {
-		return false, err
-	}
-	defer clientTxn.Discard()
-
-	cols, err := clientTxn.GetCollections(
+	cols, err := p.db.GetCollections(
 		ctx,
-		client.CollectionFetchOptions{
-			CollectionID: immutable.Some(collectionID),
-		},
+		options.GetCollections().SetCollectionID(collectionID),
 	)
 	if err != nil {
 		return false, err
@@ -397,7 +450,7 @@ func (p *P2P) trySelfHasAccess(ctx context.Context, block *coreblock.Block, coll
 	if len(cols) == 0 {
 		return false, client.ErrCollectionNotFound
 	}
-	ident, err := clientTxn.GetNodeIdentity(ctx)
+	ident, err := p.db.GetNodeIdentity(ctx)
 	if err != nil {
 		return false, err
 	}
@@ -405,11 +458,12 @@ func (p *P2P) trySelfHasAccess(ctx context.Context, block *coreblock.Block, coll
 		return true, nil
 	}
 
-	peerHasAccess, err := permission.CheckDocAccessWithIdentityFunc(
+	peerHasAccess, err := acpDB.CheckDocAccessWithIdentityFunc(
 		ctx,
 		func() immutable.Option[identity.Identity] {
 			return immutable.Some(identity.FromDID(ident.Value().DID))
 		},
+		p.db.NodeACP(),
 		p.db.DocumentACP().Value(),
 		cols[0], // For now we assume there is only one collection.
 		acpTypes.DocumentReadPerm,
@@ -436,10 +490,22 @@ func (p *P2P) pubSubMessageHandler(from string, topic string, msg []byte) ([]byt
 	req.SenderID = from
 
 	if err := p.processPushlogRequest(p.ctx, req, false); err != nil {
+		if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
+			log.Info("Context done during pushlog request processing", corelog.Any("Error", err))
+			return nil, nil
+		}
 		return nil, errors.Wrap(fmt.Sprintf("Failed to process pushlog request %s", topic), err)
 	}
 
 	return nil, nil
+}
+
+func (p *P2P) peerEventHandler(peerID string, topic string, eventType string) {
+	p.db.Events().Publish(event.NewMessage(event.TopicPeerEventName, event.TopicPeerEvent{
+		PeerID:    peerID,
+		Topic:     topic,
+		EventType: eventType,
+	}))
 }
 
 // processPushlogRequest processes a push log request
@@ -448,6 +514,9 @@ func (p *P2P) processPushlogRequest(
 	req *protocol.PushLogRequest,
 	isReplicator bool,
 ) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
 	block, err := coreblock.GetFromBytes(req.Block)
 	if err != nil {
 		return err
@@ -467,13 +536,7 @@ func (p *P2P) processPushlogRequest(
 	defer done()
 
 	// Check if we've already merged this block. If so, skip the sink process.
-	txn, err := p.db.NewTxn(true)
-	if err != nil {
-		return err
-	}
-	clientTxn := datastore.MustGetFromClientTxn(txn)
-	isMerged, err := clientTxn.Blockstore().IsMerged(ctx, headCID)
-	txn.Discard()
+	isMerged, err := p.db.Multistore().Blockstore().IsMerged(ctx, headCID)
 	if err != nil {
 		return err
 	}
@@ -555,7 +618,7 @@ func (p *P2P) SendUpdate(evt event.Update) error {
 		}
 
 		if err := p.host.PublishToTopicAsync(p.ctx, evt.CollectionID, b); err != nil {
-			return NewErrPublishingToSchemaTopic(err, evt.Cid.String(), evt.CollectionID)
+			return NewErrPublishingToCollectionTopic(err, evt.Cid.String(), evt.CollectionID)
 		}
 	}
 

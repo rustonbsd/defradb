@@ -1,47 +1,49 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package simple
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
 func TestQuerySimpleWithGroupByNumberWithGroupLimitAndOffset(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "John",
 					"Age": 32
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Bob",
 					"Age": 32
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Alice",
 					"Age": 19
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(groupBy: [Age]) {
 						Age
-						_group(limit: 1, offset: 1) {
+						GROUP(limit: 1, offset: 1) {
 							Name
 						}
 					}
@@ -50,15 +52,15 @@ func TestQuerySimpleWithGroupByNumberWithGroupLimitAndOffset(t *testing.T) {
 					"Users": []map[string]any{
 						{
 							"Age": int64(32),
-							"_group": []map[string]any{
+							"GROUP": []map[string]any{
 								{
 									"Name": "Bob",
 								},
 							},
 						},
 						{
-							"Age":    int64(19),
-							"_group": []map[string]any{},
+							"Age":   int64(19),
+							"GROUP": []map[string]any{},
 						},
 					},
 				},
@@ -73,29 +75,29 @@ func TestQuerySimpleWithGroupByNumberWithGroupLimitAndOffset(t *testing.T) {
 func TestQuerySimpleWithGroupByNumberWithLimitAndOffsetAndWithGroupLimitAndOffset(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "John",
 					"Age": 32
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Bob",
 					"Age": 32
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"Name": "Alice",
 					"Age": 19
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users(groupBy: [Age], limit: 1, offset: 1) {
 						Age
-						_group(limit: 1, offset: 1) {
+						GROUP(limit: 1, offset: 1) {
 							Name
 						}
 					}
@@ -103,8 +105,8 @@ func TestQuerySimpleWithGroupByNumberWithLimitAndOffsetAndWithGroupLimitAndOffse
 				Results: map[string]any{
 					"Users": []map[string]any{
 						{
-							"Age":    int64(19),
-							"_group": []map[string]any{},
+							"Age":   int64(19),
+							"GROUP": []map[string]any{},
 						},
 					},
 				},

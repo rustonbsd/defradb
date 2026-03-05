@@ -1,12 +1,13 @@
-// Copyright 2025 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package signature
 
@@ -32,8 +33,8 @@ func TestDocSignature_WithPeersAndSecp256k1KeyType_ShouldSync(t *testing.T) {
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						age: Int
@@ -44,11 +45,11 @@ func TestDocSignature_WithPeersAndSecp256k1KeyType_ShouldSync(t *testing.T) {
 				SourceNodeID: 1,
 				TargetNodeID: 0,
 			},
-			testUtils.SubscribeToCollection{
+			testUtils.AddCollectionSubscription{
 				NodeID:        1,
 				CollectionIDs: []int{0},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 					"name":	"John",
@@ -56,7 +57,7 @@ func TestDocSignature_WithPeersAndSecp256k1KeyType_ShouldSync(t *testing.T) {
 				}`,
 			},
 			testUtils.WaitForSync{},
-			testUtils.Request{
+			&action.Request{
 				NodeID: immutable.Some(1),
 				Request: `query {
 					User {
@@ -89,8 +90,8 @@ func TestDocSignature_WithPeersAndEd25519KeyType_ShouldSync(t *testing.T) {
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						age: Int
@@ -101,11 +102,11 @@ func TestDocSignature_WithPeersAndEd25519KeyType_ShouldSync(t *testing.T) {
 				SourceNodeID: 1,
 				TargetNodeID: 0,
 			},
-			testUtils.SubscribeToCollection{
+			testUtils.AddCollectionSubscription{
 				NodeID:        1,
 				CollectionIDs: []int{0},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 					"name":	"John",
@@ -113,7 +114,7 @@ func TestDocSignature_WithPeersAndEd25519KeyType_ShouldSync(t *testing.T) {
 				}`,
 			},
 			testUtils.WaitForSync{},
-			testUtils.Request{
+			&action.Request{
 				NodeID: immutable.Some(1),
 				Request: `query {
 					User {
@@ -146,8 +147,8 @@ func TestDocSignature_WithPeersAnDifferentKeyTypes_ShouldSync(t *testing.T) {
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						age: Int
@@ -158,22 +159,22 @@ func TestDocSignature_WithPeersAnDifferentKeyTypes_ShouldSync(t *testing.T) {
 				SourceNodeID: 1,
 				TargetNodeID: 0,
 			},
-			testUtils.SubscribeToCollection{
+			testUtils.AddCollectionSubscription{
 				NodeID:        0,
 				CollectionIDs: []int{0},
 			},
-			testUtils.SubscribeToCollection{
+			testUtils.AddCollectionSubscription{
 				NodeID:        1,
 				CollectionIDs: []int{0},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 					"name":	"John",
 					"age":	21
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(1),
 				Doc: `{
 					"name":	"Fred",
@@ -182,7 +183,7 @@ func TestDocSignature_WithPeersAnDifferentKeyTypes_ShouldSync(t *testing.T) {
 			},
 			testUtils.WaitForSync{},
 			// both nodes should have the same results
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					User {
 						name
@@ -202,9 +203,9 @@ func TestDocSignature_WithPeersAnDifferentKeyTypes_ShouldSync(t *testing.T) {
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-						_commits(fieldName: "_C") {
+						_commits(filter: {fieldName: {_eq: "_C"}}) {
 							signature {
 								type
 								identity
@@ -244,8 +245,8 @@ func TestDocSignature_WithPeersAnDifferentKeyTypesUpdatingSameDoc_ShouldSync(t *
 		Actions: []any{
 			testUtils.RandomNetworkingConfig(),
 			testUtils.RandomNetworkingConfig(),
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						age: Int
@@ -257,15 +258,15 @@ func TestDocSignature_WithPeersAnDifferentKeyTypesUpdatingSameDoc_ShouldSync(t *
 				SourceNodeID: 1,
 				TargetNodeID: 0,
 			},
-			testUtils.SubscribeToCollection{
+			testUtils.AddCollectionSubscription{
 				NodeID:        0,
 				CollectionIDs: []int{0},
 			},
-			testUtils.SubscribeToCollection{
+			testUtils.AddCollectionSubscription{
 				NodeID:        1,
 				CollectionIDs: []int{0},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				NodeID: immutable.Some(0),
 				Doc: `{
 					"name":	"John",
@@ -288,7 +289,7 @@ func TestDocSignature_WithPeersAnDifferentKeyTypesUpdatingSameDoc_ShouldSync(t *
 			},
 			testUtils.WaitForSync{},
 			// both nodes should have the same results
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					User {
 						name
@@ -306,9 +307,9 @@ func TestDocSignature_WithPeersAnDifferentKeyTypesUpdatingSameDoc_ShouldSync(t *
 					},
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
-						_commits(fieldName: "_C", order: {height: DESC}) {
+						_commits(filter: {fieldName: {_eq: "_C"}}, order: {height: DESC}) {
 							signature {
 								type
 								identity

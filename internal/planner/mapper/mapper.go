@@ -18,11 +18,13 @@ import (
 	"github.com/sourcenetwork/immutable"
 
 	"github.com/sourcenetwork/defradb/client"
+	"github.com/sourcenetwork/defradb/client/options"
 	"github.com/sourcenetwork/defradb/client/request"
 	"github.com/sourcenetwork/defradb/internal/connor"
 	"github.com/sourcenetwork/defradb/internal/core"
 	"github.com/sourcenetwork/defradb/internal/db/description"
 	"github.com/sourcenetwork/defradb/internal/db/id"
+	iIdentity "github.com/sourcenetwork/defradb/internal/identity"
 )
 
 const (
@@ -32,7 +34,7 @@ const (
 )
 
 var (
-	FilterEqOp = &Operator{Operation: "_eq"}
+	FilterEqOp = &Operator{Operation: connor.EqualOp}
 )
 
 // SelectionType is the type of selection.
@@ -198,7 +200,7 @@ func toSelect(
 				if fieldDesc.Kind.IsArray() {
 					return nil, NewErrInvalidFieldToGroupBy(groupByField)
 				}
-				groupByFields[index] = groupByField + request.RelatedObjectID
+				groupByFields[index] = request.ToFieldID(groupByField)
 			}
 		}
 
@@ -223,7 +225,7 @@ func toSelect(
 	return &Select{
 		Targetable:      targetable,
 		DocumentMapping: mapping,
-		Cid:             selectRequest.CID,
+		Cids:            selectRequest.CIDs,
 		CollectionName:  collectionName,
 		Fields:          fields,
 		IsEncrypted:     selectRequest.IsEncrypted,
@@ -454,7 +456,6 @@ func resolveAggregates(
 			if !hasHost {
 				// If a matching host is not found, we need to construct and add it.
 				index := mapping.GetNextIndex()
-
 				hostSelectRequest := &request.Select{
 					Field: request.Field{
 						Name: target.hostExternalName,
@@ -519,7 +520,9 @@ func resolveAggregates(
 				if err != nil {
 					return nil, err
 				}
-				dummyJoin := &Select{
+
+				var dummyJoin Requestable
+				dummyJoinSelect := &Select{
 					Targetable: Targetable{
 						Field: Field{
 							Index: index,
@@ -533,12 +536,27 @@ func resolveAggregates(
 					DocumentMapping: childMapping,
 					Fields:          childFields,
 				}
+				hostTarget = &dummyJoinSelect.Targetable
+
+				if rootSelectType == CommitSelection {
+					dummyJoinCommit := &CommitSelect{
+						Select: *dummyJoinSelect,
+						Depth:  immutable.Some(uint64(0)),
+					}
+					index := childMapping.FirstIndexOfName(request.CidFieldName)
+
+					dummyJoinCommit.Fields = append(dummyJoinCommit.Fields, &Field{
+						Index: index,
+						Name:  request.CidFieldName,
+					})
+					dummyJoin = dummyJoinCommit
+				} else {
+					dummyJoin = dummyJoinSelect
+				}
 
 				fields = append(fields, dummyJoin)
 				mapping.Add(index, target.hostExternalName)
-
 				host = dummyJoin
-				hostTarget = &dummyJoin.Targetable
 			} else {
 				var isTargetable bool
 				hostTarget, isTargetable = host.AsTargetable()
@@ -812,6 +830,21 @@ func getRequestables(
 			})
 
 			mapping.Add(index, f.Name)
+		case *request.CommitSelect:
+			index := mapping.GetNextIndex()
+			innerSelect, err := toCommitSelect(ctx, store, f, index)
+			if err != nil {
+				return nil, nil, err
+			}
+			fields = append(fields, innerSelect)
+			mapping.SetChildAt(index, innerSelect.DocumentMapping)
+
+			mapping.RenderKeys = append(mapping.RenderKeys, core.RenderKey{
+				Index: index,
+				Key:   getRenderKey(&f.Field),
+			})
+
+			mapping.Add(index, f.Name)
 		case *request.Aggregate:
 			index := mapping.GetNextIndex()
 			aggregateRequest, err := getAggregateRequests(index, f)
@@ -945,14 +978,18 @@ func getTopLevelInfo(
 	}
 
 	if rootSelectType == ObjectSelection {
-		collection, err := store.GetCollectionByName(ctx, collectionName)
+		collection, err := store.GetCollectionByName(
+			ctx,
+			collectionName,
+			options.WithIdentity(options.GetCollectionByName(), iIdentity.FromContext(ctx)),
+		)
 		if err != nil {
 			return nil, client.CollectionVersion{}, err
 		}
 
 		mapping.Add(core.DocIDFieldIndex, request.DocIDFieldName)
 
-		// Map all fields from schema into the map as they are fetched automatically
+		// Map all fields from collection into the map as they are fetched automatically
 		for _, f := range collection.Version().Fields {
 			if f.RelationName.HasValue() && f.Kind.IsObject() {
 				// Objects are skipped, as they are not fetched by default and
@@ -973,14 +1010,6 @@ func getTopLevelInfo(
 	}
 
 	switch selectRequest.Name {
-	case request.LinksFieldName:
-		for i, f := range request.LinksFields {
-			mapping.Add(i, f)
-		}
-
-		// Setting the type name must be done after adding the fields, as
-		// the typeName index is dynamic, but the field indexes are not
-		mapping.SetTypeName(request.LinksFieldName)
 	case request.SignatureFieldName:
 		for i, f := range request.SignatureFields {
 			mapping.Add(i, f)
@@ -1217,7 +1246,7 @@ func resolveSecondaryRelationIDs(
 	store client.TxnStore,
 	rootSelectType SelectionType,
 	collectionName string,
-	schema client.CollectionVersion,
+	colDef client.CollectionVersion,
 	mapping *core.DocumentMapping,
 	requestables []Requestable,
 ) ([]Requestable, error) {
@@ -1229,7 +1258,7 @@ func resolveSecondaryRelationIDs(
 			continue
 		}
 
-		fieldDesc, descFound := schema.GetFieldByName(existingField.Name)
+		fieldDesc, descFound := colDef.GetFieldByName(existingField.Name)
 		if !descFound {
 			continue
 		}
@@ -1238,7 +1267,10 @@ func resolveSecondaryRelationIDs(
 			continue
 		}
 
-		objectFieldName := strings.TrimSuffix(existingField.Name, request.RelatedObjectID)
+		objectFieldName, ok := request.ToRelatedObjectName(existingField.Name)
+		if !ok {
+			continue
+		}
 
 		var siblingFound bool
 		for _, siblingRequestable := range requestables {
@@ -1249,8 +1281,6 @@ func resolveSecondaryRelationIDs(
 		}
 
 		if !siblingFound {
-			objectFieldName := strings.TrimSuffix(existingField.Name, request.RelatedObjectID)
-
 			// We only require the docID of the related object, so an empty join is all we need.
 			join, err := constructEmptyJoin(
 				ctx,
@@ -1298,11 +1328,8 @@ func toCommitSelect(
 		return nil, err
 	}
 	return &CommitSelect{
-		Select:    *underlyingSelect,
-		DocID:     selectRequest.DocID,
-		FieldName: selectRequest.FieldName,
-		Depth:     selectRequest.Depth,
-		Cid:       selectRequest.CID,
+		Select: *underlyingSelect,
+		Depth:  selectRequest.Depth,
 	}, nil
 }
 
@@ -1335,7 +1362,7 @@ func toMutation(
 	return &Mutation{
 		Select:        *underlyingSelect,
 		Type:          MutationType(mutationRequest.Type),
-		CreateInput:   mutationRequest.CreateInput,
+		AddInput:      mutationRequest.AddInput,
 		UpdateInput:   mutationRequest.UpdateInput,
 		Encrypt:       mutationRequest.Encrypt,
 		EncryptFields: mutationRequest.EncryptFields,
@@ -1884,5 +1911,5 @@ func appendNotNilFilter(field *aggregateRequestTarget, childField string) {
 	}
 
 	typedChildBlock := childBlock.(map[string]any)
-	typedChildBlock["_ne"] = nil
+	typedChildBlock[connor.NotEqualOp] = nil
 }

@@ -1,18 +1,20 @@
-// Copyright 2022 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package one_to_many_to_one
 
 import (
 	"testing"
 
+	"github.com/sourcenetwork/defradb/tests/action"
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
@@ -21,7 +23,7 @@ func TestQueryOneToOneRelations(t *testing.T) {
 		Actions: []any{
 			gqlSchemaOneToManyToOne(),
 			// Authors
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				// bae-9e70648f-c722-5875-97f5-574ec6f703e9, Has written 5 books
 				Doc: `{
@@ -30,7 +32,7 @@ func TestQueryOneToOneRelations(t *testing.T) {
 					"verified": true
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				// bae-b769708d-f552-5c3d-a402-ccfd7ac7fb04, Has written 1 Book
 				Doc: `{
@@ -39,7 +41,7 @@ func TestQueryOneToOneRelations(t *testing.T) {
 					"verified": false
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				// Has written no Book
 				Doc: `{
@@ -49,53 +51,53 @@ func TestQueryOneToOneRelations(t *testing.T) {
 				}`,
 			},
 			// Books
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				// "bae-080d7580-a791-541e-90bd-49bf69f858e1", Has 1 Publisher
 				DocMap: map[string]any{
 					"name":      "The Rooster Bar",
 					"rating":    4,
-					"author_id": testUtils.NewDocIndex(0, 1),
+					"_authorID": testUtils.NewDocIndex(0, 1),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				// "bae-4e3f217c-0dd4-5ff3-bee6-5740d8fe3ae6", Has 1 Publisher
 				DocMap: map[string]any{
 					"name":      "Theif Lord",
 					"rating":    4.8,
-					"author_id": testUtils.NewDocIndex(0, 0),
+					"_authorID": testUtils.NewDocIndex(0, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				// "bae-efa4a57f-e766-530f-a5a6-4a5669106c74", Has no Publisher.
 				DocMap: map[string]any{
 					"name":      "The Associate",
 					"rating":    4.2,
-					"author_id": testUtils.NewDocIndex(0, 0),
+					"_authorID": testUtils.NewDocIndex(0, 0),
 				},
 			},
 			// Publishers
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name":       "Only Publisher of The Rooster Bar",
 					"address":    "1 Rooster Ave., Waterloo, Ontario",
 					"yearOpened": 2022,
-					"book_id":    testUtils.NewDocIndex(1, 0),
+					"_bookID":    testUtils.NewDocIndex(1, 0),
 				},
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 2,
 				DocMap: map[string]any{
 					"name":       "Only Publisher of Theif Lord",
 					"address":    "1 Theif Lord, Waterloo, Ontario",
 					"yearOpened": 2020,
-					"book_id":    testUtils.NewDocIndex(1, 1),
+					"_bookID":    testUtils.NewDocIndex(1, 1),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Book {
 						name

@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package test_acp_dac
 
@@ -17,7 +18,7 @@ import (
 	testUtils "github.com/sourcenetwork/defradb/tests/integration"
 )
 
-func TestACP_CreateWithoutIdentityAndDeleteWithoutIdentity_CanDelete(t *testing.T) {
+func TestACP_AddWithoutIdentityAndDeleteWithoutIdentity_CanDelete(t *testing.T) {
 	// The same identity that is used to do the registering/creation should be used in the
 	// final read check to see the state of that registered document.
 	// Note: In this test that identity is empty (no identity).
@@ -30,39 +31,29 @@ func TestACP_CreateWithoutIdentityAndDeleteWithoutIdentity_CanDelete(t *testing.
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: test
-                    description: a test policy which marks a collection in a database as a resource
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-                `,
+description: a test policy which marks a collection in a database as a resource
+name: test
+resources:
+- name: users
+  permissions:
+  - name: delete
+  - expr: reader
+    name: read
+  - name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @policy(
 						id: "{{.Policy0}}",
 						resource: "users"
@@ -73,7 +64,7 @@ func TestACP_CreateWithoutIdentityAndDeleteWithoutIdentity_CanDelete(t *testing.
 				`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 
 				Doc: `
@@ -90,7 +81,7 @@ func TestACP_CreateWithoutIdentityAndDeleteWithoutIdentity_CanDelete(t *testing.
 				DocID: 0,
 			},
 
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						Users {
@@ -111,7 +102,7 @@ func TestACP_CreateWithoutIdentityAndDeleteWithoutIdentity_CanDelete(t *testing.
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestACP_CreateWithoutIdentityAndDeleteWithIdentity_CanDelete(t *testing.T) {
+func TestACP_AddWithoutIdentityAndDeleteWithIdentity_CanDelete(t *testing.T) {
 	// The same identity that is used to do the registering/creation should be used in the
 	// final read check to see the state of that registered document.
 	// Note: In this test that identity is empty (no identity).
@@ -124,39 +115,29 @@ func TestACP_CreateWithoutIdentityAndDeleteWithIdentity_CanDelete(t *testing.T) 
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: test
-                    description: a test policy which marks a collection in a database as a resource
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-                `,
+description: a test policy which marks a collection in a database as a resource
+name: test
+resources:
+- name: users
+  permissions:
+  - name: delete
+  - expr: reader
+    name: read
+  - name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @policy(
 						id: "{{.Policy0}}",
 						resource: "users"
@@ -167,7 +148,7 @@ func TestACP_CreateWithoutIdentityAndDeleteWithIdentity_CanDelete(t *testing.T) 
 				`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 
 				Doc: `
@@ -186,7 +167,7 @@ func TestACP_CreateWithoutIdentityAndDeleteWithIdentity_CanDelete(t *testing.T) 
 				DocID: 0,
 			},
 
-			testUtils.Request{
+			&action.Request{
 				Request: `
 					query {
 						Users {
@@ -206,7 +187,7 @@ func TestACP_CreateWithoutIdentityAndDeleteWithIdentity_CanDelete(t *testing.T) 
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestACP_CreateWithIdentityAndDeleteWithIdentity_CanDelete(t *testing.T) {
+func TestACP_AddWithIdentityAndDeleteWithIdentity_CanDelete(t *testing.T) {
 	test := testUtils.TestCase{
 
 		Actions: []any{
@@ -215,39 +196,29 @@ func TestACP_CreateWithIdentityAndDeleteWithIdentity_CanDelete(t *testing.T) {
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: test
-                    description: a test policy which marks a collection in a database as a resource
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-                `,
+description: a test policy which marks a collection in a database as a resource
+name: test
+resources:
+- name: users
+  permissions:
+  - name: delete
+  - expr: reader
+    name: read
+  - name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @policy(
 						id: "{{.Policy0}}",
 						resource: "users"
@@ -258,7 +229,7 @@ func TestACP_CreateWithIdentityAndDeleteWithIdentity_CanDelete(t *testing.T) {
 				`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 
 				Identity: testUtils.ClientIdentity(1),
@@ -279,7 +250,7 @@ func TestACP_CreateWithIdentityAndDeleteWithIdentity_CanDelete(t *testing.T) {
 				DocID: 0,
 			},
 
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(1),
 
 				Request: `
@@ -301,7 +272,7 @@ func TestACP_CreateWithIdentityAndDeleteWithIdentity_CanDelete(t *testing.T) {
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestACP_CreateWithIdentityAndDeleteWithoutIdentity_CanNotDelete(t *testing.T) {
+func TestACP_AddWithIdentityAndDeleteWithoutIdentity_CanNotDelete(t *testing.T) {
 	test := testUtils.TestCase{
 
 		Actions: []any{
@@ -310,39 +281,29 @@ func TestACP_CreateWithIdentityAndDeleteWithoutIdentity_CanNotDelete(t *testing.
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: test
-                    description: a test policy which marks a collection in a database as a resource
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-                `,
+description: a test policy which marks a collection in a database as a resource
+name: test
+resources:
+- name: users
+  permissions:
+  - name: delete
+  - expr: reader
+    name: read
+  - name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @policy(
 						id: "{{.Policy0}}",
 						resource: "users"
@@ -353,7 +314,7 @@ func TestACP_CreateWithIdentityAndDeleteWithoutIdentity_CanNotDelete(t *testing.
 				`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 
 				Identity: testUtils.ClientIdentity(1),
@@ -374,7 +335,7 @@ func TestACP_CreateWithIdentityAndDeleteWithoutIdentity_CanNotDelete(t *testing.
 				ExpectedError: "document not found or not authorized to access",
 			},
 
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(1),
 
 				Request: `
@@ -402,7 +363,7 @@ func TestACP_CreateWithIdentityAndDeleteWithoutIdentity_CanNotDelete(t *testing.
 	testUtils.ExecuteTestCase(t, test)
 }
 
-func TestACP_CreateWithIdentityAndDeleteWithWrongIdentity_CanNotDelete(t *testing.T) {
+func TestACP_AddWithIdentityAndDeleteWithWrongIdentity_CanNotDelete(t *testing.T) {
 	test := testUtils.TestCase{
 
 		Actions: []any{
@@ -411,39 +372,29 @@ func TestACP_CreateWithIdentityAndDeleteWithWrongIdentity_CanNotDelete(t *testin
 				Identity: testUtils.ClientIdentity(1),
 
 				Policy: `
-                    name: test
-                    description: a test policy which marks a collection in a database as a resource
-
-                    actor:
-                      name: actor
-
-                    resources:
-                      users:
-                        permissions:
-                          read:
-                            expr: owner + reader
-                          update:
-                            expr: owner
-                          delete:
-                            expr: owner
-
-                        relations:
-                          owner:
-                            types:
-                              - actor
-                          reader:
-                            types:
-                              - actor
-                          admin:
-                            manages:
-                              - reader
-                            types:
-                              - actor
-                `,
+description: a test policy which marks a collection in a database as a resource
+name: test
+resources:
+- name: users
+  permissions:
+  - name: delete
+  - expr: reader
+    name: read
+  - name: update
+  relations:
+  - manages:
+    - reader
+    name: admin
+    types:
+    - actor
+  - name: reader
+    types:
+    - actor
+`,
 			},
 
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @policy(
 						id: "{{.Policy0}}",
 						resource: "users"
@@ -454,7 +405,7 @@ func TestACP_CreateWithIdentityAndDeleteWithWrongIdentity_CanNotDelete(t *testin
 				`,
 			},
 
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 
 				Identity: testUtils.ClientIdentity(1),
@@ -477,7 +428,7 @@ func TestACP_CreateWithIdentityAndDeleteWithWrongIdentity_CanNotDelete(t *testin
 				ExpectedError: "document not found or not authorized to access",
 			},
 
-			testUtils.Request{
+			&action.Request{
 				Identity: testUtils.ClientIdentity(1),
 
 				Request: `

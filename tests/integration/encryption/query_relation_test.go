@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package encryption
 
@@ -20,8 +21,8 @@ import (
 func TestDocEncryption_WithEncryptionOnBothRelations_ShouldFetchDecrypted(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						devices: [Device]
@@ -34,14 +35,14 @@ func TestDocEncryption_WithEncryptionOnBothRelations_ShouldFetchDecrypted(t *tes
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name":	"Chris"
 				}`,
 				IsDocEncrypted: true,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"model":        "Walkman",
@@ -50,7 +51,7 @@ func TestDocEncryption_WithEncryptionOnBothRelations_ShouldFetchDecrypted(t *tes
 				},
 				IsDocEncrypted: true,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					User {
 						name
@@ -83,8 +84,8 @@ func TestDocEncryption_WithEncryptionOnBothRelations_ShouldFetchDecrypted(t *tes
 func TestDocEncryption_WithEncryptionOnPrimaryRelations_ShouldFetchDecrypted(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						devices: [Device]
@@ -97,13 +98,13 @@ func TestDocEncryption_WithEncryptionOnPrimaryRelations_ShouldFetchDecrypted(t *
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name":	"Chris"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"model":        "Walkman",
@@ -112,7 +113,7 @@ func TestDocEncryption_WithEncryptionOnPrimaryRelations_ShouldFetchDecrypted(t *
 				},
 				IsDocEncrypted: true,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					User {
 						name
@@ -145,8 +146,8 @@ func TestDocEncryption_WithEncryptionOnPrimaryRelations_ShouldFetchDecrypted(t *
 func TestDocEncryption_WithEncryptionOnSecondaryRelations_ShouldFetchDecrypted(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type User {
 						name: String
 						devices: [Device]
@@ -159,14 +160,14 @@ func TestDocEncryption_WithEncryptionOnSecondaryRelations_ShouldFetchDecrypted(t
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 0,
 				Doc: `{
 					"name":	"Chris"
 				}`,
 				IsDocEncrypted: true,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				CollectionID: 1,
 				DocMap: map[string]any{
 					"model":        "Walkman",
@@ -174,7 +175,7 @@ func TestDocEncryption_WithEncryptionOnSecondaryRelations_ShouldFetchDecrypted(t
 					"owner":        testUtils.NewDocIndex(0, 0),
 				},
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					User {
 						name

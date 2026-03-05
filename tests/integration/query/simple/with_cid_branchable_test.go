@@ -1,12 +1,13 @@
-// Copyright 2024 Democratized Data Foundation
+// Copyright 2026 Democratized Data Foundation
 //
-// Use of this software is governed by the Business Source License
-// included in the file licenses/BSL.txt.
+// This file is part of the DefraDB test suite.
 //
-// As of the Change Date specified in that file, in accordance with
-// the Business Source License, use of this software will be governed
-// by the Apache License, Version 2.0, included in the file
-// licenses/APL.txt.
+// The DefraDB test suite is licensed under either:
+//
+//   (1) GNU Affero General Public License v3
+//   (2) Business Source License 1.1
+//
+// See tests/LICENSE for details.
 
 package simple
 
@@ -20,14 +21,14 @@ import (
 func TestQuerySimpleWithCidOfBranchableCollection_FirstCid(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @branchable {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Fred"
 				}`,
@@ -37,15 +38,15 @@ func TestQuerySimpleWithCidOfBranchableCollection_FirstCid(t *testing.T) {
 					"name": "Freddddd"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John"
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users (
-							cid: "bafyreicbmj4ph5cjdn65ugobaqzwrwdcqkf2qqsdfimxdhvc2ceemfkdkq"
+							cid: "bafyreicxlkbypv4hjc2trunobsugx63no47322xfjjazj3v5y6hqeck3d4"
 						) {
 						name
 					}
@@ -67,14 +68,14 @@ func TestQuerySimpleWithCidOfBranchableCollection_FirstCid(t *testing.T) {
 func TestQuerySimpleWithCidOfBranchableCollection_MiddleCid(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @branchable {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Fred"
 				}`,
@@ -84,15 +85,15 @@ func TestQuerySimpleWithCidOfBranchableCollection_MiddleCid(t *testing.T) {
 					"name": "Freddddd"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John"
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users (
-							cid: "bafyreidnibv7dlr3flwicfjybi6vguzhotendq73lws5xkeqro6jbhdyq4"
+							cid: "bafyreibc2flc7hsmj3qfw77niwtbdh54thycppxizgvqdwn2l3zpcymbpq"
 						) {
 						name
 					}
@@ -114,14 +115,14 @@ func TestQuerySimpleWithCidOfBranchableCollection_MiddleCid(t *testing.T) {
 func TestQuerySimpleWithCidOfBranchableCollection_LastCid(t *testing.T) {
 	test := testUtils.TestCase{
 		Actions: []any{
-			&action.AddSchema{
-				Schema: `
+			&action.AddCollection{
+				SDL: `
 					type Users @branchable {
 						name: String
 					}
 				`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "Fred"
 				}`,
@@ -131,15 +132,15 @@ func TestQuerySimpleWithCidOfBranchableCollection_LastCid(t *testing.T) {
 					"name": "Freddddd"
 				}`,
 			},
-			testUtils.CreateDoc{
+			&action.AddDoc{
 				Doc: `{
 					"name": "John"
 				}`,
 			},
-			testUtils.Request{
+			&action.Request{
 				Request: `query {
 					Users (
-							cid: "bafyreiaxocl4etnz52ojlt4vcfq3wyfsqr35atf5zilp2n324xxsiuobyu"
+							cid: "bafyreibyobeiqifhovshswbvezcuug6l76bz7ejm5zec47pzsmmmldz5we"
 						) {
 						name
 					}
