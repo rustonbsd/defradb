@@ -92,6 +92,7 @@ func MakeStartCommand(ctx context.Context) *cobra.Command {
 				SetEnableDevelopment(cfg.GetBool("development")).
 				SetDisableP2P(cfg.GetBool("net.p2pDisabled"))
 			opts.Store().
+				//SetType(config.ConfigStoreMemory).
 				SetPath(cfg.GetString("datastore.badger.path")).
 				SetBadgerInMemory(inMem)
 			opts.DB().

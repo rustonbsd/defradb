@@ -22,13 +22,11 @@ import (
 	"strings"
 	"testing"
 
-	badgerds "github.com/dgraph-io/badger/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/sourcenetwork/corekv/badger"
-
 	"github.com/sourcenetwork/defradb/client"
+	badger "github.com/sourcenetwork/defradb/internal/corekvbadger"
 	"github.com/sourcenetwork/defradb/internal/db"
 	acpDB "github.com/sourcenetwork/defradb/internal/db/acp"
 )
@@ -194,7 +192,7 @@ func TestCCIPPost_WithInvalidBody(t *testing.T) {
 
 func setupDatabase(t *testing.T) DB {
 	ctx := context.Background()
-	store, err := badger.NewDatastore("", badgerds.DefaultOptions("").WithInMemory(true))
+	store, err := badger.NewDatastore("", badger.Options{InMemory: true})
 	require.NoError(t, err)
 
 	adminInfo, err := acpDB.NewNACInfo(ctx, "", false)

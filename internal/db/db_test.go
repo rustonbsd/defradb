@@ -14,16 +14,14 @@ import (
 	"context"
 	"testing"
 
-	badgerds "github.com/dgraph-io/badger/v4"
 	"github.com/stretchr/testify/require"
 
-	"github.com/sourcenetwork/corekv/badger"
-
+	badger "github.com/sourcenetwork/defradb/internal/corekvbadger"
 	acpDB "github.com/sourcenetwork/defradb/internal/db/acp"
 )
 
 func newBadgerDB(ctx context.Context) (*DB, error) {
-	rootstore, err := badger.NewDatastore("", badgerds.DefaultOptions("").WithInMemory(true))
+	rootstore, err := badger.NewDatastore("", badger.Options{InMemory: true})
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +35,7 @@ func newBadgerDB(ctx context.Context) (*DB, error) {
 
 func TestNewDB(t *testing.T) {
 	ctx := context.Background()
-	rootstore, err := badger.NewDatastore("", badgerds.DefaultOptions("").WithInMemory(true))
+	rootstore, err := badger.NewDatastore("", badger.Options{InMemory: true})
 	require.NoError(t, err)
 
 	adminInfo, err := acpDB.NewNACInfo(ctx, "", false)

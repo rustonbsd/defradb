@@ -13,12 +13,10 @@ package node
 import (
 	"context"
 
-	badgerds "github.com/dgraph-io/badger/v4"
-
 	"github.com/sourcenetwork/corekv"
-	"github.com/sourcenetwork/corekv/badger"
 
 	"github.com/sourcenetwork/defradb/client/options"
+	badger "github.com/sourcenetwork/defradb/internal/corekvbadger"
 )
 
 func init() {
@@ -29,16 +27,17 @@ func init() {
 			path = opts.Path
 		}
 
-		badgerOpts := badgerds.DefaultOptions(path)
-		badgerOpts.InMemory = opts.BadgerInMemory
-		badgerOpts.ValueLogFileSize = opts.BadgerFileSize
-		badgerOpts.EncryptionKey = opts.BadgerEncryptionKey
+		badgerOpts := badger.Options{
+			InMemory:         opts.BadgerInMemory,
+			ValueLogFileSize: opts.BadgerFileSize,
+			EncryptionKey:    opts.BadgerEncryptionKey,
+		}
 
 		if len(opts.BadgerEncryptionKey) > 0 {
 			// Having a cache improves the performance.
 			// Otherwise, your reads would be very slow while encryption is enabled.
 			// https://dgraph.io/docs/badger/get-started/#encryption-mode
-			badgerOpts.IndexCacheSize = 100 << 20
+			badgerOpts.IndexCacheSize = 100 << 20 // i64
 		}
 
 		return badger.NewDatastore(path, badgerOpts)

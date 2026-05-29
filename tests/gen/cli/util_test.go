@@ -16,15 +16,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	badgerds "github.com/dgraph-io/badger/v4"
 	"github.com/stretchr/testify/require"
 
-	"github.com/sourcenetwork/corekv/badger"
 	"github.com/sourcenetwork/corelog"
 
 	"github.com/sourcenetwork/defradb/client"
 	"github.com/sourcenetwork/defradb/errors"
 	httpapi "github.com/sourcenetwork/defradb/http"
+	badger "github.com/sourcenetwork/defradb/internal/corekvbadger"
 	"github.com/sourcenetwork/defradb/internal/db"
 	acpDB "github.com/sourcenetwork/defradb/internal/db/acp"
 )
@@ -50,7 +49,7 @@ func start(ctx context.Context) (*defraInstance, error) {
 	log.InfoContext(ctx, "Starting DefraDB service...")
 
 	log.InfoContext(ctx, "Building new memory store")
-	rootstore, err := badger.NewDatastore("", badgerds.DefaultOptions("").WithInMemory(true))
+	rootstore, err := badger.NewDatastore("", badger.Options{InMemory: true})
 	if err != nil {
 		return nil, err
 	}

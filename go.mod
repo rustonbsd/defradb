@@ -40,9 +40,9 @@ require (
 	github.com/onsi/gomega v1.39.1
 	github.com/philippgille/chromem-go v0.7.0
 	github.com/pkg/errors v0.9.1
+	github.com/rustonbsd/corekv v0.0.0-20260526222901-688a46c6e1a3
 	github.com/sourcenetwork/acp_core v0.8.1
 	github.com/sourcenetwork/corekv v0.3.1
-	github.com/sourcenetwork/corekv/badger v0.3.1
 	github.com/sourcenetwork/corekv/blockstore v0.3.1
 	github.com/sourcenetwork/corekv/chunk v0.3.1
 	github.com/sourcenetwork/corekv/leveldb v0.3.1
@@ -409,6 +409,7 @@ require (
 	github.com/sirupsen/logrus v1.9.4 // indirect
 	github.com/skip-mev/block-sdk/v2 v2.1.5 // indirect
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
+	github.com/sourcenetwork/corekv/badger v0.2.4 // indirect
 	github.com/sourcenetwork/go-libp2p-pubsub-rpc v0.0.14 // indirect
 	github.com/sourcenetwork/goleveldb v0.0.0-20251217012629-27249d06b81b // indirect
 	github.com/sourcenetwork/raccoondb v0.2.1-0.20240722161350-d4a78b691ec8 // indirect
@@ -484,3 +485,5 @@ require (
 )
 
 replace github.com/wlynxg/anet => github.com/sourcenetwork/anet v0.0.0-20250417190629-7c87cba7799e
+
+exclude github.com/moby/moby v24.0.9+incompatible
